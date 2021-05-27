@@ -1,0 +1,813 @@
+﻿@using Newtonsoft.Json
+@*@model MyVDBSDemo.Models.RegisterViewModel*@
+@model MyVDBSDemo.Models.SetRegister
+@using System.Configuration;
+@using BotDetect.Web.Mvc;
+
+
+@{
+    ViewBag.Title = "MyVDBS - Register";
+    Layout = null;
+}
+
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "__AjaxAntiForgeryForm" }))
+{
+    @Html.AntiForgeryToken()
+}
+<!DOCTYPE html>
+
+<style>
+    .pass-tips-valid {
+        color: #00FF00;
+    }
+
+    .pass-tips-invalid {
+        color: red;
+    }
+</style>
+<html>
+@*<head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="~/Content/bootstrap.min.css" rel="stylesheet" />
+        <link href="~/Content/cssLogin/login.css" rel="stylesheet" />
+        <link href="~/Content/font-awesome-4.7.0/font-awesome-4.7.0/css/font-awesome.css" rel="stylesheet" />
+        <script src="~/Scripts/Main/knockout-3.2.0.js"></script>
+        <script src="~/Scripts/Main/knockout.mapping-latest.debug.js"></script>
+        <script src="~/Scripts/Main/knockout.mapping-latest.js"></script>
+        <script src="~/Scripts/jquery.validationEngine.js"></script>
+        <script src="~/Scripts/jquery.validationEngine-en.js"></script>
+        <script src="~/Scripts/Core/civem-0.0.7.min.js"></script>
+        <script language="javascript" src="~/Scripts/Common/ConfirmationScript.js" type="text/javascript"></script>
+        @Scripts.Render("~/bundles/jquery")
+        @Scripts.Render("~/bundles/bootstrap")
+        @Styles.Render("~/Content/css")
+        <script src="~/Scripts/bootstrap.min.js"></script>
+
+        @Scripts.Render("~/bundles/modernizr")
+        <script src="~/Scripts/jquery-ui-1.12.1.js"></script>
+        <link href="~/Content/jqueryUI.css" rel="stylesheet" />
+        <script src="~/Scripts/Core/jquery.dataTables.min.js"></script>
+        <script src="~/Scripts/Core/dataTables.bootstrap.min.js"></script>
+        <link href="~/Content/dataTables.bootstrap.min.css" rel="stylesheet" />
+        <script src="~/Scripts/bootstrap-filestyle.js"></script>
+        <script src="@Url.Content("~/Scripts/Main/commondialog.js")"></script>
+
+
+
+        <link href="~/Content/validationEngine.jquery.css" rel="stylesheet" />
+        <title>@ViewBag.Title</title>
+    </head>*@
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    @Scripts.Render("~/bundles/jquery")
+    <script src="~/Scripts/jquery-ui-1.12.1.js"></script>
+    <link href="~/Content/jqueryUI.css" rel="stylesheet" />
+    @Scripts.Render("~/bundles/bootstrap")
+    <script src="~/Scripts/Core/jquery.dataTables.min.js"></script>
+    <script src="~/Scripts/Core/dataTables.bootstrap.min.js"></script>
+    <link href="~/Content/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="~/images/MyVDBS.png" rel="shortcut icon" type="image/x-icon" />
+    <link href="~/Content/font-awesome-4.7.0/font-awesome-4.7.0/css/font-awesome.css" rel="stylesheet" />
+    <script src="~/Scripts/bootstrap-filestyle.js"></script>
+    <script src="~/Scripts/Main/knockout-3.2.0.js"></script>
+    <script src="~/Scripts/Main/knockout.mapping-latest.debug.js"></script>
+    <script src="~/Scripts/Main/knockout.mapping-latest.js"></script>
+    <script src="~/Scripts/jquery.validationEngine.js"></script>
+    <script src="~/Scripts/jquery.validationEngine-en.js"></script>
+    <script src="@Url.Content("~/Scripts/Main/commondialog.js")"></script>
+    <link href="~/Content/validationEngine.jquery.css" rel="stylesheet" />
+    <link href="@BotDetect.Web.CaptchaUrls.Absolute.LayoutStyleSheetUrl" rel="stylesheet" type="text/css" />
+    <link href="~/Content/cssLogin/login.css" rel="stylesheet" />
+
+    <link href="~/Content/jquery-ui-custom.css" rel="stylesheet" />
+    <script src="~/Scripts/jquery-ui-custom.js"></script>
+    <style>
+        .butlink {
+            background: none !important;
+            border: none;
+            padding: 0 !important;
+            font-family: arial,sans-serif;
+            cursor: pointer;
+            text-decoration: underline;
+            color: #f7a200;
+        }
+    </style>
+</head>
+
+
+<body onload="onload()" style="padding-top:0px;">
+    <div class="bg3" style="height:auto">
+        <div class="container">
+            <div class="col-md-8 col-md-offset-2" style="margin-top:20px;">
+                <div class="panel panel-default" style="background-color: rgba(0, 73, 82, 1); border: 1px solid #fff;align-content: center; text-align: center">
+                    <br><img src="~/images/logo01_s.png" height="90"><br><br>
+
+                    @*<div style="font-family: 'Segoe UI', Arial, sans-serif; color:gold">
+                            <strong>Malaysian Vulnerability Database Management System</strong>
+                        </div><hr>*@
+
+                    @*@using (Html.BeginForm("RegisterNew", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "p-15", role = "form", id = "register_form" }))*@
+                    <form id="register_form" class="p-15" role="form">
+                        @*{*@
+
+                        <div style="text-align:right">
+                            <div class="form-group row">
+                                <label for="userID" class="col-md-4 col-form-label col-form-label-sm" style="color:white">Login ID</label>
+                                @*<div class="col-md-6">
+                                        <input type="text" class="validate[required] form-control" id="LoginID" name="LoginID" placeholder="1234" onchange="CheckID()" required=required data-errormessage-value-missing="Please enter User ID" data-bind="value:Register.LoginID,valueUpdate: 'afterkeydown'">
+                                    </div>*@
+                                <div class="col-md-6">
+                                    <input type="text" class="validate[required] form-control form-control-sm" id="IdUser" name="IdUser" placeholder="" onchange="CheckID()" required=required data-errormessage-value-missing="Please enter Login ID" data-bind="value:Register.RegisterViewModel.IdUser,valueUpdate: 'afterkeydown'" autocomplete="off">
+                                    @*<span class="field-validation-valid" data-valmsg-for="IdUser" data-valmsg-replace="true"></span>*@
+                                </div>
+                            </div>
+
+                            <div class="form-group row">
+                                <label for="password" class="col-md-4 col-form-label col-form-label-sm" style="color:white">Password</label>
+                                <div class="col-md-4">
+                                    <input type="password" class="validate[required] form-control form-control-sm" id="Password1" name="Password1" data-errormessage-value-missing="Please enter your Password" placeholder="" onchange="CheckVal(1)" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" title="Must contain at least one number and one uppercase and lowercase letter, and at least 8 or more characters" required data-bind="value:Register.RegisterViewModel.Password1,valueUpdate: 'afterkeydown'">
+                                    @*<span class="field-validation-valid" data-valmsg-for="Password1" data-valmsg-replace="true"></span>*@
+                                </div>
+
+                                @*<div class="col-md-4" id="password_tips" style="display: none;">*@
+                                <div class="col-md-4" id="msg" style="display: none;color:white;">
+                                    <div style="text-align:left;">Password must contain a combination of : </div>
+                                    <div id="tips_min" class="pass-tips-invalid" style="text-align:left;"><span id="icon_min" class="fa fa-times"></span> a minimum of @Model.ConfigParamData.minBackup characters</div>
+                                    <div id="tips_upper" class="pass-tips-invalid" style="text-align:left;"><span id="icon_upper" class="fa fa-times"></span> minimum 1 uppercase letter</div>
+                                    <div id="tips_lower" class="pass-tips-invalid" style="text-align:left;"><span id="icon_lower" class="fa fa-times"></span> minimum 1 lowercase letter</div>
+                                    <div id="tips_num" class="pass-tips-invalid" style="text-align:left;"><span id="icon_num" class="fa fa-times"></span> minimum 1 number</div>
+                                    <div id="tips_symbol" class="pass-tips-invalid" style="text-align:left;"><span id="icon_symbol" class="fa fa-times"></span> minimum 1 symbol</div>
+                                    <div id="tips_max" class="pass-tips-invalid" style="text-align:left;"><span id="icon_max" class="fa fa-times"></span> a maximum of @Model.ConfigParamData.maxBackup characters</div>
+                                </div>
+                            </div>
+
+                            <div class="form-group row">
+                                <label for="password-confirm" class="col-md-4 col-form-label col-form-label-sm" style="color:white">Confirm Password</label>
+                                <div class="col-md-4">
+                                    <input type="password" class="validate[required] form-control form-control-sm" id="Password2" name="Password2" placeholder="" onchange="CheckVal(2)" required=required data-errormessage-value-missing="Please enter your confirmation Password" data-bind="value:Register.RegisterViewModel.Password2,valueUpdate: 'afterkeydown'">
+                                    @*<span class="field-validation-valid" data-valmsg-for="Password2" data-valmsg-replace="true"></span>*@
+                                </div>
+
+                                <div class="col-md-4" id="msg2" style="display: none;">
+                                    <div style="text-align:left;" id="tips_confirm" class="pass-tips-invalid"><span id="icon_confirm" class="fa fa-times"></span> Confirm Password must same with Password</div>
+                                </div>
+                            </div><hr>
+
+                            <div class="form-group row">
+                                <label for="name" class="col-md-4 col-form-label col-form-label-sm" style="color:white">Name</label>
+                                <div class="col-md-6">
+                                    <input type="text" class="validate[required] form-control form-control-sm" id="Name" name="Name" placeholder="" required=required data-errormessage-value-missing="Please enter your Name" data-bind="value:Register.RegisterViewModel.Name,valueUpdate: 'afterkeydown'" style="text-transform:uppercase;" autocomplete="off">
+                                    @*<span class="field-validation-valid" data-valmsg-for="Name" data-valmsg-replace="true"></span>*@
+                                </div>
+                            </div>
+
+                            @*bakal dropdown in future*@
+                            <div class="form-group row">
+                                <label for="position" class="col-md-4 col-form-label col-form-label-sm" style="color:white">Designation</label>
+                                <div class="col-md-6">
+                                    <input type="text" class="validate[required] form-control form-control-sm" id="Designation" name="Designation" placeholder="" required=required data-errormessage-value-missing="Please enter your Designation" data-bind="value:Register.RegisterViewModel.Designation,valueUpdate: 'afterkeydown'" style="text-transform:uppercase;" autocomplete="off">
+                                    @*<span class="field-validation-valid" data-valmsg-for="designation" data-valmsg-replace="true"></span>*@
+                                </div>
+                            </div>
+
+                            <div class="form-group row">
+                                <label for="phoneNo" class="col-md-4 col-form-label col-form-label-sm" style="color:white">Tel. No</label>
+
+                                <div class="col-md-6">
+                                    <div class="col-md-5" style="padding:0px 15px 0px 0px">
+                                        <select id="country" class="validate[required] form-control" data-bind="options: country, optionsText: 'CountryName', selectedOptions:'60', optionsValue: 'CountryTelCd', valueAllowUnset: true, value : '+60', valueUpdate: 'afterkeydown'" )></select>
+                                    </div>
+                                    <div class="col-md-7" style="padding:0px;">
+                                        <input type="text" class="validate[required] form-control form-control-sm" id="TelNo" name="TelNo" placeholder="" required=required data-errormessage-value-missing="Please enter your Tel. No" data-bind="value:Register.RegisterViewModel.TelNo,valueUpdate: 'afterkeydown'" autocomplete="off" onkeypress="return isNumber(event)">
+                                        @*<p style="color:white;text-align:left;margin-bottom: 0px;">Should not start with 0. E.g. +60145123456</p>*@
+                                        @*<span class="field-validation-valid" data-valmsg-for="TelNo" data-valmsg-replace="true"></span>*@
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group row">
+                                <label for="email" class="col-md-4 col-form-label col-form-label-sm" style="color:white">Email</label>
+                                <div class="col-md-6">
+                                    <input type="text" class="validate[required] form-control form-control-sm" id="Email" name="Email" placeholder="" onchange="CheckEmail()" required=required data-errormessage-value-missing="Please enter your Email" data-bind="value:Register.RegisterViewModel.Email,valueUpdate: 'afterkeydown'" autocomplete="off">
+                                    @*<span class="field-validation-valid" data-valmsg-for="email" data-valmsg-replace="true"></span>*@
+                                </div>
+                            </div><hr>
+
+                            <div class="form-group row">
+                                <label for="tng" class="col-md-4 col-form-label col-form-label-sm" style="color:white"></label>
+                                <div class="col-md-6">
+                                    <div class="col-md-1" style="padding-left:0;">
+                                        <input type="checkbox" id="tng" class="form-check-input" value="1">
+                                    </div>
+                                    <div class="col-md-11" style="text-align: left;color: #fff;">
+                                        <span>
+                                            Check here to indicate that you have read and agree to the terms of the
+                                            @{
+                                                if (Model.FileName != "")
+                                                {
+                                                    <a class="butlink" onclick="gotosss2()"> NDA Agreement</a>
+                                                }
+                                                else
+                                                {
+                                                    <a class="butlink" onclick="gotosss()"> NDA Agreement</a>
+                                                }
+                                            }
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group row">
+                                @{ MvcCaptcha exampleCaptcha = new MvcCaptcha("ExampleCaptcha");
+                                    exampleCaptcha.UserInputID = "CaptchaCode";
+                                }
+                                <label class="col-md-4 col-form-label col-form-label-sm" style="color:white">Captcha</label>
+                                <div class="col-md-6">
+                                    @Html.Captcha(exampleCaptcha)
+                                    <br />
+                                    <input type="text" class="validate[required] form-control form-control-sm" id="CaptchaCode" name="CaptchaCode" required=required data-errormessage-value-missing="Please enter the characters in the image above">
+                                    @*<font color="red"><span class="status" id="status">Not checked yet</span></font>*@
+                                    @*<a href="#" id="check">Check</a>*@
+                                </div>
+                            </div>
+
+                            @*<div class="form-group row">
+                                    <label for="agencyName" class="col-md-4 col-form-label col-form-label-sm" style="color:white">Agency Name</label>
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control form-control-sm" id="AgencyName" name="AgencyName" placeholder="cth: Nama Agensi">
+                                    </div>
+                                </div>*@
+
+                            @*<div class="form-group row">
+                                    <label for="agencyName" class="col-md-4 col-form-label col-form-label-sm" style="color:white">Agency Name</label>
+                                    <div class="col-md-6">
+                                        <select id="agency_id" class="validate[required] form-control" data-errormessage-value-missing="Please select Agency Name" data-bind="options: agcy, optionsText: 'AgcyNm', optionsValue: 'AgcyID', optionsCaption: '--- Please Choose ---', valueAllowUnset: true,value:Register.RegisterViewModel.AgencyID,valueUpdate: 'afterkeydown'"></select>
+                                    </div>
+                                </div>*@
+                        </div>
+
+
+                        <button type="submit" class="btn btn-primary btn-sm m-t-10" data-bind="click:ValidateCaptcha"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> Submit</button>
+                        @*<button type="submit" class="btn btn-primary btn-sm m-t-10"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> SUBMIT</button>*@
+                        <button class="btn btn-info btn-sm m-t-10" type="button" onclick="cancel()"><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> Back </button>
+
+                        @*}*@
+
+                        <br />
+                        <br />
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="decision_material" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header" align="center">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">MyVDBS</h4>
+                </div>
+                <div class="modal-body" align="center">
+                    <img src='/images/sureto.png' height='40'>&nbsp;&nbsp;Are you sure to submit ?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default btn-ok" data-dismiss="modal" data-bind="click:save_user">Yes</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">No</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="tnc" role="dialog">
+        <div class="modal-dialog">
+
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title" align="center"><b>Terms and Conditions</b></h4>
+                </div>
+                <div class="modal-body">
+                    @Html.Raw(Model.RefNDA.Agreement)
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <div class="modal fade" id="file" role="dialog">
+        <div class="modal-dialog">
+
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title" align="center"><b>Terms and Conditions</b></h4>
+                </div>
+                <div class="modal-body">
+                    <div class="bootstrap-dialog-body">
+                        <div class="bootstrap-dialog-message">
+                            <div>
+                                <object id="objectfile" data="/NDA/@Model.FileName" type="application/pdf" width="100%" height="100%" internalinstanceid="11" style="height: 68vh;"></object>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>
+@Html.Partial("_CommonDialog")
+@*<script language="javascript" src="~/Scripts/Main/commondialog.js" type="text/javascript"></script>*@
+
+
+<script>
+
+    var server = '@ConfigurationManager.AppSettings["server"]';
+    var Register = @Html.Raw(JsonConvert.SerializeObject(@Model, Formatting.None,
+                               new JsonSerializerSettings()
+    {
+                                   ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+    }));
+
+
+    //$('#btnBtal').click(function () {
+    //    //location.href = server + "/Account/Login";
+    //    location.href = "/Account/Login";
+
+    //});
+
+
+   $('#register_form').submit(function () {
+       $('input[type=submit]', this).attr('disabled', 'disabled');
+    });
+
+    @functions{
+        public string TokenHeaderValue()
+        {
+            string cookieToken, formToken;
+            AntiForgery.GetTokens(null, out cookieToken, out formToken);
+            return cookieToken + ":" + formToken;
+        }
+    }
+    var formCsrf = $('#__AjaxAntiForgeryForm');
+    var tokenCsrf = $('input[name="__RequestVerificationToken"]', formCsrf).val();
+</script>
+@*<script src="~/Scripts/Common/Register.js"></script>*@
+<script src="~/Scripts/Common/Common.js"></script>
+
+
+@if (TempData["Message"] != null)
+{
+    <script type="text/javascript">
+                    $(function () {
+                        ShowMessage('@TempData["Message"]');
+                        $('input[type="submit"]').attr('disabled' , false);
+                    });
+
+
+
+    </script>
+}
+<script>
+    $(document).ready(function() {
+
+        $('#TelNo').bind('copy paste cut',function(e) {
+            e.preventDefault(); //disable cut,copy,paste
+        });
+
+        //$(function() {
+        //    $("#country option[value='+60']").prop('selected', true);
+
+        //});
+
+        //$( "#TelNo" ).keyup(function() {
+        //    var dInput = this.value;
+
+
+        //});
+    });
+
+    function cancel(){
+
+        //ShowDecisionMessage("Are you Sure ?", function () {
+            location.href = "/Account/Index";
+       // });
+    }
+
+    var viewModel;
+    var btnBack =  function () {
+        location.href = "/Account/Login";
+    }
+    $(function () {
+
+        viewModel = {
+            Register: ko.mapping.fromJS(Register),
+            agcy: ko.observableArray([]),
+            agcyid: ko.observable(""),
+            totalformatsuccess: ko.observable(""),
+            country: ko.observableArray([]),
+
+            save : function(){
+                var value = $("#register_form").validationEngine('validate');
+
+                if (value == true)
+                {
+                    if(viewModel.totalformatsuccess() != 6){
+                        ShowMessageWarning("Please match the request password format.");
+                        document.getElementById("msg").style.display = ""
+                    }else{
+                        if(document.getElementById('tng').checked == false){
+                            ShowMessageWarning("Please indicate that you accept the terms of the NDA Agreement.");
+                        }else{
+                            $('#decision_material').modal('show');
+                        }
+                    }
+
+                }else{
+                    //$("#register_form").validationEngine();
+                }
+
+            },
+            save_user: function(){
+
+                viewModel.Register.RegisterViewModel.IdUser(htmlEnc($("#IdUser").val()));
+                viewModel.Register.RegisterViewModel.Name(htmlEnc($("#Name").val()));
+                viewModel.Register.RegisterViewModel.Designation(htmlEnc($("#Designation").val()));
+                viewModel.Register.RegisterViewModel.Email(htmlEnc($("#Email").val()));
+                viewModel.Register.RegisterViewModel.CountryTelCd($("#country").val());
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/Account/RegisterNewUser',
+                    contentType: "application/json; charset=utf-8",
+                    data: JSON.stringify({ modelss: ko.mapping.toJS(viewModel.Register.RegisterViewModel) }),
+                    headers: {
+                        '__RequestVerificationToken': tokenCsrf
+                    },
+                    success: function (msg) {
+                        if (msg.OK.Item1) {
+                            ShowMessageSuccess("Your ID is succesfully added. Please wait for the verification.",btnBack);
+                            //$(window).click(function() {
+                            //    location.href = "/Account/Login";
+                            //});
+
+                        }
+                        else {
+                            ShowMessage('Your ID is unsuccesfully added. Please try again.');
+                        }
+
+                    },
+                    error: function (xhr) {
+                    }
+                });
+            }
+        }
+
+
+        ko.applyBindings(viewModel);
+        loadAgency();
+        loadCountryNew('@TokenHeaderValue()');
+
+    });
+
+    function ValidateCaptcha() {
+
+
+        $('#status').attr('class', 'inProgress');
+        $('#status').text('Checking...');
+
+        // get client-side Captcha object instance
+        var captchaObj = $("#CaptchaCode").get(0).Captcha;
+        console.log(captchaObj);
+
+        // gather data required for Captcha validation
+        var params = {}
+        params.CaptchaId = captchaObj.Id;
+        params.InstanceId = captchaObj.InstanceId;
+        params.UserInput = $("#CaptchaCode").val();
+
+        // make asynchronous Captcha validation request
+        $.post('/Account/ValidateCaptcha', params, function (result) {
+            if (true === result) {
+                $('#status').attr('class', 'correct');
+                $('#status').text('Captcha passed');
+                viewModel.save();
+            } else {
+                $('#status').attr('class', 'incorrect');
+                $('#status').text('Captcha failed');
+                // always change Captcha code if validation fails
+                captchaObj.ReloadImage();
+            }
+        }, 'json');
+
+    }
+
+    function CheckID() {
+
+        //alert(document.getElementById("LoginID").value);
+        $.ajax({
+            type: "POST",
+            url: "/Account/CheckID",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({ LoginID: document.getElementById("IdUser").value }),
+            datatype: "json",
+            success: function (msg) {
+                if (msg.OK) {
+                    if (msg.list.DataID != null) {
+                        {
+                            ShowMessageWarning("Login ID already exist");
+                            viewModel.Register.RegisterViewModel.IdUser(null);
+
+                        }
+                    }
+                }
+            }
+
+        })
+
+    }
+
+    function CheckEmail() {
+
+        //alert(document.getElementById("Email").value);
+        $.ajax({
+            type: "POST",
+            url: "/Account/CheckEmail",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({ Email: document.getElementById("Email").value }),
+            datatype: "json",
+            success: function (msg) {
+                if (msg.OK) {
+                    if (msg.list.Reference != null) {
+                        {
+                            ShowMessageWarning("Email already exist");
+                            viewModel.Register.RegisterViewModel.Email(null);
+                        }
+                    }
+                }
+            }
+
+        })
+
+    }
+
+    function loadAgency() {
+        viewModel.agcy.removeAll();
+        $.ajax({
+            type: "POST",
+            url: "/Lookup/GetAgency",
+            contentType: "application/json; charset=utf-8",
+            datatype: "json",
+            headers: {
+                'RequestVerificationToken': '@TokenHeaderValue()'
+            },
+            //   error: function (xhr) { ShowErrorMessage("Error : " + xhr.statusText); },
+            success: function (msg) {
+                if (msg) {
+                    //ShowMessage(msg.message);
+                    var list = ko.mapping.toJS(ko.mapping.fromJSON(msg.list));
+                    $.each(list, function (i, v) {
+                        viewModel.agcy.push(v);
+                    });
+                }
+            }
+        });
+    }
+
+    function CheckVal(ind) {
+
+        var myInput = document.getElementById("Password1");
+        var myInput2 = document.getElementById("Password2");
+        var password = myInput.value;
+        var confirm = myInput2.value;
+        var totalCofrm = viewModel.totalformatsuccess();
+
+        if(ind == 1){
+            if(totalCofrm == 6){
+                if(confirm != ""){
+                    if (password != confirm) {
+                        ShowMessageWarning("Password does not match. Please re-enter a new password again.");
+                        viewModel.Register.RegisterViewModel.Password1(null);
+                        viewModel.Register.RegisterViewModel.Password2(null);
+                    }
+                }
+            }
+            else{
+                ShowMessageWarning("Please match the request password format.");
+            }
+        }else{
+            if (password != confirm) {
+                ShowMessageWarning("Password does not match. Please re-enter a new password again.");
+                viewModel.Register.RegisterViewModel.Password1(null);
+                viewModel.Register.RegisterViewModel.Password2(null);
+            }
+        }
+
+    }
+
+</script>
+
+
+<script type="text/javascript">
+    var myInput = document.getElementById("Password1");
+    var myInput2 = document.getElementById("Password2");
+
+    // When the user clicks on the password field, show the message box
+    myInput.onfocus = function () {
+        document.getElementById("msg").style.display = "block";
+    }
+
+    // When the user clicks outside of the password field, hide the message box
+    myInput.onblur = function () {
+        document.getElementById("msg").style.display = "none";
+    }
+
+    // When the user clicks on the confirm password field, show the message box
+    myInput2.onfocus = function () {
+        document.getElementById("msg2").style.display = "block";
+    }
+
+    // When the user clicks outside of the confirm password field, hide the message box
+    myInput2.onblur = function () {
+        document.getElementById("msg2").style.display = "none";
+    }
+
+    // When the user starts to type something inside the password field
+    myInput.onkeyup = function () {
+
+        var a = 0;
+        var b = 0;
+        var c = 0;
+        var d = 0;
+        var e = 0;
+        var f = 0;
+        // Validate lowercase letters
+        var lowerCaseLetters = /[a-z]/g;
+        if (myInput.value.match(lowerCaseLetters)) {
+            $("#tips_lower").addClass('pass-tips-valid').removeClass('pass-tips-invalid');
+            $("#icon_lower").removeClass('fa fa-times').addClass('fa fa-check');
+            a = 1;
+        } else {
+            $("#tips_lower").addClass('pass-tips-invalid').removeClass('pass-tips-valid');
+            $("#icon_lower").removeClass('fa fa-check').addClass('fa fa-times');
+        }
+
+        // Validate capital letters
+        var upperCaseLetters = /[A-Z]/g;
+        if (myInput.value.match(upperCaseLetters)) {
+            $("#tips_upper").addClass('pass-tips-valid').removeClass('pass-tips-invalid');
+            $("#icon_upper").removeClass('fa fa-times').addClass('fa fa-check');
+            b = 1;
+        } else {
+            $("#tips_upper").addClass('pass-tips-invalid').removeClass('pass-tips-valid');
+            $("#icon_upper").removeClass('fa fa-check').addClass('fa fa-times');
+        }
+
+        // Validate numbers
+        var numbers = /[0-9]/g;
+        if (myInput.value.match(numbers)) {
+            $("#tips_num").addClass('pass-tips-valid').removeClass('pass-tips-invalid');
+            $("#icon_num").removeClass('fa fa-times').addClass('fa fa-check');
+            c = 1;
+        } else {
+            $("#tips_num").addClass('pass-tips-invalid').removeClass('pass-tips-valid');
+            $("#icon_num").removeClass('fa fa-check').addClass('fa fa-times');
+        }
+
+        var symbols = /[^\w\s]/gi;
+        if (myInput.value.match(symbols)) {
+            $("#tips_symbol").addClass('pass-tips-valid').removeClass('pass-tips-invalid');
+            $("#icon_symbol").removeClass('fa fa-times').addClass('fa fa-check');
+            d = 1;
+        } else {
+            $("#tips_symbol").addClass('pass-tips-invalid').removeClass('pass-tips-valid');
+            $("#icon_symbol").removeClass('fa fa-check').addClass('fa fa-times');
+        }
+
+
+        // Validate length
+        if (myInput.value.length >= viewModel.Register.ConfigParamData.minBackup()) {
+            $("#tips_min").addClass('pass-tips-valid').removeClass('pass-tips-invalid');
+            $("#icon_min").removeClass('fa fa-times').addClass('fa fa-check');
+            e = 1;
+        } else {
+            $("#tips_min").addClass('pass-tips-invalid').removeClass('pass-tips-valid');
+            $("#icon_min").removeClass('fa fa-check').addClass('fa fa-times');
+        }
+
+        if (myInput.value.length <= viewModel.Register.ConfigParamData.maxBackup()) {
+            $("#tips_max").addClass('pass-tips-valid').removeClass('pass-tips-invalid');
+            $("#icon_max").removeClass('fa fa-times').addClass('fa fa-check');
+            f = 1;
+        } else {
+            $("#tips_max").addClass('pass-tips-invalid').removeClass('pass-tips-valid');
+            $("#icon_max").removeClass('fa fa-check').addClass('fa fa-times');
+        }
+
+        var total = a + b + c + d + e + f;
+        viewModel.totalformatsuccess(total);
+
+    }// }
+
+
+    myInput2.onkeyup = function () {
+
+        var password = myInput.value;
+        var confirm = myInput2.value;
+
+        //validate confirmation
+        if (password == confirm) {
+            $("#tips_confirm").addClass('pass-tips-valid').removeClass('pass-tips-invalid');
+            $("#icon_confirm").removeClass('fa fa-times').addClass('fa fa-check');
+        }
+        else {
+            $("#tips_confirm").addClass('pass-tips-invalid').removeClass('pass-tips-valid');
+            $("#icon_confirm").removeClass('fa fa-check').addClass('fa fa-times');
+        }
+
+        //$("#password2").focus(function () {
+        //    $("#msg2").show();
+        //});
+        //$("#password2").blur(function () {
+        //    $("#msg2").hide();
+        //});
+    }// }
+    function onload() {
+        document.getElementById("msg").style.display = "none"
+        document.getElementById("msg2").style.display = "none"
+
+    }
+    function isNumber(evt) {
+        var charCode = (evt.which) ? evt.which : event.keyCode
+        if (charCode > 31 && (charCode < 48 || charCode > 57))
+            return false;
+
+        return true;
+    }
+
+
+
+
+
+    function myFunction(id) {
+        //var x = ss;
+
+        var x = document.getElementById(id);
+        // x.value =  x.value.replace('<script>','');
+        //alert(x.value);
+        // var searchMask = "<script>";
+        var regEx = new RegExp("<script", "ig");
+        var replaceMask = "";
+        var regEx2 = new RegExp("</script", "ig");
+        var replaceMask2 = "";
+
+        x.value = x.value.replace(regEx, replaceMask);
+        x.value = x.value.replace(regEx2, replaceMask2);
+
+
+    }
+
+    function validateEmail(email) {
+        var re = /^(([^<>()[\]\\.,;:\s@@\"]+(\.[^<>()[\]\\.,;:\s@@\"]+)*)|(\".+\"))@@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        return re.test(email);
+    }
+
+    function validate() {
+        var $result = $("#result");
+        var email = $("#Email").val();
+        $result.text("");
+
+        if (validateEmail(email)) {
+        } else {
+            ShowMessageWarning("Invalid Email.");
+            $("#Email").val("");
+        }
+        return false;
+    }
+
+    function gotosss() {
+        $('#tnc').modal('show');
+    }
+
+    function gotosss2() {
+        $('#file').modal('show');
+    }
+
+    $("#Email").bind("change", validate);
+
+
+
+
+
+</script>
+@*<script language="javascript" src="~/Scripts/Main/password.js" type="text/javascript"></script>*@
+<script src="~/Scripts/Common/datepicker.js"></script>

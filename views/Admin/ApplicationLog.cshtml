@@ -1,0 +1,229 @@
+﻿
+@using Newtonsoft.Json;
+@using myvdbsSQL;
+@using MyVDBSDemo.Models;
+
+@{
+    ViewBag.Title = "Application Log";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<head></head>
+
+<body>
+    <div class="col-lg-12" style="margin-top:80px;">
+        <div class="panel panel-info">
+
+            <div class="panel-body">
+
+                <div class="col-lg-12" style="margin-top:20px">
+                    <div class="panel panel-info">
+                        <div class="panel-body">
+                            <table class="table table-bordered table-striped display" id="pageList" align="center" width="100%">
+                                <thead style="background-color:moccasin">
+                                    <tr>
+                                        <th class="col-sm-1 text-center"></th>
+                                        <th class="col-sm-1 text-center">@MyVDBSDemo.Resources.LangText.No</th>
+                                        <th class="col-sm-6 text-center">Document Name</th>
+                                        <th class="col-sm-2 text-center">Date Created</th>
+                                        <th class="col-sm-2 text-center">@MyVDBSDemo.Resources.LangText.Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="nodata">
+                                    <tr class="odd">
+                                        <td valign="top" colspan="5" class="dataTables_empty text-center"><center>No matching records found</center></td>
+                                    </tr>
+                                </tbody>
+                                <tbody>
+                                    @{
+                                        var count = 0;
+                                        foreach (var name in Model)
+
+                                        {
+                                            count = count + 1;
+                                            <tr>
+                                                <td style="text-align:center"><input type="checkbox" name="chkFile" value="@name" /></td>
+                                                <td style="text-align:center">@count</td>
+                                                <td>@name</td>
+                                                <td>@File.GetLastWriteTime(this.Server.MapPath(this.VirtualPath)).ToString("dd-MM-yyyy h:mm tt")</td>
+                                                <td style="text-align:center"><a href="/Logs/@name" class="btn btn-primary btn-xs" download><span class="fa fa-download"></span>  Download</a></td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                            <div class="col-sm-5" style="margin-top: 20px">
+                                <div class="dataTables_info" id="pageList_info" role="status" aria-live="polite"><font data-bind="text:'Showing ' + (viewModel.pageind() + 1) + ' to ' + (viewModel.pageind() + viewModel.totaleachpage()) + ' of ' + viewModel.countAllRow() + ' entries'"></font></div>
+                            </div>
+                            <div class="col-sm-7" align="right">
+                                <div id="drawSearchPaginateDT"></div>
+                            </div>
+                            <div class="col-md-12" align="center">
+
+                                <button type="button" id="delete" class="btn btn-danger btn-sm m-t-10">
+                                    <span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Delete File
+                                </button>
+
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @Html.Partial("_CommonDialog")
+</body>
+<script src="~/Scripts/Common/DateFormat.js"></script>
+<script src="~/Scripts/Common/Pagination.js"></script>
+<script src="~/Scripts/Common/Common.js"></script>
+<script src="~/Scripts/Common/CookieHelper.js"></script>
+<script>
+
+    var matrix= @Html.Raw(JsonConvert.SerializeObject(@Model, Formatting.None,
+                              new JsonSerializerSettings()
+    {
+
+                                  ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+    }));
+
+</script>
+
+<script>
+    var dtInstance = $("#pageList").DataTable({
+        "scrollCollapse": false,
+        "paging": true,
+        "columnDefs": [{
+            "searchable": false,
+            "orderable": false,
+            "targets": 0
+        }],
+        "order": [[1, 'asc']]
+    });
+
+    dtInstance.on('order.dt search.dt', function () {
+        dtInstance.column(1, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
+            cell.innerHTML = i + 1;
+        });
+    }).draw();
+
+    dtInstance.on( 'draw', function () {
+        $('#paginatesearch').val(dtInstance.page()+1);
+        setCookie("listingpage2", dtInstance.page()+1, 1);
+    } );
+
+    var viewModel;
+
+    var btnRefresh = function () {
+        location.reload();
+    }
+
+    function cancel() {
+        ShowDecisionMessage("@MyVDBSDemo.Resources.LangText.Are_U_Sure_Cancel", function () {
+
+            location.href = "/Admin/Dashboard";
+        });
+    }
+
+    $(function () {
+
+        viewModel = {
+            del: function (path) {
+                showLoading();
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/DeleteApplicationLog",
+                    data: JSON.stringify({ path: path }),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+                            ShowMessageSuccess("@MyVDBSDemo.Resources.LangText.Success_Del_Msg",btnRefresh);
+                        }
+                        else {
+                            ShowMessageDanger('@MyVDBSDemo.Resources.LangText.Unsuccess_Del_Msg');
+                        }
+                    }
+                })
+            },
+            pageind: ko.observable(0),
+            countAllRow : ko.observable(""),
+            totaleachpage : ko.observable(""),
+
+        }
+
+        ko.applyBindings(viewModel);
+    });
+
+    function hapus(path){
+        viewModel.del(path);
+    };
+
+    $('#delete').click(function () {
+
+        var DelId = "";
+        var objchk = document.getElementsByName("chkFile")
+
+
+        for (var i = 0; i < objchk.length ; i++) {
+            if (objchk[i].checked == true) {
+                DelId = DelId + objchk[i].value + ",";
+            }
+        }
+
+        if (DelId == "") {
+            ShowMessageWarning("Please select record");
+
+        }
+        else {
+            var count = 0; // utk elakkan decisionmessage masuk lebih dri 1 kali
+            ShowDecisionMessage("Are you sure to delete this record?", function () {
+
+                if (count == 0) {
+                    viewModel.del(DelId);
+
+                    count++;
+                }
+
+
+            });
+
+        }
+
+
+    })
+    
+
+    function drawSearchPaginateDT() {
+
+        var searchPaginateDT = "<div id='hidesearch'> Page <input type='text' size='4'  id='paginatesearch' value ='1' onchange='searchPaginateList(this.value)' autocomplete='off'></input></div>";
+
+        $("#drawSearchPaginateDT").html(searchPaginateDT);
+    }
+
+    function searchPaginateList(pageNum) {
+        var lastPage = $('#pageList').DataTable().page.info().pages;
+
+        if(pageNum > lastPage)
+            pageNum = lastPage;
+
+        $('#paginatesearch').val(pageNum);
+
+        var pageIndex = pageNum - 1;
+        $('#pageList').DataTable().page(pageIndex).draw('page')
+
+    }
+    
+    //var table = $('#pageList').DataTable();
+ 
+    //table.on( 'draw', function () {
+    //    $('#paginatesearch').val(table.page()+1);
+    //    setCookie("listingpage2", table.page()+1, 1);
+    //} );
+    
+    $(document).ready(function(){
+        drawSearchPaginateDT();
+        checkListingPageCookie2("listingpage2");
+    });
+</script>

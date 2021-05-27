@@ -1,0 +1,65 @@
+﻿
+<div class="panel-body col-md-6" id="hover5">
+    @*<div class="panel-body  col-md-12">*@
+<label for="inputAddress"><u>List Of Database</u></label>
+    <div align="left">
+        <table class="table table-bordered table-striped display"  border="1" id="verifyUser3" align="center" width="100%" style="height:150px;border-color:aliceblue;">
+            <thead style="background-color:moccasin">
+                <tr>
+                    <th width="2%"></th>
+                    <th width="3%" class="text-center">No.</th>
+                    <th class="text-center">Hostname</th>
+                    <th class="text-center">IP Address</th>
+                    <th class="text-center">Type</th>
+
+                </tr>
+            </thead>
+            <tbody>
+
+                @{
+                    var count = 0;
+                    foreach (var item in Model.VulProjDBLst)
+
+                    {
+                        count = count + 1;
+                        <tr>
+                            <td align="center">
+                                <input type="checkbox" name="chkListOfDatabase" value="@item.VulProjDBlstId" />
+                            </td>
+                            <td style="text-align:center">@count</td>
+                            <td>@Html.Raw(item.Hostname)</td>
+                            <td>@Html.Raw(item.IPAddr)</td>
+                            <td>@Html.Raw(item.Type)</td>
+
+                        </tr>
+                    }
+                }
+            </tbody>
+            @*<tbody style="text-align:left"></tbody>*@
+        </table>
+    </div>
+
+    <div align="center">
+        @*<button data-bind="click : cancel, visible :true, enable: true" class="btn btn-info btn-sm">
+            <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> Back
+        </button>*@
+
+        <button class="btn btn-primary btn-xs" onclick="AddListOfDatabase(); return false;">
+            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
+        </button>
+
+        <button type="button" id="deleteListOfDatabase" class="btn btn-danger btn-xs delete" data-bind="click:DeleteListOfDatabase">
+            <span class="glyphicon glyphicon-trash"></span> Delete
+        </button>
+
+    </div>
+    @*</div>*@
+</div>
+
+<script>
+    function AddListOfDatabase() {
+
+        $('#ListOfDatabase').modal('show');
+
+    }
+</script>

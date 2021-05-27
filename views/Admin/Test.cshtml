@@ -1,0 +1,36 @@
+﻿@using MyVDBSDemo.Models;
+@{
+    ViewBag.Title = "Test";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Test</h2>
+
+<table id="example1" class="table table-bordered table-hover">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+        </tr>
+        </thead>
+    <tbody>
+    @{ foreach (var item in Model) 
+        { 
+            <tr>
+                <td>@item.Name</td>
+                <td>@item.Email</td>
+            </tr>
+
+        }
+
+
+    }
+
+    </tbody>
+
+</table>
+
+
+<script>
+    $("#example1").dataTable();
+</script>

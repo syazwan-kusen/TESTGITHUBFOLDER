@@ -1,0 +1,146 @@
+﻿@using MyVDBSDemo.Models
+@model LoginViewModel
+@{
+    ViewBag.Title = "MyVDBS - Superadmin - ";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="~/Content/bootstrap4.0.0/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/bootstrap4.0.0/js/bootstrap.min.js" rel="stylesheet" />
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/cssLogin/login.css" rel="stylesheet" />
+    <link href="~/Content/cssLogin/bubble.css" rel="stylesheet" />
+    <link href="~/images/favicon.ico" rel="icon" type="image/x-icon" />
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    <script src="@Url.Content("~/Scripts/Main/commondialog.js")"></script>
+    <script language="javascript" src="~/Scripts/Common/Common.js" type="text/javascript"></script>
+    <script src="~/Scripts/Core/civem-0.0.7.min.js"></script>
+    <script language="javascript" src="~/Scripts/Common/ConfirmationScript.js" type="text/javascript"></script>
+
+    <title></title>
+</head>
+<body>
+    <div class="bg3">
+        <div class="container-fluid">
+            <div class="row-fluid">
+
+                @using (Html.BeginForm("Login", "Admin", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+
+                    <div class="bg-container"><br>
+
+                        <div class="row" style="text-align:center">
+                            <div class="col-md-4"></div>
+
+                            <div class="col-md-4">
+                                <img src="~/images/logo01_s.png" height="90">
+                            </div>
+
+                            <div class="col-md-4"></div>
+                        </div><br>
+
+                        <div class="input-group mb-3"></div>
+
+                        <div class="row" style="text-align:center">
+                            <div class="col-md-4"></div>
+
+                            <div class="col-md-4">
+                                <p style="color:white;font-family:Semi-Coder">Superadmin</p>
+                            </div>
+
+                            <div class="col-md-4"></div>
+                        </div><br>
+
+                        <div class="input-group mb-3"></div>
+
+                        <div class="row" style="text-align:center">
+                            <div class="col-md-5"></div>
+
+                            <div class="col-md-2">
+                                <div class="input-group">
+                                    <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
+                                    <input type="text" class="form-control" placeholder="user@myvdbs.com" id="LoginID" name="LoginID" required=required data-errormessage-value-missing="Please enter your Login ID" />
+                                </div>
+                            </div>
+
+                            <div class="col-md-5"></div>
+                        </div><br>
+
+                        <div class="row" style="text-align:center">
+                            <div class="col-md-5"></div>
+
+                            <div class="col-md-2">
+                                <div class="input-group">
+                                    <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
+                                    <input type="password" class="form-control" placeholder="password" id="Password" name="Password" required=required data-errormessage-value-missing="Please enter your Password" />
+                                </div>
+                            </div>
+
+                            <div class="col-md-5"></div>
+                        </div><br>
+
+                        <center><button type="submit" class="btn btn-primary btn-sm" style="background-color:#ff9900">&nbsp;&nbsp;LOGIN&nbsp;&nbsp;</button></center><br>
+                     
+                        <input type="button" value="Click me" onclick="alert('You clicked the button!')">
+                    </div>
+                }
+
+                <ul class="bg-bubbles">
+                    <li></li>
+                    <li></li>
+                    <li></li>
+                    <li></li>
+                    <li></li>
+                    <li></li>
+                    <li></li>
+                    <li></li>
+                    <li></li>
+                    <li></li>
+                </ul>
+
+            </div>
+        </div>
+    </div>
+
+    @Html.Partial("_CommonDialog")
+
+</body>
+</html>
+
+@* no danger/failed *@
+@if (TempData["Message_danger"] != null)
+{
+    <script type="text/javascript">
+        $(function () {
+            ShowMessageDanger('@TempData["Message_danger"]');
+        });
+    </script>
+}
+
+@* title *@
+<script language="JavaScript">
+
+    var space = " ";
+    var speed = "200";
+    var pos = 0;
+    var msg = "@ViewBag.Title";
+
+    function Scroll()
+    {
+        document.title = msg.substring(pos, msg.length) + space + msg.substring(0,pos);
+        pos++;
+
+        if (pos > msg.length) pos = 0;
+         window.setTimeout("Scroll()", speed);
+    }
+    Scroll();
+
+</script>

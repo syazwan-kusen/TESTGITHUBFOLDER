@@ -1,0 +1,517 @@
+﻿@using Newtonsoft.Json;
+@using myvdbsSQL;
+@using MyVDBSDemo.Models;
+@using MVCEncrypt;
+@model IEnumerable<MyVDBSDemo.Models.tblComp>
+
+@{
+    ViewBag.Title = "Role and Access Right";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+
+}
+
+
+@*<script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>*@
+<script src="~/Scripts/canvasjs-Chart.js"></script>
+<script type="text/javascript">
+
+</script>
+
+
+@*@{;
+        var context = new MYVDBS();
+        var User = context.GetUserList();
+    }*@
+
+<div class="col-lg-12" style="margin-top:80px;">
+    <div class="panel panel-info">
+        <div class="panel-heading">
+            <h3 class="panel-title">USER AND ROLE</h3>
+        </div>
+        <div class="panel-body">
+
+            @*<table border="1" id="CarianUser" align="center">*@
+            <table id="CarianUser" class="table table-bordered table-striped" cellspacing="0" width="100%">
+                @* <table class="table table-bordered table-striped display" id="CarianUser" align="center" width="100%">*@
+
+                <thead style="background-color:moccasin">
+                    <tr>
+                        <th width="2%"></th>
+                        <th width="3%">No</th>
+                        <th width="20%" class="text-center">User Id</th>
+                        <th width="30%" class="text-center">Name</th>
+                        <th width="20%" class="text-center">Roles</th>
+                        <th width="20%" class="text-center">Date</th>
+                    </tr>
+                </thead>
+
+                <tbody style="text-align:left">
+                    @{
+                        var count = 0;
+                        foreach (var item in Model)
+
+                        {
+                            count = count + 1;
+                            <tr>
+                                <td align="center">
+                                    <input type="checkbox" name="chkAccNo" value="@item.CompID" />
+                                </td>
+                                <td style="text-align:center">@count.</td>
+                                <td>
+                                    <a href="@Url.ActionEnc("mySecret", "UserRoleListUpdate", new {  a = @item.CompID , b = "roleCheck" })"><font color="blue">@Html.Raw(item.DataID)</font></a>
+                                </td>
+                                <td>@Html.Raw(item.CompFullNm)</td>
+                                <td>
+                                    @if (@item.b.PartNm == null)
+                                    {
+
+                                    }
+                                    else
+                                    {
+                                        // var i = 0;
+                                        //var mystring = @item.b.RoleNm;
+                                        //mystring = mystring.Replace(Environment.NewLine, "<br />");
+                                        // @item.b.RoleNm.Replace(Environment.NewLine, "<br />");
+                                        // @item.b.RoleNm.Replace(",","&lt;br&gt;");
+                                        // var aaa = @item.b.RoleNm.Split(',');
+                                        @item.b.PartNm;
+
+
+                                    }
+
+                                </td>
+                                <td align="center">@item.a.CreatedDt</td>
+
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+            <div class="col-sm-5" style="margin-top: 20px">
+                <div class="dataTables_info" id="pageList_info" role="status" aria-live="polite"><font data-bind="text:'Showing ' + (viewModel.pageind() + 1) + ' to ' + (viewModel.pageind() + viewModel.totaleachpage()) + ' of ' + viewModel.countAllRow() + ' entries'"></font></div>
+            </div>
+            <div class="col-sm-7" align="right">
+                <div id="drawSearchPaginateDT"></div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12" align="center">
+                    @*<button type="reset" class="btn btn-primary btn-sm m-t-10" data-bind="click : reload, visible :true, enable: true">
+                            <span class="glyphicon glyphicon-plus"></span> Add User
+                        </button>*@
+                    <a class="btn btn-primary btn-sm" href="/Admin/AddUser"><i class="glyphicon glyphicon-plus"></i> Add</a>
+
+                    <button type="button" id="delete" class="btn btn-danger btn-sm m-t-10" data-bind="click:Delete">
+                        <span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Delete User
+                    </button>
+                    @*<button type="reset" class="btn btn-warning btn-sm m-t-10" data-bind="click : reload, visible :true, enable: true">
+                        <span class="fa fa-key"></span> Reset Password
+                    </button>*@
+
+                    <button type="reset" id="reset" class="btn btn-warning btn-sm m-t-10" data-bind="click:Reset">
+                        <span class="fa fa-key" aria-hidden="true"></span> Reset Password
+                    </button>
+
+                </div>
+            </div>
+
+            @Html.Partial("ScopeEditRole")
+        </div>
+
+    </div>
+</div>
+
+<script src="~/Scripts/Common/DateFormat.js"></script>
+<script src="~/Scripts/Common/Pagination.js"></script>
+<script src="~/Scripts/Common/Common.js"></script>
+<script src="~/Scripts/Common/CookieHelper.js"></script>
+<script>
+
+var SU = @Html.Raw(JsonConvert.SerializeObject(@Model, Formatting.None,
+new JsonSerializerSettings()
+{
+    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+}));
+
+
+
+</script>
+
+
+@*<script src="~/Scripts/Common/RoleProcess.js"></script>*@
+
+<script>
+    function FindingListBack() {
+        $('#FindingListUpdateInfoModel').modal('hide');
+    }
+
+    @functions{
+        public string TokenHeaderValue()
+        {
+            string cookieToken, formToken;
+            AntiForgery.GetTokens(null, out cookieToken, out formToken);
+            return cookieToken + ":" + formToken;                
+        }
+    }
+    var dtInstance = $("#CarianUser").DataTable({
+        "scrollCollapse": false,
+        "paging": true,
+        "columnDefs": [{
+            "searchable": false,
+            "orderable": false,
+            "targets": 0
+        }],
+        "order": [[1, 'asc']]
+    });
+
+    dtInstance.on('order.dt search.dt', function () {
+        dtInstance.column(1, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
+            cell.innerHTML = i + 1;
+        });
+    }).draw();
+
+    dtInstance.on( 'draw', function () {
+        $('#paginatesearch').val(dtInstance.page()+1);
+        setCookie("listingpage12", dtInstance.page()+1, 1);
+    } );
+
+    var viewModel;
+    count = 0;
+
+    $('#delete').click(function () {
+
+        var DelId = "";
+        var objchk = document.getElementsByName("chkAccNo")
+
+
+        for (var i = 0; i < objchk.length ; i++) {
+            if (objchk[i].checked == true) {
+                DelId = DelId + objchk[i].value + " , ";
+            }
+        }
+
+        if (DelId == "") {
+            ShowMessageWarning("Please select record");
+
+        }
+        else {
+            var count = 0; // utk elakkan decisionmessage masuk lebih dri 1 kali
+            ShowDecisionMessage("Are you sure to delete this record?", function () {
+
+                if (count == 0) {
+                    //       alert(DelId);
+                    viewModel.Delete(DelId);
+
+                    count++;
+                }
+
+
+            });
+
+        }
+
+
+    })
+
+    $('#reset').click(function () {
+
+        var DelId = "";
+        var objchk = document.getElementsByName("chkAccNo")
+
+
+        for (var i = 0; i < objchk.length ; i++) {
+            if (objchk[i].checked == true) {
+                DelId = DelId + objchk[i].value + " , ";
+            }
+        }
+
+        if (DelId == "") {
+            ShowMessageWarning("Please select record");
+
+        }
+        else {
+            var count = 0; // utk elakkan decisionmessage masuk lebih dri 1 kali
+            ShowDecisionMessage("Are you sure to Reset Password this record?", function () {
+
+                if (count == 0) {
+                    //       alert(DelId);
+                    viewModel.Reset(DelId);
+
+                    count++;
+                }
+
+
+            });
+
+        }
+
+
+    })
+
+
+    function edit(UserId) {
+        viewModel.update(UserId);
+    }
+
+    $(function () {
+        var btnRefresh = function () {
+            location.reload();
+        }
+
+        viewModel = {
+            SU: ko.mapping.fromJS(SU),
+            RoleCd: ko.observableArray([]),
+            AgencyCd: ko.observableArray([]),
+            StatusCd: ko.observableArray([]),
+
+
+            Delete: function (DelId) {
+
+                showLoading();
+                $.ajax({
+                    type: "POST",
+                    url: "/SetRoles/DeleteUserRoles",
+                    contentType: "application/json; charset=utf-8",
+                    data: JSON.stringify({ userid: DelId }),
+                    datatype: "json",
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                          //  hideLoading();
+
+                            ShowMessageSuccess("Data successfully delete.",btnRefresh);
+                            //$(window).click(function () {
+                            //    location.reload();
+                            //});
+
+
+                        }
+                        else{
+                            ShowMessageDanger('Unsuccesfully delete.');
+                        }
+                    }
+                })
+            },
+
+            reload: function () {
+
+                // location.reload();
+
+                viewModel.SU.userID("");
+                viewModel.SU.userName("");
+                viewModel.SU.userRoles(null);
+                viewModel.SU.userAgency(null);
+                viewModel.SU.userStatus(null);
+                document.getElementById(st_dt.id).value = '';
+                count = 0;
+
+              //  LoadCarianUser();
+
+            },
+
+            list: ko.observableArray([]),
+            update: function (UserId) {
+                // viewModel.list.removeAll();
+                $.ajax({
+                    type: 'POST',
+                    url: "/SetRoles/GetRoleList",
+                    contentType: "application/json; charset=utf-8", // controller/action
+                    data: JSON.stringify({ id: UserId }),
+
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            location.href = "/Admin/UserRoleListUpdate";
+                            //msg.list();0
+                            //viewModel.scope2.VulScopeCd(msg.list.VulScopeCd);
+                            //viewModel.scope2.VulScopeNm(msg.list.VulScopeNm);
+
+
+                            //xlist = ko.mapping.toJS(ko.mapping.fromJSON(msg.list));
+                            //$.each(xlist, function (i, v) {
+                            //    viewModel.list.push(v);
+                            //});
+
+                            //$("#ScopeEditRole").modal({
+                            //    show: 'true',
+                            //    backdrop: 'true',
+                            //    keyboard: 'true'
+                            //});
+
+                        }
+                    }
+                });
+
+            },
+
+            Reset: function (DelId) {
+
+                showLoading();
+                $.ajax({
+                    type: "POST",
+                    url: "/SetRoles/ResetPassword",
+                    contentType: "application/json; charset=utf-8",
+                    data: JSON.stringify({ userid: DelId }),
+                    datatype: "json",
+                    success: function (msg) {
+                        if (msg.OK) {
+                          
+                            //  hideLoading();
+                   
+                            ShowMessageSuccess("Data successfully Reset.",btnRefresh);
+                            //$(window).click(function () {
+                            //    location.reload();
+                            //});
+
+                              
+                        }
+                        else{
+                            ShowMessageDanger('Unsuccesfully delete.');
+                        }
+                    }
+                })
+            },
+
+
+        };
+
+        viewModel.SU.userRoles.subscribe(function (newValue) {
+
+            if (newValue == undefined) {
+                viewModel.SU.userRoles("");
+            }
+            // alert (newValue);
+        });
+
+
+        viewModel.SU.userAgency.subscribe(function (newValue) {
+
+            if (newValue == undefined) {
+                viewModel.SU.userAgency("");
+            }
+            // alert (newValue);
+        });
+
+        viewModel.SU.userStatus.subscribe(function (newValue) {
+
+            if (newValue == undefined) {
+                viewModel.SU.userStatus("");
+            }
+            // alert (newValue);
+        });
+
+        ko.applyBindings(viewModel);
+
+        function loadRoles() {
+            //viewModel.country.removeAll();
+            $.ajax({
+                type: "POST",
+                url: "/Lookup/GetRoles",
+                contentType: "application/json; charset=utf-8",
+                datatype: "json",
+                //   error: function (xhr) { ShowErrorMessage("Error : " + xhr.statusText); },
+                success: function (msg) {
+                    if (msg.OK) {
+                        //ShowMessage(msg.message);
+                        var list = ko.mapping.toJS(ko.mapping.fromJSON(msg.list));
+                        $.each(list, function (i, v) {
+                            viewModel.RoleCd.push(v);
+                        });
+                    }
+                }
+            });
+
+        }
+
+
+        function loadAgency() {
+            //viewModel.country.removeAll();
+            $.ajax({
+                type: "POST",
+                url: "/Lookup/GetAgency",
+                contentType: "application/json; charset=utf-8",
+                datatype: "json",
+                headers: {
+                    'RequestVerificationToken': '@TokenHeaderValue()'
+                },
+                //   error: function (xhr) { ShowErrorMessage("Error : " + xhr.statusText); },
+                success: function (msg) {
+                    if (msg.OK) {
+                        //ShowMessage(msg.message);
+                        var list = ko.mapping.toJS(ko.mapping.fromJSON(msg.list));
+                        $.each(list, function (i, v) {
+                            viewModel.AgencyCd.push(v);
+                        });
+                    }
+                }
+            });
+
+        }
+
+        function loadStatus() {
+            //viewModel.country.removeAll();
+            $.ajax({
+                type: "POST",
+                url: "/Lookup/GetStatus",
+                contentType: "application/json; charset=utf-8",
+                datatype: "json",
+                //   error: function (xhr) { ShowErrorMessage("Error : " + xhr.statusText); },
+                success: function (msg) {
+                    if (msg.OK) {
+                        //ShowMessage(msg.message);
+                        var list = ko.mapping.toJS(ko.mapping.fromJSON(msg.list));
+                        $.each(list, function (i, v) {
+                            viewModel.StatusCd.push(v);
+                        });
+                    }
+                }
+            });
+
+        }
+        /* declare object utk parameter hntr kt button*/
+
+
+        loadRoles();
+        loadAgency();
+        loadStatus();
+
+
+
+    }
+
+
+    )
+    
+
+    function drawSearchPaginateDT() {
+
+        var searchPaginateDT = "<div id='hidesearch'> Page <input type='text' size='4'  id='paginatesearch' value ='1' onchange='searchPaginateList(this.value)' autocomplete='off'></input></div>";
+
+        $("#drawSearchPaginateDT").html(searchPaginateDT);
+    }
+
+    function searchPaginateList(pageNum) {
+        var lastPage = $('#CarianUser').DataTable().page.info().pages;
+
+        if(pageNum > lastPage)
+            pageNum = lastPage;
+
+        $('#paginatesearch').val(pageNum);
+
+        var pageIndex = pageNum - 1;
+        $('#CarianUser').DataTable().page(pageIndex).draw('page')
+
+    }
+    
+    //var table = $('#CarianUser').DataTable();
+ 
+    //table.on( 'draw', function () {
+    //    $('#paginatesearch').val(table.page()+1);
+    //    setCookie("listingpage12", table.page()+1, 1);
+    //} );
+    
+    $(document).ready(function(){
+        drawSearchPaginateDT();
+        checkListingPageCookie2("listingpage12");
+    });
+</script>

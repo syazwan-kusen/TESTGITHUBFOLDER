@@ -1,0 +1,258 @@
+﻿
+@using Newtonsoft.Json;
+@using myvdbsSQL;
+@using MyVDBSDemo.Models;
+@model MyVDBSDemo.Models.BugResearchProjectData
+@*@model IList<MyVDBSDemo.Models.tblREFCVSSSeverity>*@
+
+@{
+    ViewBag.Title = "Update Review Bug Research Project";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "__AjaxAntiForgeryForm" }))
+{
+    @Html.AntiForgeryToken()
+}
+<style>
+    .button-group {
+        padding-bottom: 5px;
+    }
+
+        .button-group input {
+            display: none;
+        }
+
+            .button-group input:checked + label,
+            .button-group input:checked + label:active {
+                background-color: #5cb85c;
+                color: #fff;
+            }
+
+            .button-group input:hover + label {
+                background-color: #d5cccc;
+                color: #fff;
+            }
+
+            .button-group input + label {
+                background-color: #777;
+                color: #fff;
+                margin-right: 5px;
+                padding: 2px 5px;
+                border-radius: 4px;
+                cursor: pointer;
+                display: inline-block;
+            }
+</style>
+
+
+<body>
+    <div class="col-lg-12" style="margin-top:80px;">
+        <div class="panel panel-info">
+
+            <div class="panel-body">
+                <div class="col-lg-1"><h3><span class="label label-default">#<span data-bind="text: Bug.GetBugResearchProj.BugResearchProjId"></span></span></h3></div>
+                <div class="col-lg-11"><h3 data-bind="text: Bug.GetBugResearchProj.ProjTitle"></h3> </div>
+
+                <div class="form-group row">
+                    <label for="title" class="col-sm-2 col-form-label" style="text-align:right;">Status</label>
+                    <div class="col-sm-4" data-bind="text: Bug.GetBugResearchProj.y.BugResearchStatusTitle">
+
+                    </div>
+                    <label for="title" class="col-sm-1 col-form-label" style="text-align:right;">Severity</label>
+                    <div class="col-sm-5" data-bind="text: Bug.GetBugResearchProj.z.SeverityNm">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="title" class="col-sm-2 col-form-label" style="text-align:right;">Disclosed Date</label>
+                    <div class="col-sm-4" data-bind="text: Bug.GetBugResearchProj.DisclosedDt">
+                    </div>
+                    <label for="cat" class="col-sm-1 col-form-label" style="text-align:right;">Category</label>
+                    <div class="col-sm-5" data-bind="text: Bug.GetBugResearchProj.u.VulCategoryNm">
+
+                    </div>
+                    <input type="hidden" data-bind="value:Bug.GetResearcherId.BugResearcherId" />
+                </div>
+                <div class="form-group row">
+                    <label for="title" class="col-sm-2 col-form-label" style="text-align:right;">Created By</label>
+                    <div class="col-sm-4" data-bind="text: Bug.GetBugResearchProj.x.CompFullNm">
+                    </div>
+                    <label for="title" class="col-sm-1 col-form-label" style="text-align:right;">Participants</label>
+                    <div class="col-sm-5">
+
+                        @if (Model.GetBugResearchProj.VisibilityInd == false)
+                        {
+                            <p>Public</p>
+                        }
+                        else
+                        {
+                            foreach (var participant in Model.GetReseacher)
+                            {
+                                //if (File.Exists(Server.MapPath(@participant.x.CrossPath)))
+                                if (@participant.x.CompPath != null && @participant.x.CompPath != "")
+                                {
+                                    <img id="previewImg" src="@participant.x.CompPath" style="border-radius:50%;height:26px" title="@participant.x.CompFullNm"><span>&nbsp; &nbsp;</span>
+                                }
+
+                                else
+                                {
+                                    <img id="previewImg" src="/images/user_bug.png" style="height:26px" title="@participant.x.CompFullNm"><span>&nbsp; &nbsp;</span>
+                                }
+                            }
+                        }
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="title" class="col-sm-2 col-form-label" style="text-align:right;">Project Details</label>
+                    <div class="col-sm-10" data-bind="text: Bug.GetBugResearchProj.ProjDetail">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="title" class="col-sm-2 col-form-label required" style="text-align:right;">Status</label>
+                    <div class="col-sm-4 button-group">
+                        <input class="form-check-input" name="status" type="radio" id="approve" value="04" @(Model.GetBugResearchProj.LatestStatus == "04" || Model.GetBugResearchProj.LatestStatus == "06" ? "checked" : "") onclick="show('04')">
+                        <label class="button" for="approve" data-toggle="tooltip" title="">Approve</label>
+                        @if (Model.GetBugResearchProj.LatestStatus != "07")
+                        {
+                            <input class="form-check-input" name="status" type="radio" id="notapprove" value="07" @(Model.GetBugResearchProj.LatestStatus == "07" ? "checked" : "") onclick="show('07')">
+                            <label class="button" for="notapprove" data-toggle="tooltip" title="">Not Approve</label>
+                        }
+
+                    </div>
+                </div>
+                <div id="remark_panel" class="form-group row" style="display:none">
+                    <label for="title" class="col-sm-1 col-form-label required" style="text-align:right;">Remark</label>
+                    <form id="myForm">
+                        <div class="col-sm-11">
+                            <textarea class="validate[required] form-control" rows="4" id="remark" placeholder="Leave a comment here."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-lg-12" align="center">
+                    <a id="hantar" class="btn btn-sm m-t-10 btn-hantar" data-bind="click:simpan"><span class="glyphicon glyphicon-send" aria-hidden="true"></span> Submit</a>
+                    <a id="cancel" class="btn btn-info btn-sm m-t-10" onclick="cancel('@Model.GetBugResearchProj.LatestStatus')"><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> Back </a>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @Html.Partial("_CommonDialog")
+
+</body>
+<script src="~/Scripts/Common/Common.js"></script>
+<script>
+
+    var Bug = @Html.Raw(JsonConvert.SerializeObject(@Model, Formatting.None,
+    new JsonSerializerSettings()
+    {
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+    }));
+
+    var formCsrf = $('#__AjaxAntiForgeryForm');
+    var tokenCsrf = $('input[name="__RequestVerificationToken"]', formCsrf).val();
+</script>
+
+<script>
+
+    $(function () {
+        var btnRefresh = function () {
+            location.reload();
+        }
+        var btnBack = function () {
+            location.href = "/Admin/ReviewBugResearchProject";
+        }
+        viewModel = {
+            Bug: ko.mapping.fromJS(Bug),
+            reset: function () {
+                location.reload();
+            },
+            review:
+            {
+                BugResearchProjId: ko.observable(""),
+                Remarks: ko.observable(""),
+                BugResearchStatusCd: ko.observable(""),
+                BugResearchStatusId: ko.observable("")
+            },
+            simpan: function () {
+                var status = $('input[name=status]:checked').val();
+
+                var dateString = new Date();
+                var date1 = new Date(dateString);
+                date1.setDate(date1.getDate() - 1);
+
+                var month = date1.getMonth() + 1;
+                var day = date1.getDate();
+                var year = date1.getFullYear();
+                var tarikh = month + '-' + day + '-' + year;
+
+                var status_id = viewModel.Bug.GetBugResearchProj.BugResearchStatusId();
+                var id = viewModel.Bug.GetBugResearchProj.BugResearchProjId();
+                var remark = $('#remark').val();
+
+                viewModel.review.BugResearchProjId(id);
+                viewModel.review.Remarks(remark);
+                viewModel.review.BugResearchStatusCd(status);
+                viewModel.review.BugResearchStatusId(status_id);
+
+                var value = $("#myForm").validationEngine('validate');
+
+                if (status != undefined) {
+                    if (value == true) {
+                        ShowDecisionMessage("Are you sure to submit ? ", function () {
+                            $.ajax({
+                                type: 'POST',
+                                url: '/Admin/UpdateReviewBugResearcher',
+                                contentType: "application/json; charset=utf-8",
+                                headers: {
+                                    '__RequestVerificationToken': tokenCsrf
+                                },
+                                data: JSON.stringify({ modelss: ko.mapping.toJS(viewModel.review), date: tarikh }),
+
+                                success: function (msg) {
+
+                                    if (msg.OK) {
+                                        ShowMessageSuccess("Data successfully submit.", btnBack);
+                                    }
+                                    else {
+                                        ShowMessageDanger('Unsuccesfully submit.');
+                                    }
+
+                                },
+                                error: function (xhr) {
+                                }
+                            });
+                        });
+                    } else {
+                        $("#myForm").validationEngine();
+                    }
+                } else {
+                    ShowMessageWarning('Please fill in the required field.');
+                }
+
+            }
+        }
+
+        ko.applyBindings(viewModel);
+    });
+    function cancel(cd) {
+        if (cd == '06') {
+            sessionStorage.setItem("tab", 1);
+        } else if (cd == '04') {
+            sessionStorage.setItem("tab", 2);
+        } else if (cd == '07') {
+            sessionStorage.setItem("tab", 3);
+        } else {
+            sessionStorage.setItem("tab", 1);
+        }
+
+        location.href = "/Admin/ReviewBugResearchProject";
+    }
+    function show(cd) {
+        if (cd == '07') {
+            $("#remark_panel").show(500);
+        } else {
+            $("#remark_panel").hide(500);
+        }
+
+    }
+</script>

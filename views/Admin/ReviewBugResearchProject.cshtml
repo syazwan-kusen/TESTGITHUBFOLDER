@@ -1,0 +1,83 @@
+﻿@using Newtonsoft.Json;
+@using myvdbsSQL;
+@using MyVDBSDemo.Models;
+@model MyVDBSDemo.Models.ReviewBugResearchProject
+@using MVCEncrypt;
+
+@{
+    ViewBag.Title = "Review Bug Research Project";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+
+}
+<script>
+    $(function() {
+        $("#tabs").tabs();
+    });
+
+</script>
+<style>
+    .butlink {
+        background: none !important;
+        border: none;
+        padding: 0 !important;
+        /*optional*/
+        font-family: arial,sans-serif; /*input has OS specific font-family*/
+        color: rgb(0, 0, 255);
+        cursor: pointer;
+    }
+
+    .butlink:hover {
+        text-decoration: underline;
+    }
+
+    .nav-tabs > li > a{
+        color: #337ab7;
+        text-decoration: none;
+    }
+
+</style>
+<div class="col-lg-12" style="margin-top:80px;">
+    <div class="panel panel-info">
+        <div class="panel-body" style="background-color: #ffffff">
+            <ul class="nav nav-tabs">
+                <li><a href="#menu1" data-toggle="tab" >Waiting for Approval</a></li>
+                <li><a href="#menu2" data-toggle="tab" >Approved</a></li>
+                <li><a href="#menu3" data-toggle="tab" >Not Approved</a></li>
+            </ul>
+            <div class="tab-content" id="tabs">
+                <div class="tab-pane" id="menu1">@Html.Partial("ReviewNew")</div>
+                <div class="tab-pane" id="menu2">@Html.Partial("ReviewApprove")</div>
+                <div class="tab-pane" id="menu3">@Html.Partial("ReviewNotapprove")</div>
+            </div>    
+        </div>                
+    </div>
+</div>
+<script>
+
+    var Bug = @Html.Raw(JsonConvert.SerializeObject(@Model, Formatting.None,
+        new JsonSerializerSettings()
+{
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+}));
+
+</script>
+<script>
+    var seltab = sessionStorage.getItem('tab');
+    if(seltab != undefined){
+        $('.nav-tabs a[href="#menu' + seltab + '"]').tab('show');
+    }else{
+        $('.nav-tabs a[href="#menu' + 1 + '"]').tab('show');
+    }
+    sessionStorage.removeItem('tab');
+    
+    $(function () {
+        $("#pageListA").dataTable();
+        $("#pageListNA").dataTable();
+        $("#pageListN").dataTable();
+        viewModel = {   
+            Bug: ko.mapping.fromJS(Bug), 
+        }
+
+        ko.applyBindings(viewModel);
+    });
+</script>

@@ -1,0 +1,490 @@
+﻿@using Newtonsoft.Json;
+@using myvdbsSQL;
+@using MyVDBSDemo.Models;
+@model IEnumerable<MyVDBSDemo.Models.tblREFCVSSRating>
+
+@{
+    ViewBag.Title = MyVDBSDemo.Resources.LangText.Rating;
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+
+}
+
+<div class="col-lg-12" style="margin-top:80px;">
+    <div class="panel panel-info">
+
+        <div class="panel-body">
+
+            <div class="col-lg-12" style="margin-top:20px">
+                <div class="panel panel-info">
+                    <div class="panel-body">
+                        <table class="table table-bordered table-striped display" id="pageList" align="center">
+                            <thead style="background-color:moccasin">
+                                <tr>
+                                    <th class="text-center">@MyVDBSDemo.Resources.LangText.No</th>
+                                    <th class="col-sm-6 text-center">@MyVDBSDemo.Resources.LangText.Rating_Name</th>
+                                    <th class="col-sm-2 text-center">@MyVDBSDemo.Resources.LangText.Min_Score</th>
+                                    <th class="col-sm-2 text-center">@MyVDBSDemo.Resources.LangText.Max_Score</th>
+                                    <th class="col-sm-2 text-center"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{
+                                    var count = 0;
+                                    foreach (var item in Model)
+
+                                    {
+                                        count = count + 1;
+                                        <tr>
+                                            <td style="text-align:center">@count</td>
+                                            <td>@Html.Raw(item.CVSSRatingNm)</td>
+                                            <td>@item.CVSSScoreMin</td>
+                                            <td>@item.CVSSScoreMax</td>
+                                            <td style="text-align:center">
+                                                <button type="button" id="edit" class="btn btn-success btn-xs edit" onclick="edit('@item.CVSSRatingId')"><span class="glyphicon glyphicon-pencil"></span> @MyVDBSDemo.Resources.LangText.Update</button>
+                                                <button type="button" id="delete" class="btn btn-danger btn-xs delete" onclick="hapus('@item.CVSSRatingId')"><span class="glyphicon glyphicon-trash"></span> @MyVDBSDemo.Resources.LangText.Delete</button>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                        <div align="right">
+                            <div id="drawSearchPaginateDT"></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12" align="center">
+
+                                <button data-bind="click : add, visible :true, enable: true" class="btn btn-primary btn-sm m-t-10">
+                                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Add
+                                </button>
+
+                                @*<button data-bind="click : cancel, visible :true, enable: true" class="btn btn-info btn-sm m-t-10">
+                                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Cancel
+                                </button>*@
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="RatingAdd" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+    <div class="modal-dialog" style="width:500px">
+        <div class="modal-content">
+            <div class="modal-header heady">
+
+                <h4 align="center">@MyVDBSDemo.Resources.LangText.Add_Rating</h4>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <form id="addForm">
+                        <div class="form-group">
+                            <label for="CVSSRatingNm" class="col-form-label required">@MyVDBSDemo.Resources.LangText.Rating_Name:</label>
+                            <input type="text" class="validate[required] form-control" data-bind="value:rating2.CVSSRatingNm" id="CVSSRatingNm" placeholder="e.g. High">
+                        </div>
+                        <br />
+                        <div class="form-group">
+                            <label for="CVSSScoreMin" class="col-form-label required">@MyVDBSDemo.Resources.LangText.Min_Score:</label>
+                            <input type="text" class="validate[required] form-control" data-bind="value:rating2.CVSSScoreMin" id="min" name="min" onkeypress="return isNumberKey(event)" placeholder="e.g. 0.00">
+                        </div>
+                        <br />
+                        <div class="form-group">
+                            <label for="CVSSScoreMax" class="col-form-label required">@MyVDBSDemo.Resources.LangText.Max_Score:</label>
+                            <input type="text" class="validate[required] form-control" data-bind="value:rating2.CVSSScoreMax" id="max" name="max" onkeypress="return isNumberKey(event)" placeholder="e.g. 10.00">
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <div align="center">
+                    <button id="saveDialog" class="btn btn-success btn-sm m-t-10" data-bind="click:saveDialog"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Save </button>
+                    <button id="resetDialog" class="btn btn-warning btn-sm m-t-10" data-bind="click:resetDialog"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Reset </button>
+                    <button id="cancelDialog" class="btn btn-info btn-sm m-t-10" data-bind="click:cancelDialog"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Cancel </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="RatingEdit" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+    <div class="modal-dialog" style="width:500px">
+        <div class="modal-content">
+            <div class="modal-header heady">
+
+                <h4 align="center">@MyVDBSDemo.Resources.LangText.Update_Rating</h4>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <form id="editForm">
+                        <div class="form-group">
+                            <label for="CVSSRatingNm" class="col-form-label required">@MyVDBSDemo.Resources.LangText.Rating_Name:</label>
+                            @*<input type="text" class="validate[required] form-control" data-bind="value:rating3.CVSSRatingNm" id="CVSSRatingNm" placeholder="e.g. High">*@
+                            <textarea id="CVSSRatingNm1" type="text" class="form-control textarearesize" name="CVSSRatingNm1" placeholder="e.g. High" autofocus rows="1" data-bind="html:rating3.CVSSRatingNm, valueUpdate:'afterkeydown'" onkeypress="return runScript(event)" autocomplete="off"></textarea>
+                            <input type="hidden" class="form-control" data-bind="value:rating3.CVSSRatingId" id="CVSSRatingId">
+                        </div>
+                        <br />
+                        <div class="form-group">
+                            <label for="CVSSScoreMin" class="col-form-label required">@MyVDBSDemo.Resources.LangText.Min_Score:</label>
+                            <input type="text" class="validate[required] form-control" data-bind="value:rating3.CVSSScoreMin" name="CVSSScoreMin" id="CVSSScoreMin" onkeypress="return isNumberKey(event)" placeholder="e.g. 0.00">
+                        </div>
+                        <br />
+                        <div class="form-group">
+                            <label for="CVSSScoreMax" class="col-form-label required">@MyVDBSDemo.Resources.LangText.Max_Score:</label>
+                            <input type="text" class="validate[required] form-control" data-bind="value:rating3.CVSSScoreMax" name="CVSSScoreMax" id="CVSSScoreMax" onkeypress="return isNumberKey(event)" placeholder="e.g. 10.00">
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <div align="center">
+                    <button id="saveUpdate" class="btn btn-success btn-sm m-t-10" data-bind="click:saveUpdate"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Save </button>
+                    <button id="resetUpdate" class="btn btn-warning btn-sm m-t-10" data-bind="click:resetUpdate"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Reset </button>
+                    <button id="cancelUpdate" class="btn btn-info btn-sm m-t-10" data-bind="click:cancelUpdate"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Cancel </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="~/Scripts/Common/CookieHelper.js"></script>
+<script>
+
+    var Rating = @Html.Raw(JsonConvert.SerializeObject(@Model, Formatting.None,
+    new JsonSerializerSettings()
+    {
+        ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+    }));
+
+    @functions{
+        public string TokenHeaderValue()
+        {
+            string cookieToken, formToken;
+            AntiForgery.GetTokens(null, out cookieToken, out formToken);
+            return cookieToken + ":" + formToken;                
+        }
+    }
+
+    function FindingListBack() {
+        $('#FindingListUpdateInfoModel').modal('hide');
+    }
+</script>
+
+<script>
+    var dtInstance = $("#pageList").DataTable({
+        "scrollCollapse": false,
+        "paging": true,
+        "columnDefs": [{
+            "searchable": false,
+            "orderable": false,
+            "targets": 0
+        }],
+        "order": [[1, 'asc']]
+    });
+
+    dtInstance.on('order.dt search.dt', function () {
+        dtInstance.column(0, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
+            cell.innerHTML = i + 1;
+        });
+    }).draw();
+
+    dtInstance.on( 'draw', function () {
+        $('#paginatesearch').val(dtInstance.page()+1);
+        setCookie("listingpage3", dtInstance.page()+1, 1);
+    } );
+
+    var viewModel;
+    var UserIdLogin = '@User.Identity.Name';
+
+    var btnRefresh = function () {
+        location.reload();
+    }
+
+    function cancel() {
+        ShowDecisionMessage("@MyVDBSDemo.Resources.LangText.Are_U_Sure_Cancel", function () {
+
+            location.href = "/Admin/Dashboard";
+        });
+    }
+
+    function edit(ratingId) {
+        viewModel.update(ratingId);
+    }
+
+    function checkValue(val) {
+        viewModel.validate(val.value);
+    }
+
+    $(function () {
+
+        viewModel = {
+            rating1: ko.mapping.fromJS(Rating),
+            rating2 :
+            {
+                CVSSRatingId: ko.observable(""),
+                CVSSRatingNm: ko.observable(""),
+                CVSSScoreMin: ko.observable(""),
+                CVSSScoreMax: ko.observable(""),
+                UserIdLogin: UserIdLogin,
+            },
+            rating3 :
+            {
+                CVSSRatingId: ko.observable(""),
+                CVSSRatingNm: ko.observable(""),
+                CVSSScoreMin: ko.observable(""),
+                CVSSScoreMax: ko.observable(""),
+                UserIdLogin:UserIdLogin,
+            },
+
+            remove: function(ratingId) {
+                ShowDecisionMessage("@MyVDBSDemo.Resources.LangText.Are_U_Sure_Del", function () {
+
+                    var btnOk = function () {
+
+                    }
+                    $.ajax({
+                        type: "POST",
+                        url: server + "/Admin/DeleteCVSSRating",
+                        data: JSON.stringify({ ratingId: ratingId }),
+                        contentType: "application/json; charset=utf-8",
+                        error: function (xhr) { },
+                        success: function (msg) {
+                            if (msg.OK) {
+                                ShowMessageSuccess("@MyVDBSDemo.Resources.LangText.Success_Del_Msg", btnRefresh);
+                            }
+                            else {
+                                ShowMessageDanger("@MyVDBSDemo.Resources.LangText.Unsuccess_Del_Msg");
+                            }
+                        }
+                    })
+
+                });
+            },
+            add: function () {
+                $('#RatingAdd').modal('show');
+            },
+            update: function (ratingId) {
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetCVSSRatingEdit",
+                    data: JSON.stringify({ id: ratingId }),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+                            viewModel.rating3.CVSSRatingId(msg.list.CVSSRatingId);
+                            viewModel.rating3.CVSSRatingNm(msg.list.CVSSRatingNm);
+                            viewModel.rating3.CVSSScoreMin(msg.list.CVSSScoreMin);
+                            viewModel.rating3.CVSSScoreMax(msg.list.CVSSScoreMax);
+
+                            $("#CVSSRatingNm1").val(msg.list.CVSSRatingNm);
+
+                            $("#RatingEdit").modal({
+                                show: 'true',
+                                backdrop: 'true',
+                                keyboard: 'true'
+                            });
+
+                        }
+                    }
+                });
+            },
+            saveDialog: function () {
+                var value = $("#addForm").validationEngine('validate');
+
+                if (value == true) {
+                    $.ajax({
+                        type: 'POST',
+                        url: '/Admin/AddCVSSRating',//controller/nama function
+                        contentType: "application/json; charset=utf-8",
+                        headers: {
+                            'RequestVerificationToken': '@TokenHeaderValue()'
+                        },
+                        data: JSON.stringify({ modelss: ko.mapping.toJS(viewModel.rating2) }), //parameter
+
+                        success: function (msg) {
+
+                            if (msg.ok) {
+                                $('#RatingAdd').modal('hide');
+                                ShowMessageSuccess("@MyVDBSDemo.Resources.LangText.Success_Add_Msg",btnRefresh);
+                            }
+                            else {
+                                $('#RatingAdd').modal('hide');
+                                ShowMessageDanger("@MyVDBSDemo.Resources.LangText.Unsuccess_Add_Msg");
+                            }
+
+                        },
+                        error: function (xhr) {
+                        }
+                    });
+                } else {
+                    $("#addForm").validationEngine();
+                }
+            },
+        }
+
+        ko.applyBindings(viewModel);
+    });
+
+    function hapus (ratingId) {
+        viewModel.remove(ratingId);
+    }
+
+    function resetDialog() {
+        viewModel.rating2.CVSSRatingId("");
+        viewModel.rating2.CVSSRatingNm("");
+        viewModel.rating2.CVSSScoreMin("");
+        viewModel.rating2.CVSSScoreMax("");
+    }
+
+    function cancelDialog() {
+        $('#RatingAdd').modal('hide');
+    }
+
+    function resetUpdate() {
+        viewModel.update(viewModel.rating3.CVSSRatingId());
+    }
+
+    function cancelUpdate() {
+        $('#RatingEdit').modal('hide');
+        $('.modal').modal('hide');
+    }
+
+    function saveUpdate() {
+
+        var value = $("#editForm").validationEngine('validate');
+
+        viewModel.rating3.CVSSRatingNm(htmlEnc($('#CVSSRatingNm1').val()));
+
+        if (value == true) {
+            $.ajax({
+                type: "POST",
+                url: server + "/Admin/UpdateCVSSRating",
+                data: JSON.stringify({ modelss: ko.mapping.toJS(viewModel.rating3) }),
+                contentType: "application/json; charset=utf-8",
+                headers: {
+                    'RequestVerificationToken': '@TokenHeaderValue()'
+                },
+                error: function (xhr) { },
+                success: function (msg) {
+                    if (msg.OK) {
+                        $('#RatingEdit').modal('hide');
+                        ShowMessageSuccess("@MyVDBSDemo.Resources.LangText.Success_Update_Msg",btnRefresh);
+
+                    }
+                    else {
+                        $('#RatingEdit').modal('hide');
+                        ShowMessageDanger("@MyVDBSDemo.Resources.LangText.Min_Msg");
+                    }
+                }
+            });
+        } else {
+            $("#editForm").validationEngine();
+        }
+    }
+
+    function hapus(ratingId) {
+        viewModel.remove(ratingId);
+    }
+
+    $(document).ready(function() {
+        $('input[type=text][name=min]').change(function() {
+            var max = $('#max').val();
+
+            if(max != ''){
+                if( parseFloat(this.value).toFixed(2) > parseFloat(max).toFixed(2) ) {
+                    viewModel.rating2.CVSSScoreMin("");
+                    ShowMessageWarning('@MyVDBSDemo.Resources.LangText.Min_Msg');
+                }
+            }
+
+        });
+    });
+
+    $(document).ready(function() {
+        $('input[type=text][name=max]').change(function() {
+            var min = $('#min').val();
+
+
+            if( parseFloat(this.value).toFixed(2) < parseFloat(min).toFixed(2) ) {
+                viewModel.rating2.CVSSScoreMax("");
+                ShowMessageWarning('@MyVDBSDemo.Resources.LangText.Max_Msg');
+            }
+        });
+    });
+
+    $(document).ready(function() {
+        $('input[type=text][name=CVSSScoreMin]').change(function() {
+            var max = $('#CVSSScoreMax').val();
+
+            if(max != ''){
+                if( parseFloat(this.value) > parseFloat(max) ) {
+                    viewModel.rating3.CVSSScoreMin("");
+                    ShowMessageWarning('@MyVDBSDemo.Resources.LangText.Min_Msg');
+                }
+            }
+        });
+    });
+
+    $(document).ready(function() {
+        $('input[type=text][name=CVSSScoreMax]').change(function() {
+            var min = $('#CVSSScoreMin').val();
+
+
+            if( parseFloat(this.value) < parseFloat(min) ) {
+                viewModel.rating3.CVSSScoreMax("");
+                ShowMessageWarning('@MyVDBSDemo.Resources.LangText.Max_Msg');
+            }
+        });
+    });
+
+    function isNumberKey(evt)
+    {
+        var charCode = (evt.which) ? evt.which : evt.keyCode;
+        if (charCode != 46 && charCode > 31
+            && (charCode < 48 || charCode > 57))
+            return false;
+
+        return true;
+    }
+    
+
+    function drawSearchPaginateDT() {
+
+        var searchPaginateDT = "<div id='hidesearch'> Page <input type='text' size='4'  id='paginatesearch' value ='1' onchange='searchPaginateList(this.value)' autocomplete='off'></input></div>";
+
+        $("#drawSearchPaginateDT").html(searchPaginateDT);
+    }
+
+    function searchPaginateList(pageNum) {
+        var lastPage = $('#pageList').DataTable().page.info().pages;
+
+        if(pageNum > lastPage)
+            pageNum = lastPage;
+
+        $('#paginatesearch').val(pageNum);
+
+        var pageIndex = pageNum - 1;
+        $('#pageList').DataTable().page(pageIndex).draw('page')
+
+    }
+    
+    //var table = $('#pageList').DataTable();
+ 
+    //table.on( 'draw', function () {
+    //    $('#paginatesearch').val(table.page()+1);
+    //    setCookie("listingpage3", table.page()+1, 1);
+    //} );
+    
+    $(document).ready(function(){
+        drawSearchPaginateDT();
+        checkListingPageCookie2("listingpage3");
+    });
+</script>

@@ -1,0 +1,104 @@
+﻿@*@model MYVDBSDemo.Models.RegisterViewModel*@
+@{
+    ViewBag.Title = "Register";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/cssLogin/login.css" rel="stylesheet" />
+
+    <title>@ViewBag.Title</title>
+</head>
+<body>
+    <div class="bg2">
+        <div class="container">
+            <div class="col-md-8 col-md-offset-2">
+                <div class="panel panel-default" style="background-color: rgba(0, 0, 0, 0.3); border: 1px solid #fff;align-content: center; text-align: center">
+                    <br><img src="~/images/logo01_s.png" height="90"><br><br>
+
+                    <div style="font-family: 'Segoe UI', Arial, sans-serif; color:gold">
+                        <strong>Malaysian Vulnerability Database Management System</strong>
+                    </div><hr>
+
+                    <form>
+                        <div style="text-align:right">
+                            <div class="form-group row">
+                                <label for="userID" class="col-md-4 col-form-label col-form-label-sm" style="color:white">User ID</label>
+                                <div class="col-md-6">
+                                    <input type="number" class="form-control form-control-sm" id="userID" placeholder="cth: 1234">
+                                </div>
+                            </div>
+
+                            <div class="form-group row">
+                                <label for="password" class="col-md-4 col-form-label col-form-label-sm" style="color:white">Password</label>
+                                <div class="col-md-6">
+                                    <input type="password" class="form-control form-control-sm" id="password" placeholder="cth: xxxxxx">
+                                </div>
+                            </div>
+
+                            <div class="form-group row">
+                                <label for="password-confirm" class="col-md-4 col-form-label col-form-label-sm" style="color:white">Confirm Password</label>
+                                <div class="col-md-6">
+                                    <input type="password" class="form-control form-control-sm" id="password-confirm" placeholder="cth: xxxxxx">
+                                </div>
+                            </div><hr>
+
+                            <div class="form-group row">
+                                <label for="name" class="col-md-4 col-form-label col-form-label-sm" style="color:white">Name</label>
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control form-control-sm" id="name" placeholder="cth: Rahman">
+                                </div>
+                            </div>
+
+                            @*bakal dropdown in future*@
+                            <div class="form-group row">
+                                <label for="position" class="col-md-4 col-form-label col-form-label-sm" style="color:white">Position</label>
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control form-control-sm" id="password" placeholder="cth: Kerani">
+                                </div>
+                            </div>
+
+                            <div class="form-group row">
+                                <label for="phoneNo" class="col-md-4 col-form-label col-form-label-sm" style="color:white">Telephone No.</label>
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control form-control-sm" id="password" placeholder="cth: 012-34567890">
+                                </div>
+                            </div>
+
+                            <div class="form-group row">
+                                <label for="email" class="col-md-4 col-form-label col-form-label-sm" style="color:white">Password</label>
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control form-control-sm" id="email" placeholder="cth: rahman@yahoo.com">
+                                </div>
+                            </div><hr>
+
+                            <div class="form-group row">
+                                <label for="agencyName" class="col-md-4 col-form-label col-form-label-sm" style="color:white">Agency Name</label>
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control form-control-sm" id="agencyName" placeholder="cth: Nama Agensi">
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn btn-primary btn-sm" style="background-color:#ff9900" onclick="location.href='/Account/Login';">&nbsp;&nbsp;BACK&nbsp;&nbsp;</button>
+                        <button type="submit" class="btn btn-primary btn-sm" style="background-color:#ff9900">&nbsp;&nbsp;SUBMIT&nbsp;&nbsp;</button><br><br>
+
+                        @*<a href="/Account/Login" class="btn btn-primary btn-sm">
+                            <span class="glyphicon glyphicon-circle-arrow-left"></span> Back
+                        </a>
+                        <a href="#" class="btn btn-primary btn-sm">
+                            <span class="glyphicon glyphicon-share"></span> Submit
+                        </a><br><br>*@
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

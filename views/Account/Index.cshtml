@@ -1,0 +1,263 @@
+﻿@using Newtonsoft.Json;
+@using myvdbsSQL;
+@using MyVDBSDemo.Models;
+@using System.Configuration;
+@{
+    ViewBag.Title = "MyVDBS - Login - ";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="~/Content/bootstrap4.0.0/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/bootstrap4.0.0/js/bootstrap.min.js" rel="stylesheet" />
+    <link href="~/Content/bootstrap.css" rel="stylesheet" />
+    <link href="~/Content/MyVDBSCSS/login.css" rel="stylesheet" />
+    <link href="~/Content/MyVDBSCSS/bubble.css" rel="stylesheet" />
+    <link href="~/images/MyVDBS.png" rel="shortcut icon" type="image/x-icon" />
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    <script src="@Url.Content("~/Scripts/Main/commondialog.js")"></script>
+    <script language="javascript" src="~/Scripts/Common/Common.js" type="text/javascript"></script>
+    <script src="~/Scripts/Core/civem-0.0.7.min.js"></script>
+    <script language="javascript" src="~/Scripts/Common/ConfirmationScript.js" type="text/javascript"></script>
+    <link href="~/Content/cssLogin/login.css" rel="stylesheet" />
+
+    <title></title>
+
+    <style>
+    </style>
+</head>
+<body>
+    <div class="bg3">
+        <div class="col-12 text-centers"><img src="~/images/csm_logo.png" height="130"></div>
+        <div class="container-fluid2">
+            <div class="row-fluid">
+                <div class="row justify-content-center">
+                    
+                    <div class="wrapper">
+
+                        @using (Html.BeginForm("Login", "Account", FormMethod.Post, new { id = "form_login" }))
+                        {
+
+                            @Html.AntiForgeryToken()
+                            <div class="container" style="margin-right: 25%;">
+                                <br><br>
+                                <div class="row">
+                                    <div class="col-4" style="height:80px; position: relative; left:30px;">
+                                        <a href="/Account/Login" style="position: absolute;z-index: 9999;">
+                                            <img src="~/images/logo01_s.png" height="90">
+                                        </a>
+                                    </div>
+                                    
+                                    <div class="col-2"></div>
+                                    <div class="col-2"></div>
+                                    <div class="col-4"></div>
+                                </div><br>
+
+                                <div class="row">
+                                    <div class="col-4" style="text-align:center">
+                                        <div class="input-group">
+                                            <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
+                                            <input type="text" class="form-control" placeholder="Login ID" id="LoginID" name="LoginID" required=required data-errormessage-value-missing="Please enter your Login ID" autocomplete="off" />
+                                        </div>
+                                    </div>
+                                    <div class="col-2"></div>
+                                    <div class="col-2"></div>
+                                    <div class="col-4"></div>
+                                </div><p></p>
+
+                                <div class="row">
+                                    <div class="col-4" style="text-align:center">
+                                        <div class="input-group">
+                                            <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
+                                            <input type="password" class="form-control" placeholder="Password" id="Password" name="Password" required=required data-errormessage-value-missing="Please enter your Password" />
+                                        </div>
+                                    </div>
+                                    <div class="col-2"></div>
+                                    <div class="col-2"></div>
+                                    <div class="col-4"></div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-4" style="text-align:center">
+                                        <div class="input-group">
+                                            <div class="form-control" style="background-color:rgba(255, 255, 255, 0);border:none;">
+                                                <p style="font-family: Arial, serif; font-size:8pt; font-style:italic;color:gold">
+                                                    <a href="/Account/Register">REGISTER</a> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <a href="/Account/ForgotPassword">FORGOT PASSWORD</a>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-2"></div>
+                                    <div class="col-2"></div>
+                                    <div class="col-4"></div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-4" style="text-align:center">
+                                        <div class="input-group">
+                                            <button type="submit" class="btn btn-primary-custom btn-sm btn-block form-control" onclick="return attemptLogin()">&nbsp;&nbsp;LOGIN&nbsp;&nbsp;</button>
+                                        </div>
+                                    </div>
+                                    <div class="col-2"></div>
+                                    <div class="col-2"></div>
+                                    <div class="col-4"></div>
+                                </div><br>
+
+                                @*<div class="row">
+                                    <div class="col-4" style="text-align:center">
+                                        <div class="input-group">
+                                            <div class="form-control" style="background-color:rgba(255, 255, 255, 0);border:none;">
+                                                <p style="font-family: Arial, serif; font-size:8pt; font-style:italic;color:gold">
+                                                    <a href="/Account/Calibrate">CALIBRATE DATA</a>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-2"></div>
+                                    <div class="col-2"></div>
+                                    <div class="col-4"></div>
+                                </div><br><br><br>*@
+
+                                <div class="row">
+                                    <div class="col-4" style="text-align:center">
+                                        <p style="color:white;font-size:small;font-weight:bold">© <span id="year"></span> MyVDBS ALL RIGHTS RESERVED</p>
+                                    </div>
+                                    <div class="col-2"></div>
+                                    <div class="col-2"></div>
+                                    <div class="col-4"></div>
+                                </div>
+                            </div>
+
+                        }
+
+                        <div class="line-separator"></div>
+
+                        <div class="annouce">
+                            <div class='input-group'>
+                                <div class="form-control" style="background-color:rgba(255, 255, 255, 0);border:none;">
+                                    <marquee id="annouce" style=" color: #FFFFFF" direction="up" height="320" width="750">
+                                        <div onMouseOver="document.getElementById('annouce').stop();" onMouseOut="document.getElementById('annouce').start();">
+                                            @{
+                                                foreach (var item in Model)
+
+                                                {
+                                                    <div><div style="color:#FFFFFF"><h3><b><u>@Html.Raw(item.AnnouncementTitle)</u></b></h3></div>@Html.Raw(item.AnnouncementDetail)</div><br />
+                                                }
+                                            }
+                                        </div>
+                                    </marquee>
+                                    
+                                    @*<div class="scroll-up2" style="color:white;font-family:Calibri;font-size:medium">
+                                        <ul>
+                                            @{
+                                                foreach (var item in Model)
+
+                                                {
+                                                    <li><div style="color:#FFFFFF"><h3><b><u>@Html.Raw(item.AnnouncementTitle)</u></b></h3></div>@Html.Raw(item.AnnouncementDetail)</li>
+                                                }
+                                            }
+                                        </ul>
+                                    </div>*@
+
+                                </div>
+                            </div>
+                        </div>
+
+                 
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    @Html.Partial("_CommonDialog")
+</body>
+</html>
+
+@* success *@
+@if (TempData["Message_success"] != null)
+{
+    <script type="text/javascript">
+       
+        $(function () {
+            ShowMessageSuccess('@TempData["Message_success"]');
+        });
+    </script>
+}
+
+@* danger/failed *@
+@if (TempData["Message_danger"] != null)
+{
+    <script type="text/javascript">
+        $(function () {
+            ShowMessageDanger('@TempData["Message_danger"]');
+        });
+    </script>
+}
+
+@* title *@
+<script language="JavaScript">
+    var space = " ";
+    var speed = "200";
+    var pos = 0;
+    var msg = "@ViewBag.Title";
+    var server = '@ConfigurationManager.AppSettings["server"]';
+
+    function Scroll()
+    {
+        document.title = msg.substring(pos, msg.length) + space + msg.substring(0,pos);
+        pos++;
+
+        if (pos > msg.length) pos = 0;
+            window.setTimeout("Scroll()", speed);
+    }
+    Scroll();
+
+    $(function () {
+        var year = (new Date()).getFullYear();
+
+        $('#year').html(year);
+    });
+    var btnOk = function () {
+        return true;
+    }
+    function attemptLogin() {
+        var login_id = $("#LoginID").val();
+       
+        $.ajax({
+            type: "POST",
+            url: server + "/Account/GetSessionId",
+            data: JSON.stringify({ login_id: login_id }),
+            contentType: "application/json; charset=utf-8",
+            error: function (xhr) { },
+            success: function (msg) {
+                if (msg.OK) {
+                    if (msg.list == 'true') {
+                        $("#form_login").submit();
+                        //return true;
+                    } else {
+                        //ShowDecisionMessage('This Login ID is currently in use by another user. By continuing to log in, the other user session will be forcefully terminated. Proceed to log in?', function () { $("#form_login").submit(); });
+                        ShowMessage('Duplicate login detected.');
+
+                        return false;
+                    }
+                }
+                else {
+                    return false;
+                }
+            }
+        });
+        return false;
+    }
+
+
+
+</script>

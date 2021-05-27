@@ -1,0 +1,586 @@
+﻿
+@using Newtonsoft.Json;
+@using myvdbsSQL;
+@using MyVDBSDemo.Models;
+@model IEnumerable<MyVDBSDemo.Models.tblREFCVSSSeverity>
+
+@{
+    ViewBag.Title = MyVDBSDemo.Resources.LangText.Severity;
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<head></head>
+
+<body>
+    <div class="col-lg-12" style="margin-top:80px;">
+        <div class="panel panel-info">
+
+            <div class="panel-body">
+
+                <div class="col-lg-12" style="margin-top:20px">
+                    <div class="panel panel-info">
+                        <div class="panel-body">
+                            <table class="table table-bordered table-striped display" id="pageList" align="center" width="100%">
+                                <thead style="background-color:moccasin">
+                                    <tr>
+                                        <th class="text-center">@MyVDBSDemo.Resources.LangText.No</th>
+                                        <th class="col-sm-1 text-center">Severity Code</th>
+                                        <th class="col-sm-2 text-center">@MyVDBSDemo.Resources.LangText.Severity_Name</th>
+                                        <th class="col-sm-1 text-center" align="center">@MyVDBSDemo.Resources.LangText.Severity_Abbrv</th>
+                                        <th class="col-sm-1 text-center">@MyVDBSDemo.Resources.LangText.Score_Type</th>
+                                        <th class="col-sm-1 text-center">@MyVDBSDemo.Resources.LangText.Matrix</th>
+                                        <th class="col-sm-1 text-center">@MyVDBSDemo.Resources.LangText.Scoring</th>
+                                        <th class="col-sm-3 text-center">@MyVDBSDemo.Resources.LangText.Severity_Desc</th>
+                                        <th class="col-sm-2 text-center"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        var count = 0;
+                                        foreach (var item in Model)
+
+                                        {
+                                            count = count + 1;
+                                            <tr>
+                                                <td style="text-align:center">@count</td>
+                                                <td>@item.SeverityCd</td>
+                                                <td>@Html.Raw(item.SeverityNm)</td>
+                                                <td>@item.SeverityAbrvn</td>
+                                                <td>@Html.Raw(item.x.scoreTypeNm)</td>
+                                                <td>@Html.Raw(item.y.MatrixNm)</td>
+                                                <td>@item.SeverityScoring</td>
+                                                <td>@Html.Raw(item.SeverityDesc)</td>
+                                                <td style="text-align:center">
+                                                    <button type="button" id="edit" class="btn btn-success btn-xs edit" onclick="edit('@item.SeverityCd')"><span class="glyphicon glyphicon-pencil"></span> @MyVDBSDemo.Resources.LangText.Update</button>
+                                                    <button type="button" id="delete" class="btn btn-danger btn-xs delete" onclick="hapus('@item.SeverityCd')"><span class="glyphicon glyphicon-trash"></span> @MyVDBSDemo.Resources.LangText.Delete</button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                            <div align="right">
+                                    <div id="drawSearchPaginateDT"></div>
+                            </div>
+
+                            <div align="center">
+
+                                <button data-bind="click : add, visible :true, enable: true" class="btn btn-primary btn-sm m-t-10">
+                                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Add
+                                </button>
+
+                                @*<button data-bind="click : cancel, visible :true, enable: true" class="btn btn-info btn-sm m-t-10">
+                                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Cancel
+                                </button>*@
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="SeverityAdd" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+        <div class="modal-dialog" style="width:500px">
+            <div class="modal-content">
+                <div class="modal-header heady">
+
+                    <h4 align="center">@MyVDBSDemo.Resources.LangText.Add_Severity</h4>
+                </div>
+
+                <div class="modal-body">
+                    <div class="form-group">
+                        <form id="addForm">
+                            <div class="row">
+                                <div class='col-md-5'>
+                                    <label class="required">@MyVDBSDemo.Resources.LangText.Score_Type</label>
+                                </div>
+                                <div class="col-md-1"><label> : </label></div>
+                                <div class="col-md-6">
+                                    <select id="ScoreTypeAdd" class="validate[required] form-control" data-bind="options: score, optionsText: 'scoreTypeNm', optionsValue: 'scoreTypeCd', optionsCaption: '--- Please Choose ---', valueAllowUnset: true,value : severity2.ScoreTypeCd, valueUpdate: 'afterkeydown'"></select>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class='col-md-5'>
+                                    <label class="required">@MyVDBSDemo.Resources.LangText.Matrix</label>
+                                </div>
+                                <div class="col-md-1"><label> : </label></div>
+                                <div class="col-md-6">
+                                    <select id="MatrixAdd" class="validate[required] form-control" data-bind="options: matrix, optionsText: 'MatrixNm', optionsValue: 'MatrixCd', optionsCaption: '--- Please Choose ---', valueAllowUnset: true,value : severity2.MatrixCd, valueUpdate: 'afterkeydown'"></select>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class='col-md-5'>
+                                    <label class="required">@MyVDBSDemo.Resources.LangText.Severity_Code</label>
+                                </div>
+                                <div class="col-md-1"><label> : </label></div>
+                                <div class="col-md-6">
+                                    <input type="text" class="validate[required] form-control" id="SeverityCd" data-bind="value:severity2.SeverityCd" onchange="checkExist(this)" placeholder="e.g. 01" maxlength="3"/>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class='col-md-5'>
+                                    <label class="required">@MyVDBSDemo.Resources.LangText.Severity_Name</label>
+                                </div>
+                                <div class="col-md-1"><label> : </label></div>
+                                <div class="col-md-6">
+                                    <input type="text" class="validate[required] form-control" id="SeverityNm" data-bind="value:severity2.SeverityNm" placeholder="e.g. Attack Vector" />
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class='col-md-5'>
+                                    <label class="required">@MyVDBSDemo.Resources.LangText.Severity_Abbrv</label>
+                                </div>
+                                <div class="col-md-1"><label> : </label></div>
+                                <div class="col-md-6">
+                                    <input type="text" class="validate[required] form-control" id="SeverityAbbrv" data-bind="value:severity2.SeverityAbrvn" placeholder="e.g. AV" maxlength="5"/>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class='col-md-5'>
+                                    <label class="required">@MyVDBSDemo.Resources.LangText.Severity_Scoring</label>
+                                </div>
+                                <div class="col-md-1"><label> : </label></div>
+                                <div class="col-md-6">
+                                    <input type="number" class="validate[required] form-control" id="SeverityScoring" data-bind="value:severity2.SeverityScoring" placeholder="e.g. 3.00" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="SeverityDesc" class="col-form-label">@MyVDBSDemo.Resources.LangText.Severity_Desc:</label>
+                                <textarea name="SeverityDesc" class="form-control" data-bind="value:severity2.SeverityDesc" rows="3" placeholder="e.g. This is Attack Vector description."></textarea>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <div align="center">
+                        <button id="saveDialog" class="btn btn-success btn-sm m-t-10" data-bind="click:saveDialog"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Save </button>
+                        <button id="resetDialog" class="btn btn-warning btn-sm m-t-10" data-bind="click:resetDialog"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Reset </button>
+                        <button id="cancelDialog" class="btn btn-info btn-sm m-t-10" data-bind="click:cancelDialog"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Cancel </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="SeverityEdit" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+        <div class="modal-dialog" style="width:500px">
+            <div class="modal-content">
+                <div class="modal-header heady">
+
+                    <h4 align="center">@MyVDBSDemo.Resources.LangText.Update_Severity</h4>
+                </div>
+
+                <div class="modal-body">
+                    <div class="form-group">
+                        <form id="editForm">
+                            <div class="row">
+                                <div class='col-md-5'>
+                                    <label class="required">Severity Code</label>
+                                </div>
+                                <div class="col-md-1"><label> : </label></div>
+                                <div class="col-md-6">
+                                    <input type="text" class="validate[required] form-control" id="SeverityCd" data-bind="value:severity3.SeverityCd" disabled/>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class='col-md-5'>
+                                    <label class="required">@MyVDBSDemo.Resources.LangText.Score_Type</label>
+                                </div>
+                                <div class="col-md-1"><label> : </label></div>
+                                <div class="col-md-6">
+                                    <select id="ScoreTypeEdit" class="validate[required] form-control" data-bind="options: score, optionsText: 'scoreTypeNm', optionsValue: 'scoreTypeCd', optionsCaption: '--- Please Choose ---', valueAllowUnset: true,value : severity3.ScoreTypeCd, valueUpdate: 'afterkeydown'"></select>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class='col-md-5'>
+                                    <label class="required">@MyVDBSDemo.Resources.LangText.Matrix</label>
+                                </div>
+                                <div class="col-md-1"><label> : </label></div>
+                                <div class="col-md-6">
+                                    <select id="MatrixEdit" class="validate[required] form-control" data-bind="options: matrix, optionsText: 'MatrixNm', optionsValue: 'MatrixCd', optionsCaption: '--- Please Choose ---', valueAllowUnset: true,value : severity3.MatrixCd, valueUpdate: 'afterkeydown'"></select>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class='col-md-5'>
+                                    <label class="required">@MyVDBSDemo.Resources.LangText.Severity_Name</label>
+                                </div>
+                                <div class="col-md-1"><label> : </label></div>
+                                <div class="col-md-6">
+                                    @*<input type="text" class="validate[required] form-control" id="SeverityNm" data-bind="value:severity3.SeverityNm" placeholder="e.g. Attack Vector" />*@
+                                    <textarea id="SeverityNm1" type="text" class="form-control textarearesize" name="SeverityNm1" placeholder="e.g. Attack Vector" autofocus rows="1" data-bind="html:severity3.SeverityNm, valueUpdate:'afterkeydown'" onkeypress="return runScript(event)" autocomplete="off"></textarea>
+                                    <input type="hidden" class="validate[required] form-control" id="SeverityCd" data-bind="value:severity3.SeverityCd" onchange="checkExist(this)" placeholder="e.g. 01" />
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class='col-md-5'>
+                                    <label class="required">@MyVDBSDemo.Resources.LangText.Severity_Abbrv</label>
+                                </div>
+                                <div class="col-md-1"><label> : </label></div>
+                                <div class="col-md-6">
+                                    <input type="text" class="validate[required] form-control" id="SeverityAbbrv" data-bind="value:severity3.SeverityAbrvn" placeholder="e.g. AV" maxlength="5" />
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class='col-md-5'>
+                                    <label class="required">@MyVDBSDemo.Resources.LangText.Severity_Scoring</label>
+                                </div>
+                                <div class="col-md-1"><label> : </label></div>
+                                <div class="col-md-6">
+                                    <input type="number" class="validate[required] form-control" id="SeverityScoring" data-bind="value:severity3.SeverityScoring" placeholder="e.g. 3.00" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="SeverityDesc" class="col-form-label">Severity Description:</label>
+                                <textarea id="SeverityDesc1" name="SeverityDesc1" class="form-control" data-bind="html:severity3.SeverityDesc" rows="3" placeholder="e.g. This is Attack Vector description."></textarea>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <div align="center">
+                        <button id="saveUpdate" class="btn btn-success btn-sm m-t-10" data-bind="click:saveUpdate"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Save </button>
+                        <button id="resetUpdate" class="btn btn-warning btn-sm m-t-10" data-bind="click:resetUpdate"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Reset </button>
+                        <button id="cancelUpdate" class="btn btn-info btn-sm m-t-10" data-bind="click:cancelUpdate"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Cancel </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    @Html.Partial("_CommonDialog")
+</body>
+<script src="~/Scripts/Common/DateFormat.js"></script>
+<script src="~/Scripts/Common/Pagination.js"></script>
+<script src="~/Scripts/Common/Common.js"></script>
+<script src="~/Scripts/datatable-plugin-pagination-input.js"></script>
+<script src="~/Scripts/Common/CookieHelper.js"></script>
+<script>
+
+    var matrix= @Html.Raw(JsonConvert.SerializeObject(@Model, Formatting.None,
+                              new JsonSerializerSettings()
+    {
+
+                                  ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+    }));
+
+    @functions{
+        public string TokenHeaderValue()
+        {
+            string cookieToken, formToken;
+            AntiForgery.GetTokens(null, out cookieToken, out formToken);
+            return cookieToken + ":" + formToken;                
+        }
+    }
+
+    var _csrftoken = '@TokenHeaderValue()';
+
+</script>
+
+<script>
+    var dtInstance = $("#pageList").DataTable({
+        "scrollCollapse": false,
+        "paging": true,
+        "columnDefs": [{
+            "searchable": false,
+            "orderable": false,
+            "targets": 0
+        }],
+        "order": [[1, 'asc']]
+    });
+
+    dtInstance.on('order.dt search.dt', function () {
+        dtInstance.column(0, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
+            cell.innerHTML = i + 1;
+        });
+    }).draw();
+
+    dtInstance.on( 'draw', function () {
+        $('#paginatesearch').val(dtInstance.page()+1);
+        setCookie("listingpage8", dtInstance.page()+1, 1);
+    } );
+
+    var viewModel;
+
+    var btnRefresh = function () {
+        location.reload();
+    }
+
+    function cancel() {
+        ShowDecisionMessage("@MyVDBSDemo.Resources.LangText.Are_U_Sure_Cancel", function () {
+
+            location.href = "/Admin/Dashboard";
+        });
+    }
+
+    function edit(matrixCd) {
+        viewModel.update(matrixCd);
+    }
+
+    function checkExist(val) {
+        viewModel.validate(val.value);
+    }
+
+    $(function () {
+
+        viewModel = {
+            score: ko.observableArray([]),
+            scorecd: ko.observable(""),
+            matrix: ko.observableArray([]),
+            matrixcd: ko.observable(""),
+            severity1: ko.mapping.fromJS(matrix),
+            severity2 :
+            {
+                SeverityCd: ko.observable(""),
+                SeverityNm: ko.observable(""),
+                SeverityDesc: ko.observable(""),
+                SeverityAbrvn: ko.observable(""),
+                SeverityScoring: ko.observable(""),
+                ScoreTypeCd: ko.observable(""),
+                MatrixCd: ko.observable(""),
+            },
+            severity3 :
+            {
+                SeverityCd: ko.observable(""),
+                SeverityNm: ko.observable(""),
+                SeverityDesc: ko.observable(""),
+                SeverityAbrvn: ko.observable(""),
+                SeverityScoring: ko.observable(""),
+                ScoreTypeCd: ko.observable(""),
+                MatrixCd: ko.observable(""),
+            },
+
+            remove: function(severityCd) {
+                ShowDecisionMessage("@MyVDBSDemo.Resources.LangText.Are_U_Sure_Del ", function () {
+
+                    var btnOk = function () {
+
+                    }
+                    $.ajax({
+                        type: "POST",
+                        url: server + "/Admin/DeleteSeverity",
+                        data: JSON.stringify({ severityCd: severityCd }),
+                        contentType: "application/json; charset=utf-8",
+                        error: function (xhr) { },
+                        success: function (msg) {
+                            if (msg.OK) {
+                                ShowMessageSuccess("@MyVDBSDemo.Resources.LangText.Success_Del_Msg",btnRefresh);
+                            }
+                            else {
+                                ShowMessageDanger('@MyVDBSDemo.Resources.LangText.Unsuccess_Del_Msg');
+                            }
+                        }
+                    })
+
+                });
+            },
+            add: function () {
+                $('#SeverityAdd').modal('show');
+            },
+            update: function (severityCd) {
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetSeverityEdit",
+                    data: JSON.stringify({ cd: severityCd }),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            viewModel.severity3.SeverityCd(msg.list.SeverityCd);
+                            viewModel.severity3.SeverityNm(msg.list.SeverityNm);
+                            viewModel.severity3.SeverityDesc(msg.list.SeverityDesc);
+                            viewModel.severity3.SeverityAbrvn(msg.list.SeverityAbrvn);
+                            viewModel.severity3.SeverityScoring(msg.list.SeverityScoring);
+                            viewModel.severity3.ScoreTypeCd(msg.list.ScoreTypeCd);
+                            viewModel.severity3.MatrixCd(msg.list.MatrixCd);
+
+                            $("#SeverityNm1").val(msg.list.SeverityNm);
+                            $("#SeverityDesc1").val(msg.list.SeverityDesc);
+
+                            $("#SeverityEdit").modal({
+                                show: 'true',
+                                backdrop: 'true',
+                                keyboard: 'true'
+                            });
+
+                        }
+                    }
+                });
+            },
+            saveDialog: function () {
+                var value = $("#addForm").validationEngine('validate');
+
+                if (value == true) {
+                    $.ajax({
+                        type: 'POST',
+                        url: '/Admin/AddSeverity',//controller/nama function
+                        contentType: "application/json; charset=utf-8",
+                        data: JSON.stringify({ modelss: ko.mapping.toJS(viewModel.severity2) }), //parameter
+
+                        success: function (msg) {
+
+                            if (msg.ok) {
+                                $('#SeverityAdd').modal('hide');
+                                ShowMessageSuccess("@MyVDBSDemo.Resources.LangText.Success_Add_Msg",btnRefresh);
+                            }
+                            else {
+                                $('#SeverityAdd').modal('hide');
+                                ShowMessageDanger('@MyVDBSDemo.Resources.LangText.Unsuccess_Add_Msg');
+                            }
+
+                        },
+                        error: function (xhr) {
+                        }
+                    });
+                } else {
+                    $("#addForm").validationEngine();
+                }
+            },
+            validate: function (severity) {
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetSeverityEdit",
+                    data: JSON.stringify({ cd: severity }),
+                    contentType: "application/json; charset=utf-8",
+                    success: function (msg) {
+                        if (msg.OK) {
+                            if (msg.list.SeverityCd != null) {
+                                ShowMessageWarning("@MyVDBSDemo.Resources.LangText.Code_Exist_Msg");
+                                viewModel.severity2.SeverityCd('');
+                            }
+
+                        }
+                    }
+                });
+            }
+        }
+
+        if (viewModel.severity2.ScoreTypeCd() != null) {
+            loadMatrix(viewModel.severity2.ScoreTypeCd());
+        }
+
+        viewModel.severity2.ScoreTypeCd.subscribe(function (d) {
+            loadMatrix(d);
+        });
+
+        if (viewModel.severity3.ScoreTypeCd() != null) {
+            loadMatrix(viewModel.severity3.ScoreTypeCd());
+        }
+
+        viewModel.severity3.ScoreTypeCd.subscribe(function (d) {
+            loadMatrix(d);
+        });
+
+        loadScoreTypeNew(_csrftoken);
+        loadMatrix();
+        ko.applyBindings(viewModel);
+    });
+
+    function hapus (severityCd) {
+        viewModel.remove(severityCd);
+    }
+
+    function resetDialog() {
+        viewModel.severity2.SeverityCd("");
+        viewModel.severity2.SeverityNm("");
+        viewModel.severity2.SeverityDesc("");
+        viewModel.severity2.SeverityAbrvn("");
+        viewModel.severity2.SeverityScoring("");
+        viewModel.severity2.ScoreTypeCd("");
+        viewModel.severity2.MatrixCd("");
+    }
+
+    function cancelDialog() {
+        $('#SeverityAdd').modal('hide');
+    }
+
+    function resetUpdate() {
+        viewModel.update(viewModel.severity3.SeverityCd());
+    }
+
+    function cancelUpdate() {
+        $('#SeverityEdit').modal('hide');
+        $('.modal').modal('hide');
+    }
+
+    function saveUpdate() {
+        var value = $("#editForm").validationEngine('validate');
+
+        viewModel.severity3.SeverityNm(htmlEnc($('#SeverityNm1').val()));
+        viewModel.severity3.SeverityDesc(htmlEnc($('#SeverityDesc1').val()));
+
+        if (value == true) {
+            $.ajax({
+                type: "POST",
+                url: server + "/Admin/UpdateSeverity",
+                data: JSON.stringify({ modelss: ko.mapping.toJS(viewModel.severity3) }),
+                contentType: "application/json; charset=utf-8",
+                error: function (xhr) { },
+                success: function (msg) {
+                    if (msg.OK) {
+                        $('#SeverityEdit').modal('hide');
+                        ShowMessageSuccess("@MyVDBSDemo.Resources.LangText.Success_Update_Msg",btnRefresh);
+                    }
+                    else {
+                        $('#SeverityEdit').modal('hide');
+                        ShowMessageDanger("@MyVDBSDemo.Resources.LangText.Unsuccess_Update_Msg");
+                    }
+                }
+            });
+        } else {
+            $("#editForm").validationEngine();
+        }
+    }
+
+    function hapus(severityCd) {
+        viewModel.remove(severityCd);
+    }
+
+    function drawSearchPaginateDT() {
+
+        var searchPaginateDT = "<div id='hidesearch'> Page <input type='text' size='4'  id='paginatesearch' value ='1' onchange='searchPaginateList(this.value)' autocomplete='off'></input></div>";
+
+        $("#drawSearchPaginateDT").html(searchPaginateDT);
+    }
+
+    function searchPaginateList(pageNum) {
+        var lastPage = $('#pageList').DataTable().page.info().pages;
+
+        if(pageNum > lastPage)
+            pageNum = lastPage;
+
+        $('#paginatesearch').val(pageNum);
+
+        var pageIndex = pageNum - 1;
+        $('#pageList').DataTable().page(pageIndex).draw('page')
+
+    }
+    
+    //var table = $('#pageList').DataTable();
+ 
+    //table.on( 'draw', function () {
+    //    $('#paginatesearch').val(table.page()+1);
+    //    setCookie("listingpage8", table.page()+1, 1);
+    //} );
+    
+    $(document).ready(function(){
+        drawSearchPaginateDT();
+        checkListingPageCookie2("listingpage8");
+    });
+</script>

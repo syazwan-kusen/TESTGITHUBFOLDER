@@ -1,0 +1,214 @@
+﻿
+@using Newtonsoft.Json;
+@using myvdbsSQL;
+@using MyVDBSDemo.Models;
+@*@model IEnumerable<MyVDBSDemo.Models.tblREFDREADValue>*@
+@model IList<MyVDBSDemo.Models.tblREFDREADValue>
+@using MVCEncrypt;
+
+<style>
+
+.search {
+  position: relative;
+  color: white;
+  font-size: 12px;
+}
+.search input {
+  width: 62px;
+  border-radius: 3px;
+}
+.search input { text-indent: 14px;}
+.search .glyphicon-trash { 
+  position: absolute;
+  top: 5px;
+  margin-left: 5px;
+ 
+}
+</style>
+ 
+
+@{
+    ViewBag.Title = "DREAD Scoring Edit";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<head>
+</head>
+
+<body>
+
+    <div class="col-md-8 col-md-offset-2" style="margin-top:80px">
+        <div class="panel panel-info">
+            <div class="panel-body">
+
+                <div class="modal-body">
+                    <div class="form-group">
+
+                        <div class="row col-md-12">
+                            <div class="col-md-3">
+                                <label>DREAD Type Name</label>
+                            </div>
+                            <div class="col-md-1">
+                                <label> : </label>
+                            </div>
+                            <div class="col-md-8" style="text-align:left">
+                                @Model.First().x.DREADTypeNm
+                            </div>
+                        </div>
+                        <br />
+                        @*<div class="row col-md-6">
+                            <div class='col-md-4'>
+                                <label>DREAD Type Description</label>
+                            </div>
+                            <div class="col-md-1">
+                                <label> : </label>
+                            </div>
+                            <div class="col-md-6">
+                               @Model.First().x.DREADTypeDesc
+                            </div>
+                        </div>*@
+
+
+                    </div>
+                </div>
+
+                <div align="center">
+
+                    @using (@Html.BeginForm("DREADScoringUpdate", "Admin", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+
+                        <table border="0" class="table table-bordered table-striped display" align="center" width="70%">
+
+                            <tr style="background-color:moccasin">
+                                @*<th class="text-center">DREAD Type Name</th>*@
+                                <th class="text-center">DREAD Value</th>
+                                <th class="text-center">DREAD Value Description</th>
+                                <th class="text-center">Action</th>
+
+                            </tr>
+                            @for (var i = 0; i < Model.Count; i++)
+                             {
+                                <tr>
+                                    @*<td>
+                                        @Model[i].x.DREADTypeNm <br /><br />
+
+                                        @Model[i].x.DREADTypeDesc
+
+                                    </td>*@
+                                    <td width="20%" style="text-align:center;">
+                                        @Html.TextBoxFor(model => Model[i].DREADValue, new { @style = "border-radius:4px;" })
+                                    </td>
+                                    <td width="60%">
+                                        @Html.TextAreaFor(model => Model[i].DREADValueDesc, new { @class = "form-control", @rows = 3 })
+                                    </td>
+                                    <td hidden="hidden">@Html.TextBoxFor(model => Model[i].DREADValueCd)</td>
+                                    <td width="15%" align="center" style="position:relative;">
+                                        <div class="search">
+                                            <span class="glyphicon glyphicon-trash"></span>
+                                            <input type="button" value="Delete" class="btn btn-danger btn-xs delete" onclick='Delete("@Model[i].DREADValueCd");' />
+                                        </div>
+                                     </td>
+                                    
+                                    @*<td>@Html.TextBoxFor(model => Model[i].Email, new { @class = "form-control" })</td>*@
+                                </tr>
+
+                            }
+
+
+                        </table>
+
+                        <div align="center">
+
+                            <button type="submit" class="btn btn-success btn-sm m-t-10">
+                                <span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> Save
+                            </button>
+
+                            <button data-bind="click : cancel, visible :true, enable: true" class="btn btn-info btn-sm">
+                                <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> Back
+                            </button>
+
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+     </div>
+</body>
+
+
+
+
+
+    <script>
+
+        var list= @Html.Raw(JsonConvert.SerializeObject(@Model, Formatting.None,
+                              new JsonSerializerSettings()
+    {
+             ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+    }));
+
+    </script>
+
+    <script>
+
+
+        function cancel(){
+
+            //ShowDecisionMessage("Are you Sure ?", function () {
+
+                location.href = "/Admin/DREADScoring";
+
+            //});
+           
+
+        }
+
+        function Delete(DREADValueCd){
+
+            viewModel.remove(DREADValueCd);
+        }
+
+        $(function () {
+            var btnRefresh = function () {
+                location.reload();
+            }
+            viewModel = {
+                list: ko.mapping.fromJS(list),      
+
+                remove: function (DREADValueCd) {
+
+                    ShowDecisionMessage("Are you sure to delete this record ? ", function () {
+
+                        
+                        $.ajax({
+                            type: "POST",
+                            url: server + "/Admin/DeleteDREADValue",
+                            data: JSON.stringify({ DREADValueCd: DREADValueCd }),
+                            contentType: "application/json; charset=utf-8",
+                            error: function (xhr) { },
+                            success: function (msg) {
+                                if (msg.OK) {
+                                    //setTimeout(function(){ ShowMessageSuccess("Record successfully deleted. ",btnRefresh)},1000);
+                                  
+                                    ShowMessageSuccess("Record successfully deleted.", btnRefresh);                                
+                                }
+                                else {
+                                    ShowMessage('Unsuccesfully deleted.');
+                                }
+                            }
+                        })
+
+                    });
+                },
+
+            }
+
+            ko.applyBindings(viewModel);
+        });
+    </script>
+
+
+
+
+

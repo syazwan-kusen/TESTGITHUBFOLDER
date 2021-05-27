@@ -1,0 +1,1156 @@
+﻿
+@using Newtonsoft.Json;
+@using myvdbsSQL;
+@using MyVDBSDemo.Models;
+@model MyVDBSDemo.Models.CVSSFindingSCoringData
+@*@model IList<MyVDBSDemo.Models.tblREFCVSSSeverity>*@
+@using MVCEncrypt;
+
+@{
+    ViewBag.Title = "CVSS Scoring";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "__AjaxAntiForgeryForm" }))
+{
+    @Html.AntiForgeryToken()
+}
+<style>
+    .body {
+        -webkit-column-count: 2;
+        -webkit-column-gap: 0;
+    }
+
+    .element {
+        -webkit-column-break-inside: avoid;
+    }
+
+        .element > span {
+            margin: 0;
+        }
+
+    .button-group {
+        padding-bottom: 5px;
+    }
+
+        .button-group input {
+            display: none;
+        }
+
+            .button-group input:checked + label,
+            .button-group input:checked + label:active {
+                background-color: #5cb85c;
+                color: #fff;
+            }
+
+            .button-group input:hover + label {
+                background-color: #d5cccc;
+                color: #fff;
+            }
+
+            .button-group input + label {
+                background-color: #777;
+                color: #fff;
+                margin-right: 5px;
+                padding: 2px 5px;
+                border-radius: 4px;
+                cursor: pointer;
+                display: inline-block;
+            }
+
+    .scoreRating {
+        position: absolute;
+        right: 0;
+        padding: 0 0.4em;
+        margin: -10px 20px;
+        border: 2px solid #666666;
+        background: #dddddd;
+        font-size: 11px;
+        border-radius: 10px;
+        width: 100px;
+        height: auto;
+        line-height: 150%;
+        text-align: center;
+    }
+
+        .scoreRating.medium {
+            background: #f9a009;
+            border: 2px solid #f9a009;
+        }
+
+        .scoreRating.high {
+            background: #df3d03;
+            border: 2px solid #df3d03;
+        }
+
+        .scoreRating.none {
+            background: #53aa33;
+            border: 2px solid #53aa33;
+        }
+
+        .scoreRating.critical {
+            background: #cc0500;
+            border: 2px solid #cc0500;
+        }
+
+        .scoreRating.low {
+            background: #ffcb0d;
+            border: 2px solid #ffcb0d;
+        }
+
+        .scoreRating.none, .scoreRating.low, .scoreRating.medium, .scoreRating.high, .scoreRating.critical {
+            color: #ffffff;
+        }
+
+    .needBaseMetrics {
+        text-align: center;
+        line-height: 100%;
+        padding-top: 5px;
+        font-size: 15px;
+    }
+
+    #baseMetricScore, .temporalMetricScore, #environmentalMetricScore {
+        display: block;
+        font-size: 32px;
+        line-height: 32px;
+        font-weight: normal;
+        margin-top: 4px;
+    }
+
+    .scoreRating span {
+        /* font-size: 150%; */
+        /* font-weight: bold; */
+        width: 100%;
+    }
+
+    #baseSeverity, .temporalSeverity, #environmentalSeverity {
+        font-size: 16px;
+        font-weight: normal;
+        margin-bottom: 5px;
+        display: block;
+    }
+
+    .needBaseMetrics {
+        text-align: center;
+        line-height: 100%;
+        padding-top: 5px;
+        font-size: 15px;
+    }
+</style>
+<head>
+</head>
+
+<body>
+    <div class="col-lg-12" style="margin-top:70px;">
+        <div class="panel panel-info">
+
+            <div class="panel-body">
+
+                @{
+                    var num = 0;
+                    foreach (var group in Model.GetCVSSFindingScoringList.GroupBy(z => z.x.scoreTypeCd))
+                    {
+                        num = num + 1;
+                        var scored = false;
+                        <div id="test_@group.First().x.scoreTypeCd" class="scoreRating">
+                            @foreach (var scoring in Model.GetCVSSFindingScoringTotal)
+                            {
+
+                                if (@scoring.ScoreTypeCd == @group.First().x.scoreTypeCd)
+                                {
+                                    scored = true;
+                                    <span class="temporalMetricScore" id="Score_@scoring.ScoreTypeCd">@scoring.TotalScoreType</span>
+                                    <span class="temporalSeverity" id="ScoreNm_@scoring.ScoreTypeCd">@scoring.CVSSRatingNm</span>
+                                }
+                            }
+                            @if (scored == false)
+                            {
+                                <p id="msg_@group.First().x.scoreTypeCd" class="needBaseMetrics">Select values for all base metrics to generate score</p>
+                                <span class="temporalMetricScore" id="Score_@group.First().x.scoreTypeCd"></span>
+                                <span class="temporalSeverity" id="ScoreNm_@group.First().x.scoreTypeCd"></span>
+                            }
+
+
+                        </div>
+                        <div id="loadingDiv" style="display:none;">
+                            <div class="spinner">
+                                <div class="rect1"></div>
+                                <div class="rect2"></div>
+                                <div class="rect3"></div>
+                                <div class="rect4"></div>
+                                <div class="rect5"></div>
+                            </div>
+                        </div>
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title" title="@group.First().x.scoreTypeDesc">@Html.Raw(group.First().x.scoreTypeNm)</h3>
+                                <input type="hidden" id="@num" value="@group.First().x.scoreTypeCd" /> @*nama score cd*@
+                            </div>
+                            <div class="panel-body body elemen">
+                                @{
+                                    var count = 0;
+                                    foreach (var group2 in group.GroupBy(z => z.y.MatrixCd))
+                                    {
+                                        count = count + 1;
+                                        <p title="@group2.First().y.MatrixDesc"><b>@group2.First().y.MatrixNm (@group2.First().y.MatrixAbbrv)</b></p>
+
+                                        <div class="button-group">
+
+                                            @foreach (var item in group2)
+                                            {
+                                                var check = false;
+                                                <span>
+                                                    @foreach (var item2 in Model.GetCVSSFindingScoringData)
+                                                    {
+
+                                                        if (@item2.SeverityCd == @item.SeverityCd)
+                                                        {
+                                                            check = true;
+                                                            <input class="form-check-input" name="@item.y.MatrixCd" type="radio" id="@item.SeverityCd" value="@item.SeverityCd" onclick="getScore(this,@count,'@item.x.scoreTypeCd')" checked>
+                                                            <label class="button" for="@item.SeverityCd" data-toggle="tooltip" title="@item.SeverityDesc">@item.SeverityNm (@item.SeverityAbrvn)</label>
+                                                            <input type="hidden" id="matrix_@item.SeverityCd" value="@item.y.MatrixCd" /> @*Matrix code*@
+                                                            <input type="hidden" id="@group2.First().x.scoreTypeCd-@count" value="@group2.First().SeverityCd" /> @*severity code*@
+                                                        }
+                                                    }
+                                                </span>
+                                                @*if (check == false)
+                                                    {
+                                                        <input class="form-check-input" name="@item.y.MatrixCd" type="radio" id="@item.SeverityCd" value="@item.SeverityCd" onclick="getScore(this,@count,'@item.x.scoreTypeCd')">
+                                                        <label class="button" for="@item.SeverityCd" data-toggle="tooltip" title="@item.SeverityDesc">@item.SeverityNm (@item.SeverityAbrvn)</label>
+                                                        <input type="hidden" id="matrix_@item.x.scoreTypeCd-@count" value="@item.y.MatrixCd" />
+                                                        <input type="hidden" id="severity_@group2.First().x.scoreTypeCd-@count" value="@group2.First().SeverityCd" />
+
+                                                    }*@
+                                                if (check == false)
+                                                {
+                                                    if (@group2.First().x.scoreTypeCd != "B")
+                                                    {
+                                                        if (@item.SeverityNm == "Not Defined")
+                                                        {
+                                                            <input class="form-check-input" name="@item.y.MatrixCd" type="radio" id="@item.SeverityCd" value="@item.SeverityCd" onclick="getScore(this,@count,'@item.x.scoreTypeCd')" checked>
+                                                            <label class="button" for="@item.SeverityCd" data-toggle="tooltip" title="@item.SeverityDesc">@item.SeverityNm (@item.SeverityAbrvn)</label>
+                                                            <input type="hidden" id="matrix_@item.x.scoreTypeCd-@count" value="@item.y.MatrixCd" /> @*Matrix code*@
+                                                            <input type="hidden" id="severity_@group2.First().x.scoreTypeCd-@count" value="@group2.First().SeverityCd" /> @*severity code*@
+                                                        }
+                                                        else
+                                                        {
+                                                            <input class="form-check-input" name="@item.y.MatrixCd" type="radio" id="@item.SeverityCd" value="@item.SeverityCd" onclick="getScore(this,@count,'@item.x.scoreTypeCd')">
+                                                            <label class="button" for="@item.SeverityCd" data-toggle="tooltip" title="@item.SeverityDesc">@item.SeverityNm (@item.SeverityAbrvn)</label>
+                                                            <input type="hidden" id="matrix_@item.x.scoreTypeCd-@count" value="@item.y.MatrixCd" /> @*Matrix code*@
+                                                            <input type="hidden" id="severity_@group2.First().x.scoreTypeCd-@count" value="@group2.First().SeverityCd" /> @*severity code*@
+
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <input class="form-check-input" name="@item.y.MatrixCd" type="radio" id="@item.SeverityCd" value="@item.SeverityCd" onclick="getScore(this,@count,'@item.x.scoreTypeCd')">
+                                                        <label class="button" for="@item.SeverityCd" data-toggle="tooltip" title="@item.SeverityDesc">@item.SeverityNm (@item.SeverityAbrvn)</label>
+                                                        <input type="hidden" id="matrix_@item.x.scoreTypeCd-@count" value="@item.y.MatrixCd" /> @*Matrix code*@
+                                                        <input type="hidden" id="severity_@group2.First().x.scoreTypeCd-@count" value="@group2.First().SeverityCd" /> @*severity code*@
+
+                                                    }
+
+                                                }
+                                                <input type="hidden" id="@group2.First().x.scoreTypeCd-@count" value="" /> @*score severity*@
+                                            }
+                                        </div>
+
+                                    }
+                                    var maxcount = count;
+                                    <input type="hidden" id="cmatrix_@group.First().x.scoreTypeCd" value="@maxcount" /> @*count matrix*@
+                                }
+                            </div>
+                        </div>
+                    }
+                    var total = num;
+                    <input type="hidden" id="bilangan_score" value="@total" /> @*count score*@
+                }
+
+                <div class="col-lg-12" align="center">
+                    <button id="saveDialog" class="btn btn-success btn-sm m-t-10" onclick="savefunction(@Model.GetVulProjFindingId.VulProjFindingId)"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> Save </button>
+                    <button id="resetDialog" class="btn btn-warning btn-sm m-t-10" data-bind="click:reset"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Reset </button>
+                    <button id="saveDialog" class="btn btn-info btn-sm m-t-10" onclick="Back(@Model.GetVulProjFindingId.VulProjFindingId)"><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> Back </button>
+                    @*<a class="btn btn-info btn-sm m-t-10" href='@Url.ActionEnc("mySecret", "FindingListUpdate", new { a = Model.GetVulProjFindingId.VulProjFindingId  })'><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> Back </a>*@
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @Html.Partial("_CommonDialog")
+
+</body>
+<script src="~/Scripts/Common/Common.js"></script>
+<script>
+
+    var Scoring= @Html.Raw(JsonConvert.SerializeObject(@Model, Formatting.None,
+    new JsonSerializerSettings()
+    {
+
+        ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+    }));
+
+    var formCsrf = $('#__AjaxAntiForgeryForm');
+    var tokenCsrf = $('input[name="__RequestVerificationToken"]', formCsrf).val();
+</script>
+
+<script>
+    var bil = $('#bilangan_score').val();
+    for (let i = 1; i <= bil; i++) {
+        var score = $('#' + i).val(); //dptkn scorecd
+        var sum = $('#Score_' + score).html();
+
+        if (sum != '') {
+            $("#msg_" + score).removeAttr("style").hide();
+            var element = document.getElementById('test_' + score);
+
+            if (sum == 0.00) {
+                //alert(1);
+                element.className = '';
+                element.classList.add("scoreRating", "none");
+            } else if (sum >= 0.1 && sum <= 3.9) {
+                //alert(2);
+                element.className = '';
+                element.classList.add("scoreRating", "low");
+            } else if (sum >= 4.0 && sum <= 6.9) {
+                //alert(3);
+                element.className = '';
+                element.classList.add("scoreRating", "medium");
+            }
+            else if (sum >= 7.0 && sum <= 8.9) {
+                //alert(4);
+                element.className = '';
+                element.classList.add("scoreRating", "high");
+            }
+            else if (sum > 9.0) {
+                //alert(5);
+                element.className = '';
+                element.classList.add("scoreRating", "critical");
+            }
+        }
+    }
+    $(function () {
+
+        viewModel = {
+            scoring: ko.mapping.fromJS(Scoring),
+            cvssScore:
+            {
+                MatrixCd: ko.observable(""),
+                SeverityCd: ko.observable(""),
+                MatrixCd_SeverityCd: ko.observable(""),
+                CountMetrix: ko.observable(""),
+            },
+            cvssTotal: {
+                TotalScoreType: ko.observable(""),
+                CVSSRatingNm: ko.observable(""),
+                ScoreTypeCd: ko.observable("")
+            },
+            baseScore: ko.observable(""),
+            Scope: ko.observable(""),
+            E: ko.observable(""),
+            RL: ko.observable(""),
+            RC: ko.observable(""),
+            AV: ko.observable(""),
+            AC: ko.observable(""),
+            PR: ko.observable(""),
+            UI: ko.observable(""),
+            C: ko.observable(""),
+            I: ko.observable(""),
+            A: ko.observable(""),
+
+            totalansw: ko.observable(""),
+            masuksini: ko.observable("no"),
+            totalansw2: ko.observable(""),
+            masuksini2: ko.observable("no"),
+            afterclictT: ko.observable("no"),
+            TotalScoreType_Base: ko.observable(""),
+
+            getRating: function (sum, name) {
+                $.ajax({
+                    type: "POST",
+                    url: "/Admin/getRating",
+                    data: JSON.stringify({ sum: sum }),
+                    contentType: "application/json; charset=utf-8",
+                    datatype: "json",
+                    success: function (msg) {
+                        if (msg) {
+
+                            var RatingNm = msg.list.CVSSRatingNm;
+                            $("#ScoreNm_" + name).html(RatingNm);
+
+                            $("#msg_" + name).removeAttr("style").hide();
+                            var element = document.getElementById('test_' + name);
+
+                            if (sum == 0.00) {
+                                //alert(1);
+                                element.className = '';
+                                element.classList.add("scoreRating", "none");
+                            } else if (sum >= 0.1 && sum <= 3.9) {
+                                //alert(2);
+                                element.className = '';
+                                element.classList.add("scoreRating", "low");
+                            } else if (sum >= 4.0 && sum <= 6.9) {
+                                //alert(3);
+                                element.className = '';
+                                element.classList.add("scoreRating", "medium");
+                            }
+                            else if (sum >= 7.0 && sum <= 8.9) {
+                                //alert(4);
+                                element.className = '';
+                                element.classList.add("scoreRating", "high");
+                            }
+                            else if (sum > 9.0) {
+                                //alert(5);
+                                element.className = '';
+                                element.classList.add("scoreRating", "critical");
+                            }
+
+                        }
+                    }
+                });
+            },
+            reset: function () {
+                location.reload();
+            },
+            save_proc: function (VulProjFindingId) {
+                var bil_score = $('#bilangan_score').val();
+
+                for (let i = 1; i <= bil_score; i++) {
+                    var score = $('#' + i).val(); //dptkn scorecd
+                    var count_matrix = $('#cmatrix_' + score).val();
+                    var alldataRel = '';
+                    var matrixCD_severityCd = '';
+
+                    //matrix code
+                    for (let a = 1; a <= count_matrix; a++) {
+
+                        matrixcd = $('#matrix_' + score + "-" + a).val(); //dptkn matrix code
+                        severitycd = $('input[name=' + matrixcd + ']:checked').val(); //dptkn severity code
+
+                        matrixCD_severityCd = matrixcd + '$' + severitycd;
+                        alldataRel = alldataRel + '' + matrixCD_severityCd + ',';
+
+                    }
+                    viewModel.cvssScore.MatrixCd_SeverityCd(alldataRel);
+                    viewModel.cvssScore.CountMetrix(count_matrix);
+                    viewModel.save_into_RelCVSSVulManInputScoring(VulProjFindingId);
+                }
+            },
+            save: function (VulProjFindingId) {
+
+                ShowDecisionMessage("Are you sure to save this record ? ", function () {
+                    $.ajax({
+                        type: "POST",
+                        url: server + "/Admin/DeleteCVSSFindingScoring",
+                        data: JSON.stringify({ id: VulProjFindingId }),
+                        contentType: "application/json; charset=utf-8",
+                        error: function (xhr) { },
+                        success: function (msg) {
+                            if (msg.OK) {
+                                viewModel.save_total(VulProjFindingId);
+                            }
+                            else {
+                                ShowMessageDanger('Error.');
+                            }
+                        }
+                    })
+                });
+            },
+            save_total: function (VulProjFindingId) {
+
+                var bil_score = $('#bilangan_score').val();
+
+                for (let i = 1; i <= bil_score; i++) {
+                    var score = $('#' + i).val(); //dptkn scorecd
+                    var total_score = $('#Score_' + score).html();
+                    var total_score_nm = $('#ScoreNm_' + score).html();
+
+                    if (score == 'B') {//save score B dahaja dlm tblmanualinput
+                        viewModel.TotalScoreType_Base(total_score);
+                    }
+
+                    viewModel.cvssTotal.TotalScoreType(viewModel.TotalScoreType_Base()); //save total score Base sahaja
+                    viewModel.cvssTotal.CVSSRatingNm(total_score_nm);
+                    viewModel.cvssTotal.ScoreTypeCd(score);
+
+                    //viewModel.cvssTotal.TotalScoreType(total_score);
+                    //viewModel.cvssTotal.CVSSRatingNm(total_score_nm);
+                    //viewModel.cvssTotal.ScoreTypeCd(score);
+
+                    $.ajax({
+                        type: "POST",
+                        url: server + "/Admin/CVSSFindingScoringTotal",
+                        data: JSON.stringify({ modelss: ko.mapping.toJS(viewModel.cvssTotal), VulProjFindingId: VulProjFindingId }), //parameter
+                        contentType: "application/json; charset=utf-8",
+                        error: function (xhr) { },
+                        success: function (msg) {
+                            if (msg.ok) {
+                                //viewModel.save_proc();
+                            }
+                            else {
+                                //ShowMessageDanger('Error.');
+                            }
+                        }
+                    })
+                }
+                viewModel.save_proc(VulProjFindingId);
+            },
+
+            save_into_RelCVSSVulManInputScoring: function (VulProjFindingId) {
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/Admin/CVSSFindingUpdate',
+                    contentType: "application/json; charset=utf-8",
+                    data: JSON.stringify({ modelss: ko.mapping.toJS(viewModel.cvssScore), VulProjFindingId: VulProjFindingId }),
+                    headers: {
+                        '__RequestVerificationToken': tokenCsrf
+                    },
+
+                    success: function (msg) {
+
+                        if (msg.ok) {
+
+                            //ShowMessageSuccess("Data successfully save.");
+                            myFunction(msg.url);
+
+                            //$(window).click(function() {
+
+                            sessionStorage.setItem("vulName", localStorage.getItem("vulName"));
+                            sessionStorage.setItem("ObservationRmk", localStorage.getItem("ObservationRmk"));
+                            sessionStorage.setItem("ImpactLvl", localStorage.getItem("ImpactLvl"));
+                            sessionStorage.setItem("ImpactRmk", localStorage.getItem("ImpactRmk"));
+                            sessionStorage.setItem("ImprovementRmk", localStorage.getItem("ImprovementRmk"));
+                            sessionStorage.setItem("Status", localStorage.getItem("Status"));
+                            sessionStorage.setItem("CVEID", localStorage.getItem("CVEID"));
+                            sessionStorage.setItem("CWEID", localStorage.getItem("CWEID"));
+                            sessionStorage.setItem("VulCategory", localStorage.getItem("VulCategory"));
+                            sessionStorage.setItem("VulTypeName", localStorage.getItem("VulTypeName"));
+                            sessionStorage.setItem("VulTypeCd", localStorage.getItem("VulTypeCd"));
+                            sessionStorage.setItem("SecComp", localStorage.getItem("SecComp"));
+                            sessionStorage.setItem("vulCd", localStorage.getItem("vulCd"));
+                            sessionStorage.setItem("vulCdCmb", localStorage.getItem("vulCdCmb"));
+                            sessionStorage.setItem("AffecApp", localStorage.getItem("AffecApp"));
+                            //location.href = msg.url;
+
+                            //});
+
+
+                        }
+                        else {
+                            ShowMessageDanger('Unsuccesfully save.');
+                        }
+
+                    },
+                    error: function (xhr) {
+                    }
+                });
+            },
+
+
+
+            BackFunc: function (VulProjFindingId) {
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetBackFunc",
+                    data: JSON.stringify({ VulProjFindingId: VulProjFindingId }),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.ok) {
+
+                            sessionStorage.setItem("vulName", localStorage.getItem("vulName"));
+                            sessionStorage.setItem("ObservationRmk", localStorage.getItem("ObservationRmk"));
+                            sessionStorage.setItem("ImpactLvl", localStorage.getItem("ImpactLvl"));
+                            sessionStorage.setItem("ImpactRmk", localStorage.getItem("ImpactRmk"));
+                            sessionStorage.setItem("ImprovementRmk", localStorage.getItem("ImprovementRmk"));
+                            sessionStorage.setItem("Status", localStorage.getItem("Status"));
+                            sessionStorage.setItem("CVEID", localStorage.getItem("CVEID"));
+                            sessionStorage.setItem("CWEID", localStorage.getItem("CWEID"));
+                            sessionStorage.setItem("VulCategory", localStorage.getItem("VulCategory"));
+                            sessionStorage.setItem("VulTypeName", localStorage.getItem("VulTypeName"));
+                            sessionStorage.setItem("VulTypeCd", localStorage.getItem("VulTypeCd"));
+                            sessionStorage.setItem("SecComp", localStorage.getItem("SecComp"));
+                            sessionStorage.setItem("vulCd", localStorage.getItem("vulCd"));
+                            sessionStorage.setItem("vulCdCmb", localStorage.getItem("vulCdCmb"));
+                            sessionStorage.setItem("AffecApp", localStorage.getItem("AffecApp"));
+                            location.href = msg.url;
+
+                        }
+                        else {
+                            ShowMessageDanger('Unsuccesfully Back.');
+                        }
+                    }
+                });
+
+
+
+            },
+        }
+        ko.applyBindings(viewModel);
+    });
+
+    function getScore(val, count, name) {
+
+        $.ajax({
+            type: "POST",
+            url: "/Admin/getScoring",
+            data: JSON.stringify({ cd: val.value }),
+            contentType: "application/json; charset=utf-8",
+            datatype: "json",
+            success: function (msg) {
+                if (msg) {
+                    $("#" + name + "-" + count).val(msg.list.SeverityScoring);
+                    var max = $('#cmatrix_' + name).val(); //dptkn brape bil matrix
+                    var sum = 0;
+                    var total = 0;
+                    var total2 = 0;
+                    var total3 = 0;
+                    var totalansw = 0;
+                    var totalansw2 = 0;
+                    var totalansw3 = 0;
+                    var AllScore = '';
+                    var AllScore2 = '';
+                    var AllScore3 = '';
+
+                    if (name == 'B') {
+                        //alert('masuk sini 1');
+                        for (let i = 1; i <= max; i++) {
+
+                            total = $('#' + name + "-" + i).val();
+                            //alert(total);
+                            if (total == '') {
+                                total = 0;
+                                totalansw++;
+                            }
+                            viewModel.masuksini('yes');
+                            viewModel.totalansw(totalansw);
+
+
+                            AllScore = AllScore + '' + total + ',';
+                            sum += parseFloat(total);
+
+                            //if(totalansw == 0){
+                            //    clickT();
+                            //}
+                            //$("#Score_"+name).html(sum.toFixed(2));
+                        }
+
+                        if (viewModel.totalansw() == 0) {
+                            clickT();
+                        }
+
+                    }
+                    else if (name == 'T' && viewModel.totalansw() == 0 && viewModel.masuksini() == 'yes') {
+                        //alert(masuksini);
+                        //alert(viewModel.totalansw());
+
+                        for (let i = 1; i <= max; i++) {
+
+                            total2 = $('#' + name + "-" + i).val();
+                            //alert(total);
+                            if (total2 == '') {
+                                total2 = 0;
+                                totalansw2++;
+                            }
+
+                            viewModel.masuksini2('yes');
+                            viewModel.totalansw2(totalansw2);
+
+
+                            //totalansw = viewModel.totalansw();
+                            AllScore2 = AllScore2 + '' + total2 + ',';
+                            //alert(AllScore2);
+                            sum += parseFloat(total2);
+
+                            //if(totalansw2 == 0){
+                            //    clickE();
+                            //}
+                            //$("#Score_"+name).html(sum.toFixed(2));
+                        }
+
+                        if (viewModel.totalansw2() == 0) {
+                            clickE();
+                        }
+                    }
+                    else if (name == 'E' && viewModel.totalansw2() == 0 && viewModel.masuksini2() == 'yes') {
+                        //alert('masuk sini 2');
+                        for (let i = 1; i <= max; i++) {
+
+                            total3 = $('#' + name + "-" + i).val();
+                            //alert(total);
+                            if (total3 == '') {
+                                total3 = 0;
+                                totalansw3++;
+                            }
+                            //totalansw = viewModel.totalansw();
+                            AllScore3 = AllScore3 + '' + total3 + ',';
+                            //alert(AllScore2);
+                            sum += parseFloat(total3);
+                            //$("#Score_"+name).html(sum.toFixed(2));
+                        }
+                    }
+                    else {
+
+                    }
+
+
+                    //----------------------------- KIRAAN CVSS SCORE --------------------------------------
+                    //alert(max);
+                    //alert(name);
+                    //alert(totalansw);
+                    //kira2 kalau cukup 8 base score
+                    // var CVSS = {};
+
+                    var exploitabilityCoefficient = 8.22;
+                    var scopeCoefficient = 1.08;
+
+                    if (name == 'B' && totalansw == 0) {
+                        //alert('masuk1');
+                        //kiraan untuk Base score
+                        var tmp1 = AllScore.split(',');
+                        var AV = tmp1[0];
+                        var AC = tmp1[1];
+                        var PR = tmp1[2];
+                        var UI = tmp1[3];
+                        var S = tmp1[4];
+                        var C = tmp1[5];
+                        var I = tmp1[6];
+                        var A = tmp1[7];
+                        viewModel.Scope(S);
+                        viewModel.AV(AV);
+                        viewModel.AC(AC);
+                        viewModel.PR(PR);
+                        viewModel.UI(UI);
+                        viewModel.C(C);
+                        viewModel.I(I);
+                        viewModel.A(A);
+
+                        if (S == 6.42) { //unchange
+                            //tiada perubahan dalam table
+                        }
+                        else { //change
+                            if (PR == 0.85) {
+                                PR = 0.85;
+                            } else if (PR == 0.62) {
+                                PR = 0.68;
+                            } else {
+                                PR = 0.5;
+                            }
+                        }
+                        //alert (S);
+                        //alert (PR);
+
+                        try {
+                            var baseScore;
+                            var impactSubScore;
+                            var exploitabalitySubScore = exploitabilityCoefficient * AV * AC * PR * UI;
+                            var impactSubScoreMultiplier = (1 - ((1 - C) * (1 - I) * (1 - A)));
+                            //alert(S);
+                            if (S == 6.42) { //unchange
+                                //alert('masuk');
+                                impactSubScore = S * impactSubScoreMultiplier;
+                            } else {
+                                impactSubScore = S * (impactSubScoreMultiplier - 0.029) - 3.25 * Math.pow(impactSubScoreMultiplier - 0.02, 15);
+                            }
+
+                            //if (val.S === 'U') {
+                            //    impactSubScore = metricWeight.S * impactSubScoreMultiplier;
+                            //} else {
+                            //    impactSubScore = metricWeight.S * (impactSubScoreMultiplier - 0.029) - 3.25 * Math.pow(impactSubScoreMultiplier - 0.02, 15);
+                            //}
+
+
+                            if (impactSubScore <= 0) {
+                                baseScore = 0;
+                            } else {
+                                if (S == 6.42) {
+                                    baseScore = Math.min((exploitabalitySubScore + impactSubScore), 10);
+                                } else {
+                                    baseScore = Math.min((exploitabalitySubScore + impactSubScore) * scopeCoefficient, 10);
+                                }
+                            }
+
+
+                            //alert((baseScore * 10) / 10);
+                            baseScore = Math.ceil(baseScore * 10) / 10;
+                            viewModel.baseScore(baseScore);
+                            //alert(baseScore);
+                            sum = baseScore;
+
+                            $("#Score_" + name).html(sum);
+                            //return baseScore;
+                        } catch (err) {
+                            //return err;
+                        }
+
+
+                        viewModel.getRating(sum, name);
+
+                    }
+                    else if (name == 'T' && viewModel.totalansw() == 0 && viewModel.masuksini() == 'yes') {
+                        //kiraan untuk Temporal
+
+                        var tmp2 = AllScore2.split(',');
+                        var E = tmp2[0];
+                        var RL = tmp2[1];
+                        var RC = tmp2[2];
+                        viewModel.E(E);
+                        viewModel.RL(RL);
+                        viewModel.RC(RC);
+
+                        var temporalScore = (viewModel.baseScore() * E * RL * RC);
+
+                        temporalScore = Math.ceil(temporalScore * 10) / 10;
+
+
+                        $("#Score_" + name).html(temporalScore);
+
+                        viewModel.getRating(temporalScore, name);
+                    }
+                    else if (name == 'E' && viewModel.totalansw2() == 0 && viewModel.masuksini2() == 'yes') {
+                        //kiraan untuk Environmental
+
+                        var tmp3 = AllScore3.split(',');
+                        var CR = tmp3[0];
+                        var IR = tmp3[1];
+                        var AR = tmp3[2];
+                        var MAV = tmp3[3];
+                        var MAC = tmp3[4];
+                        var MPR = tmp3[5];
+                        var MUI = tmp3[6];
+                        var MS = tmp3[7];
+                        var MC = tmp3[8];
+                        var MI = tmp3[9];
+                        var MA = tmp3[10];
+
+
+                        var AV = viewModel.AV();
+                        var AC = viewModel.AC();
+                        var PR = viewModel.PR();
+                        var UI = viewModel.UI();
+                        var S = viewModel.Scope();
+                        var C = viewModel.C();
+                        var I = viewModel.I();
+                        var A = viewModel.A();
+
+                        var metricWeightCR = CR;
+                        var metricWeightIR = IR;
+                        var metricWeightAR = AR;
+
+                        //var metricWeightMAV = AV[MAV != 1 ? MAV : AV]; AV[MAV];
+                        //var metricWeightMAC = AC[MAC != 1 ? MAC : AC];
+                        //var metricWeightMPR = PR[MS != 1 ? MS : S][MPR != 1 ? MPR : PR];  // Depends on MS.
+                        //var metricWeightMUI = UI[MUI != 1 ? MUI : UI];
+
+                        //var metricWeightMS = S[MS != 1 ? MS : S];
+                        //var metricWeightMC = CVSS.Weight.CIA[MC !== 1 ? MC : C];
+                        //var metricWeightMI = CVSS.Weight.CIA[MI !== 1 ? MI : I];
+                        //var metricWeightMA = CVSS.Weight.CIA[MA !== 1 ? MA : A];
+
+                        var metricWeightMC = 1;
+                        if (MC != 1) {
+                            metricWeightMC = MC;
+                        } else {
+                            metricWeightMC = C;
+                        }
+
+                        var metricWeightMI = 1;
+                        if (MI != 1) {
+                            metricWeightMI = MI;
+                        } else {
+                            metricWeightMI = I;
+                        }
+
+                        var metricWeightMA = 1;
+                        if (MA != 1) {
+                            metricWeightMA = MA;
+                        } else {
+                            metricWeightMA = A;
+                        }
+
+                        var metricWeightMAV = 1;
+                        if (MAV != 1) {
+                            metricWeightMAV = MAV;
+                        } else {
+                            metricWeightMAV = AV;
+                        }
+
+                        var metricWeightMAC = 1;
+                        if (MAC != 1) {
+                            metricWeightMAC = MAC;
+                        }
+                        else {
+                            metricWeightMAC = AC;
+                        }
+
+
+                        var metricWeightMPR = 1;
+                        var metricWeightMS = 1;
+
+
+
+                        if (MS != 1) {
+                            metricWeightMS = MS;
+                            if (S == 6.42) { //unchange
+                                //tiada perubahan dalam table
+                            }
+                            else { //change
+                                if (PR == 0.85) {
+                                    PR = 0.85;
+                                } else if (PR == 0.62) {
+                                    PR = 0.68;
+                                } else {
+                                    PR = 0.5;
+                                }
+                            }
+                            if (MPR != 1) {
+                                if (MS == 6.42) { //unchange
+                                    //tiada perubahan dalam table
+                                }
+                                else { //change
+                                    if (MPR == 0.85) {
+                                        MPR = 0.85;
+                                    } else if (MPR == 0.62) {
+                                        MPR = 0.68;
+                                    } else {
+                                        MPR = 0.5;
+                                    }
+                                }
+                                metricWeightMPR = MPR;
+                            } else {
+                                metricWeightMPR = PR;
+                            }
+
+                        } else {
+                            metricWeightMS = S;
+                            if (S == 6.42) { //unchange
+                                //tiada perubahan dalam table
+                            }
+                            else { //change
+                                if (PR == 0.85) {
+                                    PR = 0.85;
+                                } else if (PR == 0.62) {
+                                    PR = 0.68;
+                                } else {
+                                    PR = 0.5;
+                                }
+                            }
+                            if (MPR != 1) {
+                                if (MS == 6.42) { //unchange
+                                    //tiada perubahan dalam table
+                                }
+                                else { //change
+                                    if (MPR == 0.85) {
+                                        MPR = 0.85;
+                                    } else if (MPR == 0.62) {
+                                        MPR = 0.68;
+                                    } else {
+                                        MPR = 0.5;
+                                    }
+                                }
+                                metricWeightMPR = MPR;
+                            } else {
+                                metricWeightMPR = PR;
+                            }
+                        }
+                        //alert (metricWeightMS);
+                        //alert (metricWeightMPR);
+
+                        var metricWeightMUI = 1;
+                        if (MUI != 1) {
+                            metricWeightMUI = MUI;
+                        }
+                        else {
+                            metricWeightMUI = UI;
+                        }
+
+
+                        // alert(metricWeightMAV);
+
+                        var envScore;
+                        var envModifiedImpactSubScore;
+                        var envModifiedExploitabalitySubScore = exploitabilityCoefficient * metricWeightMAV * metricWeightMAC * metricWeightMPR * metricWeightMUI;
+
+                        var envImpactSubScoreMultiplier = Math.min(1 - (
+                            (1 - metricWeightMC * metricWeightCR) *
+                            (1 - metricWeightMI * metricWeightIR) *
+                            (1 - metricWeightMA * metricWeightAR)), 0.915);
+                        //MS:  6.42 = U, 1 = X ;  S : 6.42 = unchange
+                        //alert(MS);
+                        var S = viewModel.Scope();
+                        if (MS == 6.42 ||
+                            (MS == 1 && S == 6.42)) {
+                            //alert('A');
+                            envModifiedImpactSubScore = metricWeightMS * envImpactSubScoreMultiplier;
+                            //var calc1 = Math.min((envModifiedImpactSubScore + envModifiedExploitabalitySubScore), 10);
+                            ////var calc2 = (Math.ceil(calc1 * 10) / 10) * viewModel.E() * viewModel.RL() *  viewModel.RC() ;
+                            //var calc2 = (Math.ceil(calc1 * 10) / 10) * viewModel.E() * viewModel.RL() *  viewModel.RC() ;
+                            ////alert(calc1);
+                            ////alert(calc2);
+                            //envScore = Math.ceil(calc2 * 10) / 10;
+
+                            //var calcA = Math.min((envModifiedImpactSubScore + envModifiedExploitabalitySubScore), 10);
+                            //var calc1 = Math.ceil(calcA * 10) / 10;
+                            //var calcB = calc1 * viewModel.E() * viewModel.RL() *  viewModel.RC() ;
+                            //envScore = Math.ceil(calcB * 10) / 10;
+
+                            envScore = roundUp1(roundUp1(Math.min((envModifiedImpactSubScore + envModifiedExploitabalitySubScore), 10)) *
+                                viewModel.E() * viewModel.RL() * viewModel.RC());
+
+                        } else {
+                            envModifiedImpactSubScore = metricWeightMS * (envImpactSubScoreMultiplier - 0.029) - 3.25 * Math.pow(envImpactSubScoreMultiplier - 0.02, 15);
+                            //var calc3 = Math.min(scopeCoefficient * (envModifiedImpactSubScore + envModifiedExploitabalitySubScore), 10);
+                            //var calc4 = (Math.ceil(calc3 * 10) / 10) * viewModel.E() * viewModel.RL() *  viewModel.RC() ;
+                            //envScore = Math.ceil(calc4 * 10) / 10;
+
+                            //var calc3 = Math.min(scopeCoefficient * (envModifiedImpactSubScore + envModifiedExploitabalitySubScore), 10);
+                            //var calc4 = Math.ceil(calc3 * 10) / 10;
+                            //var calc5 = calc4 * viewModel.E() * viewModel.RL() *  viewModel.RC();
+                            //envScore = Math.ceil(calc5 * 10) / 10;
+
+                            envScore = roundUp1(roundUp1(Math.min(scopeCoefficient * (envModifiedImpactSubScore + envModifiedExploitabalitySubScore), 10)) *
+                                viewModel.E() * viewModel.RL() * viewModel.RC());
+                        }
+
+                        if (envModifiedImpactSubScore <= 0) {
+                            envScore = 0;
+                        }
+
+
+
+                        $("#Score_" + name).html(envScore);
+
+                        viewModel.getRating(envScore, name);
+                    }
+                    else {
+
+                    }
+
+                    //------------------------------TUTUP KIRAAN CVSS SCORE-------------------------------------
+
+                    //viewModel.getRating(sum,name);
+
+                }
+            }
+        });
+    }
+
+    roundUp1 = function (d) {
+        return Math.ceil(d * 10) / 10;
+    };
+
+    function Back(VulProjFindingId) {
+
+        viewModel.BackFunc(VulProjFindingId);
+    }
+
+    function cancel() {
+        //ShowDecisionMessage("Are you Sure To Cancel ?", function () {
+
+        location.href = "/Admin/Dashboard";
+        //});
+    }
+
+    function savefunction(VulProjFindingId) {
+
+        viewModel.save(VulProjFindingId);
+    }
+
+    function clickB() {
+        $("input[type=radio]").each(function () {
+            if (this.checked) {
+                if (this.name.substring(0, 1) == "B") {
+                    this.click();
+                }
+
+            }
+
+        });
+
+    }
+
+    function clickT() {
+        $("input[type=radio]").each(function () {
+            if (this.checked) {
+                if (this.name.substring(0, 1) == "T") {
+                    this.click();
+                }
+            }
+
+        });
+    }
+
+    function clickE() {
+        $("input[type=radio]").each(function () {
+            if (this.checked) {
+                if (this.name.substring(0, 1) == "E") {
+                    this.click();
+                }
+            }
+
+        });
+    }
+
+
+    $(document).ready(function () {
+        //var countDoc = 0;
+        $.when(clickB()).then(function () {
+            clickT();
+        });
+
+        $.when(clickT()).then(function () {
+            clickE();
+        });
+    });
+
+    function myFunction(url) {
+        ShowMessageSuccess("Data successfully save.");
+        setTimeout(function () {
+            location.href = url;
+        }, 2000);
+    }
+
+</script>
+
+<script>
+
+    var CVSS = {};
+
+    var cvssVersion = "3.0";
+    var exploitabilityCoefficient = 8.22;
+    var scopeCoefficient = 1.08;
+
+    CVSS.Weight = {
+        AV: { N: 0.85, A: 0.62, L: 0.55, P: 0.2 },
+        AC: { H: 0.44, L: 0.77 },
+        PR: {
+            U: { N: 0.85, L: 0.62, H: 0.27 },         // These values are used if Scope is Unchanged
+            C: { N: 0.85, L: 0.68, H: 0.5 }
+        },         // These values are used if Scope is Changed
+        UI: { N: 0.85, R: 0.62 },
+        S: { U: 6.42, C: 7.52 },                             // Note: not defined as constants in specification
+        CIA: { N: 0, L: 0.22, H: 0.56 },                   // C, I and A have the same weights
+
+        E: { X: 1, U: 0.91, P: 0.94, F: 0.97, H: 1 },
+        RL: { X: 1, O: 0.95, T: 0.96, W: 0.97, U: 1 },
+        RC: { X: 1, U: 0.92, R: 0.96, C: 1 },
+
+        CIAR: { X: 1, L: 0.5, M: 1, H: 1.5 }           // CR, IR and AR have the same weights
+    };
+
+//
+// CALCULATE THE CVSS BASE SCORE
+//
+
+/* ** CVSS.roundUp1 **
+*
+* Rounds up the number passed as a parameter to 1 decimal place and returns the result.
+*
+* Standard JavaScript errors thrown when arithmetic operations are performed on non-numbers will be returned if the
+* given input is not a number.
+*/
+
+
+
+</script>

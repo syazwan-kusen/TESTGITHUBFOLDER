@@ -1,0 +1,411 @@
+﻿
+@using Newtonsoft.Json;
+@using myvdbsSQL;
+@using MyVDBSDemo.Models;
+@*@model IEnumerable<MyVDBSDemo.Models.tblREFDREADValue>*@
+@model IList<MyVDBSDemo.Models.tblREFDREADValue>
+@*@model MyVDBSDemo.Models.SetDREADScoringData*@
+@using MVCEncrypt;
+
+@{
+    ViewBag.Title = "DREAD Scoring";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "__AjaxAntiForgeryForm" }))
+{
+    @Html.AntiForgeryToken()
+}
+<head>
+</head>
+
+
+<div class="col-lg-12" style="margin-top:70px">
+    <div class="panel panel-info">
+        <div class="panel-body">
+
+            <div align="center">
+
+                @*@foreach (var group in Model.GroupBy(z => z.DREADTypeCd))
+                    {*@
+                @*@using (@Html.BeginForm("DREADScoringUpdate", "Admin", FormMethod.Post))
+                    {*@
+                <table border="0" class="table table-bordered table-striped display" align="center" width="100%">
+                    <tr style="background-color:moccasin">
+                        <th class="text-center">DREAD Value Code</th>
+                        <th class="text-center">DREAD Type Name</th>
+                        <th class="text-center">DREAD Value</th>
+                        <th class="text-center">DREAD Value Description</th>
+
+                    </tr>
+                    @foreach (var group in Model.GroupBy(z => z.DREADTypeCd))
+                    {
+
+                        <tbody>
+
+
+                            @*<tr style="background-color:moccasin">
+                                    <th class="text-center">DREAD Type Name</th>
+                                    <th class="text-center">DREAD Value</th>
+                                    <th class="text-center">DREAD Value Description</th>
+
+                                </tr>*@
+
+                            <tr>
+                                <td width="10%">@group.First().DREADTypeCd</td>
+                                <td width="30%" class="text-center">
+                                    @*<a href="/Admin/UserRoleListUpdate/' + @group.First().x.DREADTypeCd + '"> <font color="blue"><u>@group.First().x.DREADTypeNm</u></font></a> <br /> @group.First().x.DREADTypeDesc*@
+                                    @*<a id="myLink" href="#" onclick="Edit('@group.First().DREADTypeCd');return false;"><font color="blue">@group.First().x.DREADTypeNm</font></a><br /> @group.First().x.DREADTypeDesc*@
+
+                                    @*<a href="/Admin/DREADScoringEditing/@group.First().DREADTypeCd">
+                                        <font color="blue"><u>@group.First().x.DREADTypeNm</u></font></a>
+                                        <br /> @group.First().x.DREADTypeDesc*@
+
+                                    <a href='@Url.ActionEnc("mySecret", "DREADScoringEditing", new { a = @group.First().DREADTypeCd })'><font color="blue"><u>@Html.Raw(group.First().x.DREADTypeNm)</u></font></a>
+                                    <br /> @Html.Raw(group.First().x.DREADTypeDesc)
+
+                                    @* <a href='@Url.ActionEnc("mySecret", "TestEncrypt", new { a = 1, b = @group.First().DREADTypeCd })'>Test</a>*@
+                                </td>
+                                <td colspan="3" class="text-center">
+                                    <table border="0" class="table table-bordered table-striped display" align="center" width="100%">
+
+                                        @foreach (var item in group)
+                                        {
+                                            <tr>
+                                                <td width="35%">
+                                                    @item.DREADValue
+                                                </td>
+                                                <td width="65%">
+                                                    @Html.Raw(item.DREADValueDesc)
+                                                </td>
+                                                <td hidden="hidden">@item.DREADValueCd</td>
+
+                                            </tr>
+
+                                        }
+                                        @*@for (var i = 0; i < Model.Count; i++)
+                                            {
+                                            <tr>
+                                                <td width="35%">
+                                                    @Html.TextBoxFor(model => Model[i].DREADValue, new { @style = "border-radius:4px;" })
+                                                </td>
+                                                <td width="80%">
+                                                    @Html.TextAreaFor(model => Model[i].DREADValueDesc, new { @class = "form-control", @rows = 3 })
+                                                </td>
+                                                <td hidden="hidden">@Html.TextBoxFor(model => Model[i].DREADValueCd)</td>
+
+                                            </tr>
+                                            }*@
+
+                                    </table>
+
+                                </td>
+                            </tr>
+                            @*@foreach (var item in group)
+                                {
+
+                                    for (var i = 0; i < Model.Count; i++)
+                                    {
+                                    <tr>
+                                        <td width="20%">
+                                            @Html.TextBoxFor(model => Model[i].DREADValue, new { @style = "border-radius:4px;" })
+                                        </td>
+                                        <td width="80%">
+                                            @Html.TextAreaFor(model => Model[i].DREADValueDesc, new { @class = "form-control", @rows = 3 })
+                                        </td>
+                                    </tr>
+                                    }
+                                }*@
+
+
+
+                        </tbody>
+
+                    }
+                    @*<tr style="background-color:moccasin">
+                            <th class="text-center">DREAD Type Name</th>
+                            <th class="text-center">DREAD Value</th>
+                            <th class="text-center">DREAD Value Description</th>
+
+                        </tr>*@
+                </table>
+                @*}*@
+
+            </div>
+
+            <div align="center">
+
+                <button type="button" id="Add" class="btn btn-primary btn-sm m-t-10" onclick="navigate()"><span class="glyphicon glyphicon-plus"></span> Add</button>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+
+<div id="MatrixAdd" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+    <div class="modal-dialog" style="width:500px">
+        <div class="modal-content">
+            <div class="modal-header">
+
+                <h4 align="center">Add New</h4>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <form id="addForm">
+
+                        <div class="row">
+                            <div class='col-md-5'>
+                                <label>DREAD Type</label>
+                            </div>
+                            <div class="col-md-1"><label> : </label></div>
+                            <div class="col-md-6">
+                                <select id="DREADTypeCd" class="validate[required] form-control" data-bind="options: score, optionsText: 'DREADTypeNm', optionsValue: 'DREADTypeCd', optionsCaption: '--- Please Choose ---', valueAllowUnset: true,value : matrix2.DREADTypeCd, valueUpdate: 'afterkeydown'"></select>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class='col-md-5'>
+                                <label>DREAD Value Code</label>
+                            </div>
+                            <div class="col-md-1"><label> : </label></div>
+                            <div class="col-md-2">
+                                <input type="text" maxlength="3" class="validate[required] form-control" id="DREADValueCd" data-bind="value:matrix2.DREADValueCd" onchange="checkExist(this)" />
+                            </div>
+                            <div class="col-md-4">
+                                <label style="color:#DCDCDC;">e.g. 013</label>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class='col-md-5'>
+                                <label>Value</label>
+                            </div>
+                            <div class="col-md-1"><label> : </label></div>
+                            <div class="col-md-6">
+                                <input type="number" class="validate[required] form-control" id="DREADValue" data-bind="value:matrix2.DREADValue" />
+                            </div>
+                        </div>
+                        <br />
+                        <div class="form-group">
+                            <label for="Desc" class="col-form-label">Description:</label>
+                            <textarea name="DREADValueDesc" class="form-control" data-bind="value:matrix2.DREADValueDesc" rows="3" placeholder="e.g. This is Attack Vector description."></textarea>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <div align="center">
+                    <button id="saveDialog" class="btn btn-success btn-sm m-t-10" data-bind="click:saveDialog"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> Save </button>
+                    <button id="resetDialog" class="btn btn-warning btn-sm m-t-10" data-bind="click:resetDialog"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Reset </button>
+                    <button id="cancelDialog" class="btn btn-info btn-sm m-t-10" onclick='cancelDialog();'><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel </button>
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+
+    var matrix= @Html.Raw(JsonConvert.SerializeObject(@Model, Formatting.None,
+                              new JsonSerializerSettings()
+    {
+
+             ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+    }));
+
+    @functions{
+        public string TokenHeaderValue()
+        {
+            string cookieToken, formToken;
+            AntiForgery.GetTokens(null, out cookieToken, out formToken);
+            return cookieToken + ":" + formToken;
+        }
+    }
+    var formCsrf = $('#__AjaxAntiForgeryForm');
+    var tokenCsrf = $('input[name="__RequestVerificationToken"]', formCsrf).val();
+</script>
+
+<script>
+
+
+    var viewModel;
+    var btnRefresh = function () {
+        location.reload();
+    }
+
+    $(function () {
+
+        viewModel = {
+            score: ko.observableArray([]),
+            scorecd: ko.observable(""),
+            matrix2 :
+            {
+                DREADTypeCd: ko.observable(""),
+                DREADValueDesc: ko.observable(""),
+                DREADValueCd: ko.observable(""),
+                DREADValue: ko.observable(""),
+
+            },
+
+
+            Add: function () {
+                $('#MatrixAdd').modal('show');
+            },
+
+            validate: function (value) {
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetDREADScoringEdit",
+                    data: JSON.stringify({ DREADValueCd: value }),
+                    contentType: "application/json; charset=utf-8",
+                    success: function (msg) {
+                        if (msg.OK) {
+                            if (msg.list.DREADValueCd != null) {
+                                ShowMessageWarning("Code already exist");
+                                viewModel.matrix2.DREADValueCd('');
+                                viewModel.matrix2.DREADTypeCd('');
+                            }
+
+                        }
+                    }
+                });
+            },
+
+            saveDialog: function () {
+                var value = $("#addForm").validationEngine('validate');
+
+                if (value == true) {
+                    $.ajax({
+                        type: 'POST',
+                        url: '/Admin/AddDREADScoring',//controller/nama function
+                        contentType: "application/json; charset=utf-8",
+                        headers: {
+                            '__RequestVerificationToken': tokenCsrf
+                        },
+                        data: JSON.stringify({ modelss: ko.mapping.toJS(viewModel.matrix2) }), //parameter
+
+                        success: function (msg) {
+
+                            if (msg.ok) {
+                                $('#MatrixAdd').modal('hide');
+                                ShowMessageSuccess("Data successfully add.",btnRefresh);
+                            }
+                            else {
+                                $('#MatrixAdd').modal('hide');
+                                ShowMessageDanger('Unsuccesfully add.');
+                            }
+
+                        },
+                        error: function (xhr) {
+                        }
+                    });
+                } else {
+                    $("#addForm").validationEngine();
+                }
+            },
+
+            Editing: function (value) {
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/DREADScoringEditing",
+                    data: JSON.stringify({ DREADTypeCd: value }),
+                    contentType: "application/json; charset=utf-8",
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            location.href = "/Admin/DREADScoringEditing";
+
+                        }
+                    }
+                });
+            },
+
+        }
+        loadDREADType();
+        ko.applyBindings(viewModel);
+
+        viewModel.matrix2.DREADTypeCd.subscribe(function (ad) {
+            if (ad) {
+
+                //viewModel.matrix2.DREADValCd.push(ad);
+                viewModel.matrix2.DREADValueCd(ad);
+                //loadState(ad);
+            }
+        });
+    });
+
+    function checkExist(val) {
+
+        viewModel.validate(val.value);
+
+    }
+
+    function navigate(){
+
+        viewModel.Add();
+    }
+
+    function cancel() {
+        ShowDecisionMessage("Are you Sure To Cancel ?", function () {
+
+            location.href = "/Home/Dashboard";
+        });
+    }
+
+    function cancelDialog() {
+        $('#MatrixAdd').modal('hide');
+    }
+
+    //function Edit(DREADTypeCd) {
+    //    viewModel.Editing(DREADTypeCd);
+    //    //alert(DREADTypeCd);
+    //    //location.href = "/Admin/DREADScoringEditing/'" + DREADTypeCd + "'";
+    //    // viewModel.EditDREADValue(ScopeCd);
+    //}
+
+    function loadDREADType() {
+        viewModel.score.removeAll();
+        $.ajax({
+            type: "POST",
+            url: "/Ref/GetDREADType",
+            contentType: "application/json; charset=utf-8",
+            datatype: "json",
+            headers: {
+                'RequestVerificationToken': '@TokenHeaderValue()'
+            },
+            //   error: function (xhr) { ShowErrorMessage("Error : " + xhr.statusText); },
+            success: function (msg) {
+                if (msg) {
+                    //ShowMessage(msg.message);
+                    var list = ko.mapping.toJS(ko.mapping.fromJSON(msg.list));
+                    $.each(list, function (i, v) {
+                        viewModel.score.push(v);
+                    });
+                }
+            }
+        });
+    }
+
+    function resetDialog() {
+        viewModel.matrix2.DREADTypeCd("");
+        viewModel.matrix2.DREADValueDesc("");
+        viewModel.matrix2.DREADValueCd("");
+        viewModel.matrix2.DREADValue("");
+
+    }
+
+
+
+
+
+
+</script>

@@ -1,0 +1,510 @@
+﻿
+@using Newtonsoft.Json;
+@using myvdbsSQL;
+@using MyVDBSDemo.Models;
+@model MyVDBSDemo.Models.CVSSSCoringData
+@*@model IList<MyVDBSDemo.Models.tblREFCVSSSeverity>*@
+
+@{
+    ViewBag.Title = "MyVDBS - CVSS Scoring";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "__AjaxAntiForgeryForm" }))
+{
+    @Html.AntiForgeryToken()
+}
+<style>
+    .body {
+        -webkit-column-count: 2;
+        -webkit-column-gap: 0;
+    }
+
+    .element {
+        -webkit-column-break-inside: avoid;
+    }
+
+        .element > span {
+            margin: 0;
+        }
+
+    .button-group {
+        padding-bottom: 5px;
+    }
+
+        .button-group input {
+            display: none;
+        }
+
+            .button-group input:checked + label,
+            .button-group input:checked + label:active {
+                background-color: #5cb85c;
+                color: #fff;
+            }
+
+            .button-group input:hover + label {
+                background-color: #d5cccc;
+                color: #fff;
+            }
+
+            .button-group input + label {
+                background-color: #777;
+                color: #fff;
+                margin-right: 5px;
+                padding: 2px 5px;
+                border-radius: 4px;
+                cursor: pointer;
+                display: inline-block;
+            }
+
+    .scoreRating {
+        position: absolute;
+        right: 0;
+        padding: 0 0.4em;
+        margin: -10px 20px;
+        border: 2px solid #666666;
+        background: #dddddd;
+        font-size: 11px;
+        border-radius: 10px;
+        width: 100px;
+        height: auto;
+        line-height: 150%;
+        text-align: center;
+    }
+
+        .scoreRating.medium {
+            background: #f9a009;
+            border: 2px solid #f9a009;
+        }
+
+        .scoreRating.high {
+            background: #df3d03;
+            border: 2px solid #df3d03;
+        }
+
+        .scoreRating.none {
+            background: #53aa33;
+            border: 2px solid #53aa33;
+        }
+
+        .scoreRating.critical {
+            background: #cc0500;
+            border: 2px solid #cc0500;
+        }
+
+        .scoreRating.low {
+            background: #ffcb0d;
+            border: 2px solid #ffcb0d;
+        }
+
+        .scoreRating.none, .scoreRating.low, .scoreRating.medium, .scoreRating.high, .scoreRating.critical {
+            color: #ffffff;
+        }
+
+    .needBaseMetrics {
+        text-align: center;
+        line-height: 100%;
+        padding-top: 5px;
+        font-size: 15px;
+    }
+
+    #baseMetricScore, .temporalMetricScore, #environmentalMetricScore {
+        display: block;
+        font-size: 32px;
+        line-height: 32px;
+        font-weight: normal;
+        margin-top: 4px;
+    }
+
+    .scoreRating span {
+        /* font-size: 150%; */
+        /* font-weight: bold; */
+        width: 100%;
+    }
+
+    #baseSeverity, .temporalSeverity, #environmentalSeverity {
+        font-size: 16px;
+        font-weight: normal;
+        margin-bottom: 5px;
+        display: block;
+    }
+
+    .needBaseMetrics {
+        text-align: center;
+        line-height: 100%;
+        padding-top: 5px;
+        font-size: 15px;
+    }
+</style>
+<head>
+</head>
+
+<body>
+    <div class="col-lg-12" style="margin-top:80px;">
+        <div class="panel panel-info">
+
+            <div class="panel-body">
+
+                @{
+                    var num = 0;
+                    foreach (var group in Model.GetCVSSScoringList.GroupBy(z => z.x.scoreTypeCd))
+                    {
+                        num = num + 1;
+                        var scored = false;
+                        <div id="test_@group.First().x.scoreTypeCd" class="scoreRating">
+                            @foreach (var scoring in Model.GetCVSSScoringTotal)
+                            {
+
+                                if (@scoring.ScoreTypeCd == @group.First().x.scoreTypeCd)
+                                {
+                                    scored = true;
+                                    <span class="temporalMetricScore" id="Score_@scoring.ScoreTypeCd">@scoring.TotalScoreType</span>
+                                    <span class="temporalSeverity" id="ScoreNm_@scoring.ScoreTypeCd">@scoring.CVSSRatingNm</span>
+                                }
+                            }
+                            @if (scored == false)
+                            {
+                                <p id="msg_@group.First().x.scoreTypeCd" class="needBaseMetrics">Select values for all base metrics to generate score</p>
+                                <span class="temporalMetricScore" id="Score_@group.First().x.scoreTypeCd"></span>
+                                <span class="temporalSeverity" id="ScoreNm_@group.First().x.scoreTypeCd"></span>
+                            }
+
+
+
+                        </div>
+
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title" title="@group.First().x.scoreTypeDesc">@group.First().x.scoreTypeNm</h3>
+                                <input type="hidden" id="@num" value="@group.First().x.scoreTypeCd" /> @*nama score cd*@
+                            </div>
+                            <div class="panel-body body elemen">
+                                @{
+                                    var count = 0;
+                                    foreach (var group2 in group.GroupBy(z => z.y.MatrixCd))
+                                    {
+                                        count = count + 1;
+                                        <p title="@group2.First().y.MatrixDesc"><b>@group2.First().y.MatrixNm (@group2.First().y.MatrixAbbrv)</b></p>
+
+                                        <div class="button-group">
+
+                                            @foreach (var item in group2)
+                                            {
+                                                var check = false;
+                                                <span>
+                                                    @foreach (var item2 in Model.GetCVSSScoringData)
+                                                    {
+
+                                                        if (@item2.SeverityCd == @item.SeverityCd)
+                                                        {
+                                                            check = true;
+                                                            <input class="form-check-input" name="@item.y.MatrixCd" type="radio" id="@item.SeverityCd" value="@item.SeverityCd" onclick="   (this,@count,'@item.x.scoreTypeCd')" checked>
+                                                            <label class="button" for="@item.SeverityCd" data-toggle="tooltip" title="@item.SeverityDesc">@item.SeverityNm (@item.SeverityAbrvn)</label>
+                                                            <input type="text" id="matrix_@item.SeverityCd" value="@item.y.MatrixCd" /> @*Matrix code*@
+                                                            <input type="text" id="@group2.First().x.scoreTypeCd-@count" value="@group2.First().SeverityCd" /> @*severity code*@
+                                                        }
+                                                    }
+                                                </span>
+                                                if (check == false)
+                                                {
+                                                    <input class="form-check-input" name="@item.y.MatrixCd" type="radio" id="@item.SeverityCd" value="@item.SeverityCd" onclick="getScore(this,@count,'@item.x.scoreTypeCd')">
+                                                    <label class="button" for="@item.SeverityCd" data-toggle="tooltip" title="@item.SeverityDesc">@item.SeverityNm (@item.SeverityAbrvn)</label>
+                                                    <input type="text" id="matrix_@item.x.scoreTypeCd-@count" value="@item.y.MatrixCd" /> @*Matrix code*@
+                                                    <input type="text" id="severity_@group2.First().x.scoreTypeCd-@count" value="@group2.First().SeverityCd" /> @*severity code*@
+
+                                                }
+                                                <input type="text" id="@group2.First().x.scoreTypeCd-@count" value="" /> @*score severity*@
+                                            }
+                                        </div>
+
+                                    }
+                                    var maxcount = count;
+                                    <input type="hidden" id="cmatrix_@group.First().x.scoreTypeCd" value="@maxcount" /> @*count matrix*@
+                                }
+                            </div>
+                        </div>
+                    }
+                    var total = num;
+                    <input type="hidden" id="bilangan_score" value="@total" /> @*count score*@
+                    <input type="hidden" id="CVSSTotal" value="" /> @*cvss score*@
+                }
+
+                <div class="col-lg-12" align="center">
+                    <button id="saveDialog" class="btn btn-success btn-sm m-t-10" data-bind="click:save"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> Save </button>
+                    <button id="resetDialog" class="btn btn-warning btn-sm m-t-10" data-bind="click:reset"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Reset </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @Html.Partial("_CommonDialog")
+
+</body>
+<script src="~/Scripts/Common/Common.js"></script>
+<script>
+
+    var Scoring= @Html.Raw(JsonConvert.SerializeObject(@Model, Formatting.None,
+    new JsonSerializerSettings()
+    {
+
+        ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+    }));
+
+    var formCsrf = $('#__AjaxAntiForgeryForm');
+    var tokenCsrf = $('input[name="__RequestVerificationToken"]', formCsrf).val();
+</script>
+
+<script>
+    var bil = $('#bilangan_score').val();
+    var jum = 0;
+    for (let i = 1; i <= bil; i++) {
+        var score = $('#' + i).val(); //dptkn scorecd
+        var sum = $('#Score_' + score).html();
+
+        if (sum == '') {
+            sum = 0;
+        }
+        jum += parseFloat(sum);
+        $("#CVSSTotal").val(jum.toFixed(2));
+
+        if (sum != '') {
+            $("#msg_" + score).removeAttr("style").hide();
+            var element = document.getElementById('test_' + score);
+
+            if (sum == 0.00) {
+                //alert(1);
+                element.className = '';
+                element.classList.add("scoreRating", "none");
+            } else if (sum >= 0.1 && sum <= 3.9) {
+                //alert(2);
+                element.className = '';
+                element.classList.add("scoreRating", "low");
+            } else if (sum >= 4.0 && sum <= 6.9) {
+                //alert(3);
+                element.className = '';
+                element.classList.add("scoreRating", "medium");
+            }
+            else if (sum >= 7.0 && sum <= 8.9) {
+                //alert(4);
+                element.className = '';
+                element.classList.add("scoreRating", "high");
+            }
+            else if (sum > 9.0) {
+                //alert(5);
+                element.className = '';
+                element.classList.add("scoreRating", "critical");
+            }
+        }
+    }
+    var btnRefresh = function () {
+        location.reload();
+    }
+    $(function () {
+
+        viewModel = {
+            scoring: ko.mapping.fromJS(Scoring),
+            cvssScore:
+            {
+                MatrixCd: ko.observable(""),
+                SeverityCd: ko.observable("")
+            },
+            cvssTotal: {
+                TotalScoreType: ko.observable(""),
+                CVSSRatingNm: ko.observable(""),
+                ScoreTypeCd: ko.observable("")
+            },
+
+            getRating: function (sum, name) {
+                $.ajax({
+                    type: "POST",
+                    url: "/Admin/getRating",
+                    data: JSON.stringify({ sum: sum }),
+                    contentType: "application/json; charset=utf-8",
+                    datatype: "json",
+                    success: function (msg) {
+                        if (msg) {
+
+                            var RatingNm = msg.list.CVSSRatingNm;
+                            $("#ScoreNm_" + name).html(RatingNm);
+
+                            $("#msg_" + name).removeAttr("style").hide();
+                            var element = document.getElementById('test_' + name);
+
+                            if (sum == 0.00) {
+                                //alert(1);
+                                element.className = '';
+                                element.classList.add("scoreRating", "none");
+                            } else if (sum >= 0.1 && sum <= 3.9) {
+                                //alert(2);
+                                element.className = '';
+                                element.classList.add("scoreRating", "low");
+                            } else if (sum >= 4.0 && sum <= 6.9) {
+                                //alert(3);
+                                element.className = '';
+                                element.classList.add("scoreRating", "medium");
+                            }
+                            else if (sum >= 7.0 && sum <= 8.9) {
+                                //alert(4);
+                                element.className = '';
+                                element.classList.add("scoreRating", "high");
+                            }
+                            else if (sum > 9.0) {
+                                //alert(5);
+                                element.className = '';
+                                element.classList.add("scoreRating", "critical");
+                            }
+
+                        }
+                    }
+                });
+            },
+            reset: function () {
+                location.reload();
+            },
+            save_proc: function () {
+                var bil_score = $('#bilangan_score').val();
+
+                for (let i = 1; i <= bil_score; i++) {
+                    var score = $('#' + i).val(); //dptkn scorecd
+                    var count_matrix = $('#cmatrix_' + score).val();
+
+                    //matrix code
+                    for (let a = 1; a <= count_matrix; a++) {
+
+                        matrixcd = $('#matrix_' + score + "-" + a).val(); //dptkn matrix code
+                        severitycd = $('input[name=' + matrixcd + ']:checked').val(); //dptkn severity code
+                        if (typeof severitycd != "undefined") {
+                            //buat proses delete  url: '/Admin/DeleteCVSSScoring',
+                            viewModel.cvssScore.MatrixCd(matrixcd);
+                            viewModel.cvssScore.SeverityCd(severitycd);
+                            $.ajax({
+                                type: 'POST',
+                                url: '/Admin/CVSSScoringUpdate',
+                                contentType: "application/json; charset=utf-8",
+                                data: JSON.stringify({ modelss: ko.mapping.toJS(viewModel.cvssScore) }),
+                                headers: {
+                                    '__RequestVerificationToken': tokenCsrf
+                                }, //parameter
+
+                                success: function (msg) {
+
+                                    if (msg.ok) {
+                                        ShowMessageSuccess("Data successfully save.", btnRefresh);
+                                    }
+                                    else {
+                                        ShowMessageDanger('Unsuccesfully save.');
+                                    }
+
+                                },
+                                error: function (xhr) {
+                                }
+                            });
+                        }
+                    }
+                }
+            },
+            save: function () {
+                var vulid = 21;
+                var total = $('#CVSSTotal').val();
+                ShowDecisionMessage("Are you sure to save this record ? ", function () {
+                    $.ajax({
+                        type: "POST",
+                        url: server + "/Admin/DeleteCVSSScoring",
+                        data: JSON.stringify({ id: vulid, total: total }),
+                        contentType: "application/json; charset=utf-8",
+                        error: function (xhr) { },
+                        success: function (msg) {
+                            if (msg.OK) {
+                                viewModel.save_total();
+                            }
+                            else {
+                                ShowMessageDanger('Error.');
+                            }
+                        }
+                    })
+                });
+            },
+            save_total: function () {
+                var vulid = 21;
+                var bil_score = $('#bilangan_score').val();
+                for (let i = 1; i <= bil_score; i++) {
+                    var score = $('#' + i).val(); //dptkn scorecd
+                    var total_score = $('#Score_' + score).html();
+                    var total_score_nm = $('#ScoreNm_' + score).html();
+
+                    viewModel.cvssTotal.TotalScoreType(total_score);
+                    viewModel.cvssTotal.CVSSRatingNm(total_score_nm);
+                    viewModel.cvssTotal.ScoreTypeCd(score);
+
+                    $.ajax({
+                        type: "POST",
+                        url: server + "/Admin/CVSSScoringTotal",
+                        data: JSON.stringify({ modelss: ko.mapping.toJS(viewModel.cvssTotal) }), //parameter
+                        contentType: "application/json; charset=utf-8",
+                        error: function (xhr) { },
+                        success: function (msg) {
+                            if (msg.ok) {
+                                //viewModel.save_proc();
+                            }
+                            else {
+                                ShowMessageDanger('Error.');
+                            }
+                        }
+                    })
+                }
+                viewModel.save_proc();
+            }
+        }
+        ko.applyBindings(viewModel);
+    });
+
+    function getScore(val, count, name) {
+        $.ajax({
+            type: "POST",
+            url: "/Admin/getScoring",
+            data: JSON.stringify({ cd: val.value }),
+            contentType: "application/json; charset=utf-8",
+            datatype: "json",
+            success: function (msg) {
+                if (msg) {
+                    $("#" + name + "-" + count).val(msg.list.SeverityScoring);
+                    var max = $('#cmatrix_' + name).val(); //dptkn brape bil matrix
+                    var sum = 0;
+                    var total = 0;
+                    for (let i = 1; i <= max; i++) {
+                        total = $('#' + name + "-" + i).val();
+                        if (total == '') {
+                            total = 0;
+                        }
+                        sum += parseFloat(total);
+
+                        $("#Score_" + name).html(sum.toFixed(2));
+
+                    }
+                    var bil_score = $('#bilangan_score').val();
+                    var jumlah = 0;
+                    var jum = 0;
+                    for (let a = 1; a <= bil_score; a++) {
+                        score = $('#' + a).val();
+
+                        jumlah = $('#Score_' + score).html();
+
+                        if (jumlah == '') {
+                            jumlah = 0;
+                        }
+                        jum += parseFloat(jumlah);
+                    }
+                    $("#CVSSTotal").val(jum.toFixed(2));
+                    viewModel.getRating(sum, name);
+
+                }
+            }
+        });
+
+    }
+    function cancel() {
+        //ShowDecisionMessage("Are you Sure To Cancel ?", function () {
+
+        location.href = "/Admin/Dashboard";
+        //});
+    }
+</script>

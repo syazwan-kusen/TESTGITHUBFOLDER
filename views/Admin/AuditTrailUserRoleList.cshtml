@@ -1,0 +1,112 @@
+﻿<div class="panel panel-info">
+    <div class="panel-body">
+        @*<div class="panel-body  col-md-12">*@
+        <div align="left">
+            @*<table class="table table-bordered table-striped display" id="verifyUser3" align="center" width="100%">
+                    <thead style="background-color:moccasin">
+                        <tr>
+                            <th class="text-center">No.</th>
+                            <th class="text-center">Record Owner</th>
+                            <th class="text-center">Process</th>
+                            <th class="text-center">Altered Information</th>
+                            <th class="text-center">Previous Data</th>
+                            <th class="text-center">New Data</th>
+                            <th class="text-center">Updated By</th>
+                            <th class="col-sm-2 text-center">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        @{
+                            var count = 0;
+                            foreach (var item in Model.AuditTrailUserRoleList)
+
+                            {
+                                count = count + 1;
+                                <tr>
+
+                                    <td style="text-align:center">@count</td>
+                                    <td>@Html.Raw(item.x.CompFullNm)</td>
+                                    <td>@Html.Raw(item.action)</td>
+                                    <td>@Html.Raw(item.altered_info)</td>
+                                    <td>@Html.Raw(item.old_value)</td>
+                                    <td>@Html.Raw(item.new_value)</td>
+                                    <td>@Html.Raw(item.ModifiedBy)</td>
+                                    <td>@Html.Raw(item.created_at)</td>
+
+                                </tr>
+                            }
+                        }
+                    </tbody>
+
+                </table>*@
+            <div id="loadingDiv2" style="display:none;">
+                <div class="spinner">
+                    <div class="rect1"></div>
+                    <div class="rect2"></div>
+                    <div class="rect3"></div>
+                    <div class="rect4"></div>
+                    <div class="rect5"></div>
+                </div>
+            </div>
+            <div id="table-scroll" class="panel-body" style="overflow-x: scroll;">
+                <table class="table table-bordered table-striped display" border="0" id="" align="center" width="100%" style="height:150px;border-color:aliceblue;">
+                    <thead style="background-color:moccasin">
+                        <tr>
+                            <th class="text-center">No.</th>
+                            <th class="text-center">Record Owner</th>
+                            <th class="text-center">Process</th>
+                            <th class="text-center">Altered Information</th>
+                            <th class="text-center">Previous Data</th>
+                            <th class="text-center">New Data</th>
+                            <th class="text-center">Updated By</th>
+                            <th class="col-sm-2 text-center">Date</th>
+
+                            @*<th class="col-sm-2 text-center">Register Date</th>*@
+                            @*<th class="col-sm-2 text-center">Register Date</th>*@
+
+                        </tr>
+                    </thead>
+                    <tbody id="nodata2">
+                        <tr class="odd">
+                            <td valign="top" colspan="8" class="dataTables_empty text-center"><center>No matching records found</center></td>
+                        </tr>
+                    </tbody>
+                    <tbody data-bind="foreach: AuditTrailUserRoleListing">
+                        <tr>
+                            <td width="3%" data-bind="text: $index() + 1 + viewModel.pageind()" style="text-align:center"></td>
+                            <td data-bind="text: x.CompFullNm"></td>
+                            <td data-bind="text: action"></td>
+                            <td data-bind="text: altered_info"></td>
+                            <td data-bind="text: old_value"></td>
+                            <td data-bind="text: new_value"></td>
+                            <td data-bind="text: ModifiedBy"></td>
+                            <td data-bind="text: created_at"></td>
+
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-sm-5" style="margin-top: 20px">
+                <div class="dataTables_info" id="pageList_info" role="status" aria-live="polite"><font data-bind="text:'Showing ' + (viewModel.pageind() + 1) + ' to ' + (viewModel.pageind() + viewModel.totaleachpage()) + ' of ' + viewModel.countAllRow() + ' entries'"></font></div>
+            </div>
+        </div>
+        <div class="col-sm-7" align="right">
+            @{
+                <input type="hidden" id="pagenum" data-bind="value:pageind" />
+                <div id="drawPaginate2"></div>
+
+            }
+
+        </div>
+        <div align="center">
+            @*<button data-bind="click : cancel, visible :true, enable: true" class="btn btn-info btn-sm">
+                    <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> Back
+                </button>*@
+
+
+
+        </div>
+        @*</div>*@
+    </div>
+</div>

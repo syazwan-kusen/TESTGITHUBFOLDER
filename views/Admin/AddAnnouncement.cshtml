@@ -1,0 +1,207 @@
+﻿@using Newtonsoft.Json;
+@using myvdbsSQL;
+@using MyVDBSDemo.Models;
+
+@{
+    ViewBag.Title = "Announcement";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+
+}
+
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "__AjaxAntiForgeryForm" }))
+{
+    @Html.AntiForgeryToken()
+}
+<style>
+    .line {
+        color: #a8a8a8;
+        border-style: solid none;
+        border-width: 1px 0;
+        margin: 15px 0;
+    }
+
+    .line2 {
+        border-top: 1px solid rgba(0,0,0,0.2);
+        display: inline-block;
+        vertical-align: middle;
+        width: inherit;
+    }
+</style>
+
+<div class="col-lg-12" style="margin-top:70px;">
+    <div class="panel panel-info">
+        <div class="panel-heading">
+            <h3 class="panel-title">Add Announcement</h3>
+        </div>
+        <div class="panel-body">
+            <div class="col-md-2"></div>
+            <div class="panel panel-default col-md-8">
+                <div class="panel-body">
+                    <form id="myForm">
+                        <div class="form-row">
+                            <div class="form-group col-md-12">
+                                <label for="AnnouncementTitle" class="required">Announcement Title</label>
+                            </div>
+                            <div class="form-group col-md-11">
+                                <input id="AnnouncementTitle" type="text" class="validate[required] form-control" name="AnnouncementTitle" maxlength="100" data-bind="value:ann.AnnouncementTitle, valueUpdate:'afterkeydown'" autofocus autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-12">
+                                <label for="AnnouncementDetail">Announcement Detail</label>
+                            </div>
+                            <div class="form-group col-md-11">
+                                <div class="standalone-container">
+                                    <div id="snow-container"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-12" style="margin-bottom: 5px;">
+                                <label for="StartDt" class="required">Start Date</label>
+                            </div>
+                            <div class="col-md-3" style="margin-bottom: 15px;">
+                                <input type="text" class="validate[required] form-control" id="datepicker" placeholder="dd/mm/yy" data-bind="value:ann.StartDt, valueUpdate:'afterkeydown'" autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-12" style="margin-bottom: 5px;">
+                                <label for="EndDt" class="required">End Date</label>
+                            </div>
+                            <div class="col-md-3" style="margin-bottom: 15px;">
+                                <input type="text" class="validate[required] form-control" id="datepicker2" placeholder="dd/mm/yy" data-bind="value:ann.EndDt, valueUpdate:'afterkeydown'" autocomplete="off">
+                            </div>
+                        </div>
+                        <div align="center" class="form-group col-md-12">
+                            <button type="submit" class="btn btn-primary btn-sm m-t-10" data-bind="click:save"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Save</button>
+                            <button id="resetUpdate" class="btn btn-warning btn-sm m-t-10" data-bind="click:reset"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Reset </button>
+                            <button id="cancel" class="btn btn-info btn-sm m-t-10" data-bind="click:cancel"><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Back </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="col-md-2"></div>
+
+<script>
+
+    var ann = @Html.Raw(JsonConvert.SerializeObject(@Model, Formatting.None,
+        new JsonSerializerSettings()
+{
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+}));
+
+    var formCsrf = $('#__AjaxAntiForgeryForm');
+    var tokenCsrf = $('input[name="__RequestVerificationToken"]', formCsrf).val();
+</script>
+
+<script src="~/Scripts/Common/Common.js"></script>
+
+<script>
+
+    var viewModel;
+    $(function () {
+        $("#datepicker").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd/mm/yy'
+        });
+        $("#datepicker2").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd/mm/yy'
+        });
+        var toolbarOptions = [
+            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+            [{ 'font': [] }],
+            [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+            ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+            ['blockquote', 'code-block'],
+            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+            [{ 'script': 'sub' }, { 'script': 'super' }],      // superscript/subscript
+            [{ 'indent': '-1' }, { 'indent': '+1' }],          // outdent/indent
+            [{ 'align': [] }],
+            ['link'],
+            ['image']
+        ];
+        var quill = new Quill('#snow-container', {
+            modules: {
+                toolbar: toolbarOptions
+            },
+            theme: 'snow'
+        });
+        var limit = 1500; //set limit project details
+
+        quill.on('text-change', function (delta, old, source) {
+            if (quill.getLength() > limit) {
+                quill.deleteText(limit, quill.getLength());
+            }
+        });
+
+        var btnback = function () {
+            location.href = "/Admin/Announcement";
+        }
+
+        viewModel = {
+            ann: ko.mapping.fromJS(ann),
+
+            save: function () {
+                var value = $("#myForm").validationEngine('validate');
+
+                var tmp1 = viewModel.ann.StartDt().split('/');
+                var date1 = tmp1[1] + '/' + tmp1[0] + '/' + tmp1[2];
+                viewModel.ann.StartDt(date1);
+
+                var tmp2 = viewModel.ann.EndDt().split('/');
+                var date2 = tmp2[1] + '/' + tmp2[0] + '/' + tmp2[2];
+                viewModel.ann.EndDt(date2);
+
+                viewModel.ann.AnnouncementDetail($(".ql-editor").html());
+
+                if (value == true) {
+                    $.ajax({
+                        type: 'POST',
+                        url: '/Admin/AddNewAnnouncement',
+                        contentType: "application/json; charset=utf-8",
+                        data: JSON.stringify({ modelss: ko.mapping.toJS(viewModel.ann) }),
+                        headers: {
+                            '__RequestVerificationToken': tokenCsrf
+                        },
+
+                        success: function (msg) {
+
+                            if (msg.OK) {
+                                ShowMessageSuccess("Data successfully add.", btnback);
+                            }
+                            else {
+                                ShowMessageDanger('Unsuccesfully add.');
+                            }
+
+                        },
+                        error: function (xhr) {
+                        }
+                    });
+                } else {
+                    $("#addForm").validationEngine();
+                }
+            },
+        }
+
+        ko.applyBindings(viewModel);
+    });
+    function cancel() {
+        //ShowDecisionMessage("Are you sure?", function () {
+
+        location.href = "/Admin/Announcement";
+        //});
+    }
+    function reset() {
+        viewModel.ann.AnnouncementTitle("");
+        viewModel.ann.AnnouncementDetail("");
+        viewModel.ann.StartDt("");
+        viewModel.ann.EndDt("");
+    }
+</script>

@@ -1,0 +1,439 @@
+﻿
+@using Newtonsoft.Json;
+@using myvdbsSQL;
+@using MyVDBSDemo.Models;
+
+@{
+    ViewBag.Title = "Application Log";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<head></head>
+<style>
+    .butlink {
+        background: none !important;
+        border: none;
+        padding: 0 !important;
+        /*optional*/
+        font-family: arial,sans-serif; /*input has OS specific font-family*/
+        color: rgb(0, 0, 255);
+        cursor: pointer;
+    }
+
+    .butlink:hover {
+        text-decoration: underline;
+    }
+</style>
+<body>
+    <div class="col-lg-12" style="margin-top:70px;">
+        <div class="panel panel-info">
+
+            <div class="panel-body">
+                <div id="filter-panel" class="collapse filter-panel ">
+                    <div class="col-md-12">
+
+                        <div class="row" style="margin-bottom: 5px">
+
+                            <div class="col-md-12" style="padding:10px;">
+                                <div class="col-md-1"></div>
+                                <div class="col-md-5">
+                                    <div class="form-group">
+                                        <label for="user_name" class="col-md-4 control-label">User Full Name</label>
+
+                                        <div class="col-md-8">
+                                            <input id="search_user_name" type="text" class="form-control" maxlength="70" name="search_user_name" data-bind="value:search.search_user_name" autofocus autocomplete="off">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-5">
+                                    <div class="form-group">
+                                        <label for="date_end" class="col-md-4 control-label">Date</label>
+                                        <div class="col-md-5">
+                                            <input id="datepicker" type="text" class="form-control" name="search_date" data-bind="value:search.search_date" autofocus readonly="readonly" style="cursor:pointer; background-color: #FFFFFF">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="col-md-12" align="center" style="margin-top: 20px">
+                        <div class="row">
+                            <button type="search" class="btn btn-primary btn-sm m-t-10" id="proceed" data-bind="click:SearchListing">
+                                <span class="fa fa-search"></span> Proceed
+                            </button>
+                            <button id="resetUpdate" class="btn btn-warning btn-sm m-t-10" onclick='reset()'>
+                                <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Reset
+                            </button>
+
+                        </div>
+                    </div>
+                    <input type="hidden" name="fromSearch" value="1">
+
+                </div>
+                <div class="col-md-12">
+                    <p align="right">
+
+                        <a class="btn btn-primary" data-toggle="collapse" data-target="#filter-panel">
+                            <span class="glyphicon glyphicon-cog"></span> @MyVDBSDemo.Resources.LangText.Search
+                        </a>
+                    </p>
+                </div>
+                <div class="col-lg-12" style="margin-top:20px">
+                    <div class="panel panel-info">
+                        <div class="panel-body">
+                            <table class="table table-bordered table-striped display" align="center" width="100%">
+                                <thead style="background-color:moccasin">
+                                    <tr>
+                                        <th></th>
+                                        <th class="text-center">@MyVDBSDemo.Resources.LangText.No</th>
+                                        <th class="col-sm-2 text-center">Host</th>
+                                        <th class="col-sm-3 text-center">User Full Name</th>
+                                        <th class="col-sm-3 text-center">Type</th>
+                                        <th class="col-sm-2 text-center">Date</th>
+                                        <th class="col-sm-2 text-center">Massage</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="nodata">
+                                    <tr class="odd">
+                                        <td valign="top" colspan="7" class="dataTables_empty text-center"><center>No matching records found</center></td>
+                                    </tr>
+                                </tbody>
+                                <tbody data-bind="foreach: ApplicationLogListing">
+                                    <tr>
+                                        <td><input type="checkbox" name="chkFile" data-bind="value:ErrorId" /></td>
+                                        <td width="3%" data-bind="text: $index() + 1 + viewModel.pageind()" style="text-align:center"></td>
+                                        <td>
+                                            <p data-bind="text: Host"></p>
+                                            <div class="modal fade"  data-bind="attr: { id: ErrorId}" role="dialog">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header" align="center">
+                                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                                            <h4 class="modal-title">MyVDBS</h4>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <h3 style="margin-top: 10px;">Error Message:</h3>
+                                                            <p data-bind="text: Message"></p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td data-bind="text: x.CompFullNm"></td>
+                                        <td data-bind="text: Type"></td>
+                                        <td data-bind="text: TimeUtc"></td>
+                                        <td style="text-align:center">
+                                            <button class="btn btn-success btn-xs" data-bind="attr: { ErrorId: ErrorId}" onclick="modal_show(this.getAttribute('ErrorId'))">
+                                                <i class="fas fa-comment-alt"></i>  View Message
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="col-sm-5" style="margin-top: 20px">
+                                <div class="dataTables_info" id="pageList_info" role="status" aria-live="polite"><font data-bind="text:'Showing ' + (viewModel.pageind() + 1) + ' to ' + (viewModel.pageind() + viewModel.totaleachpage()) + ' of ' + viewModel.countAllRow() + ' entries'"></font></div>
+                            </div>
+                            <div class="col-sm-7" align="right">
+                                @{
+                                    <input type="hidden" id="pagenum" data-bind="value:pageind" />
+                                    <div id="drawPaginate1"></div>
+                                    <div id="drawSearchPaginate1"></div>
+                                }
+                            </div>
+                            <div class="col-md-12" align="center">
+
+                                <button type="button" id="delete" class="btn btn-danger btn-sm m-t-10">
+                                    <span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Delete File
+                                </button>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="decision_material" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header" align="center">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">MyVDBS</h4>
+                </div>
+                <div class="modal-body" align="center">
+                    <img src='/images/sureto.png' height='40'>&nbsp;&nbsp;Are you sure to delete this record(s) ?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default btn-ok" data-dismiss="modal" data-bind="click: del">Yes</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">No</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @Html.Partial("_CommonDialog")
+</body>
+<script src="~/Scripts/Common/Common.js"></script>
+<script src="~/Scripts/Common/DateFormat.js"></script>
+<script src="~/Scripts/Common/Pagination.js"></script>
+<script>
+    
+    var matrix= @Html.Raw(JsonConvert.SerializeObject(@Model, Formatting.None,
+                              new JsonSerializerSettings()
+    {
+
+                                  ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+    }));
+
+</script>
+
+<script>
+    //var dtInstance = $("#pageList").DataTable({
+    //    "scrollCollapse": false,
+    //    "paging": true,
+    //    "columnDefs": [{
+    //        "searchable": false,
+    //        "orderable": false,
+    //        "targets": 0
+    //    }],
+    //    "order": [[1, 'asc']]
+    //});
+
+    //dtInstance.on('order.dt search.dt', function () {
+    //    dtInstance.column(1, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
+    //        cell.innerHTML = i + 1;
+    //    });
+    //}).draw();
+
+    var viewModel;
+
+    var btnRefresh = function () {
+        location.reload();
+    }
+
+    function cancel() {
+        ShowDecisionMessage("@MyVDBSDemo.Resources.LangText.Are_U_Sure_Cancel", function () {
+
+            location.href = "/Admin/Dashboard";
+        });
+    }
+
+    $(function () {
+
+        viewModel = {
+            ApplicationLogListing: ko.observable(""),
+            pageind: ko.observable(0),
+            countAllRow : ko.observable(""),
+            totaleachpage : ko.observable(""),
+            search :
+            {
+                search_user_name: ko.observable(""),
+                search_status: ko.observable(""),
+                search_start_date : ko.observable(""),
+                search_end_date : ko.observable(""),
+            },
+
+            del: function () {
+                var DelId = "";
+                var objchk = document.getElementsByName("chkFile")
+
+
+                for (var i = 0; i < objchk.length ; i++) {
+                    if (objchk[i].checked == true) {
+                        DelId = DelId + objchk[i].value + ",";
+                    }
+                }
+
+                showLoading();
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/DeleteApplicationLogs",
+                    data: JSON.stringify({ path: DelId }),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+                            ShowMessageSuccess("@MyVDBSDemo.Resources.LangText.Success_Del_Msg",btnRefresh);
+                        }
+                        else {
+                            ShowMessageDanger('@MyVDBSDemo.Resources.LangText.Unsuccess_Del_Msg');
+                        }
+                    }
+                })
+            },  
+
+            searchFunctionBasedonPaginate: function (pageind,search_user_name, date) {
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/ApplicationLogsTable",
+                    data: JSON.stringify({pageind : pageind, search_user_name : search_user_name, date : date }),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            viewModel.ApplicationLogListing(msg.list.ApplicationLogList);
+                            viewModel.countAllRow(msg.list.GetApplicationLogList_total.countAllRow);
+                            viewModel.totaleachpage(viewModel.ApplicationLogListing().length);
+
+
+                        }
+                        else{
+
+                        }
+                    }
+                });
+
+            },
+
+            searchFunctionBasedonPaginate2: function (pageind,search_user_name,date) {
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/ApplicationLogsTable",
+                    data: JSON.stringify({ pageind : pageind, search_user_name : search_user_name, date : date}),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            viewModel.ApplicationLogListing(msg.list.ApplicationLogList);
+                            viewModel.countAllRow(msg.list.GetApplicationLogList_total.countAllRow);
+                            viewModel.totaleachpage(viewModel.ApplicationLogListing().length);
+
+                            paginateCLICK(0, 1);
+
+                        }
+                        else{
+
+                        }
+                    }
+                });
+
+            },
+
+
+            SearchListing: function () {
+                paginateCLICK2(0, 1)
+            },
+        }
+
+        ko.applyBindings(viewModel);
+    });
+
+    function hapus(path){
+        viewModel.del(path);
+    };
+
+    $('#delete').click(function () {
+
+        var DelId = "";
+        var objchk = document.getElementsByName("chkFile")
+
+
+        for (var i = 0; i < objchk.length ; i++) {
+            if (objchk[i].checked == true) {
+                DelId = DelId + objchk[i].value + ",";
+            }
+        }
+       
+        if (DelId == "") {
+            ShowMessageWarning("Please select record");
+
+        }
+        else {
+            var count = 0; // utk elakkan decisionmessage masuk lebih dri 1 kali
+            this.value = DelId;
+
+            $('#decision_material').modal('show');
+            //ShowDecisionMessage("Are you sure to delete this record?", function () {
+
+            //    if (count == 0) {
+            //        viewModel.del(DelId);
+
+            //        count++;
+            //    }
+
+
+            //});
+
+        }
+
+
+    })
+
+    function paginateCLICK(page, ind) {
+
+        var pageind = 0;
+        if(ind == 0)
+        {
+            pageind = (parseInt($("#pagenum").val()) + 10);
+        }
+        else if(ind == 2)
+        {
+            pageind = (parseInt($("#pagenum").val()) - 10);
+        }
+        else
+        {
+            pageind = page;
+        }
+
+        var search_user_name = document.getElementById('search_user_name').value;
+        var date = document.getElementById('datepicker').value;
+        
+
+        viewModel.pageind(pageind);
+
+        viewModel.searchFunctionBasedonPaginate(pageind, search_user_name, date);
+
+        //-----------------------------------------------------------------------------------------------------------------
+        paginatation(pageind);
+        //-----------------------------------------------------------------------------------------------------------------
+
+
+    }
+
+                
+    function paginateCLICK2(page, ind){
+        var pageind = 0;
+        if(ind == 0)
+        {
+            pageind = (parseInt($("#pagenum").val()) + 10);
+        }
+        else
+        {
+            pageind = page;
+        }
+
+        var search_user_name = document.getElementById('search_user_name').value;
+        var date = document.getElementById('datepicker').value;
+      
+        viewModel.pageind(pageind);
+        viewModel.searchFunctionBasedonPaginate2(pageind,search_user_name,date);
+
+    }
+
+    function modal_show(id){
+      
+        $('#'+id).modal('show');
+        
+    }
+
+    function reset(){
+        viewModel.search.search_user_name('');
+        document.getElementById('datepicker').value = '';
+    }
+
+    $(document).ready(function(){
+        $('#proceed').click();
+
+        $("#datepicker").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd/mm/yy'
+        });
+    });
+</script>

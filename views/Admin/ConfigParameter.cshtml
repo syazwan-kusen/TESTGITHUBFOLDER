@@ -1,0 +1,134 @@
+﻿
+@{
+    ViewBag.Title = "Parameter Configuration - ";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+
+}
+
+<div class="row">
+    <div class="panel-default" style="text-align:center;background-color:#7BE4E4;text-transform:uppercase;text-decoration:solid"><h3>Parameter Configuration</h3></div>
+</div>
+
+@*<hr>*@
+
+<div class="col-md-8 col-md-offset-2">
+    <div class="panel panel-default">
+        <br>
+        <br>
+        <div class="panel-body">
+            <form class="form-horizontal" role="form" method="POST" action="ConfigParameter">
+                @*<input type="hidden" name="_token" value="dwr5cdDaSJ2knHrzwJLMVpJwZWySIeaRCq1ok8DY">*@
+
+                <div class="form-group">
+                    <label for="minPass" class="col-md-6 control-label required">Password Minimum Length</label>
+                    <div class="col-md-2">
+                        <input id="minPass" type="text" class="form-control" name="minPass" value="6" required="">
+                    </div>
+
+                    @*<div class="tooltip-custom">
+                        <i class="fa fa-info-circle" style="font-size:1.5em;" aria-hidden="true"></i>
+                        <span class="tooltiptext2">Set the minimum number of characters (length) of the user's password..</span>
+                    </div>*@
+
+
+                </div>
+                <div class="form-group">
+                    <label for="maxPass" class="col-md-6 control-label required">Password Maximum Length</label>
+                    <div class="col-md-2">
+                        <input id="maxPass" type="text" class="form-control" name="maxPass" value="12" required="">
+                    </div>
+                    @*<div class="tooltip-custom">
+                        <i class="fa fa-info-circle" style="font-size:1.5em;" aria-hidden="true"></i>
+                        <span class="tooltiptext2">Set the maximum number of characters (length) of the user's password..</span>
+                    </div>*@
+                </div>
+                <div class="form-group">
+                    <label for="pwd_reuse_limit" class="col-md-6 control-label required">Password Reuse Limit (cycle)</label>
+                    <div class="col-md-2">
+                        <input id="pwd_reuse_limit" type="text" class="form-control" name="pwd_reuse_limit" value="2" onchange="check_num(this.value,&#39;pwd_reuse_limit&#39;)" required="">
+                    </div>
+                    @*<div class="tooltip-custom">
+                        <i class="fa fa-info-circle" style="font-size:1.5em;" aria-hidden="true"></i>
+                        <span class="tooltiptext2">Determination of recycling of old password usage.</span>
+                    </div>*@
+                </div>
+                <div class="form-group">
+                    <label for="loginLimit" class="col-md-6 control-label required">Num. of Login Attempts Allowed</label>
+                    <div class="col-md-2">
+                        <input id="loginLimit" type="text" class="form-control" name="loginLimit" value="3" onchange="check_num(this.value,&#39;loginLimit&#39;)" required="">
+                    </div>
+                    @*<div class="tooltip-custom">
+                        <i class="fa fa-info-circle" style="font-size:1.5em;" aria-hidden="true"></i>
+                        <span class="tooltiptext2">Set the number of attempts allowed before the account is blocked.</span>
+                    </div>*@
+                </div>
+                <div class="form-group">
+                    <label for="attempt_duration" class="col-md-6 control-label required">Login attempt reset duration (minute)</label>
+                    <div class="col-md-2">
+                        <input id="attempt_duration" type="text" class="form-control" name="attempt_duration" value="2" onchange="check_num(this.value,&#39;attempt_duration&#39;)" required="">
+                    </div>
+                    @*<div class="tooltip-custom">
+                        <i class="fa fa-info-circle" style="font-size:1.5em;" aria-hidden="true"></i>
+                        <span class="tooltiptext2">Determination of duration (minutes) to reset the wrong password trial countdown. (For safety, the period must be more than 60 minutes).</span>
+                    </div>*@
+                </div>
+                <div class="form-group">
+                    <label for="loginIdle" class="col-md-6 control-label required">Idle Time (Minute)</label>
+                    <div class="col-md-2">
+                        <input id="loginIdle" type="text" class="form-control" name="loginIdle" value="5" onchange="check_num(this.value,&#39;loginIdle&#39;)" required="">
+                    </div>
+                    @*<div class="tooltip-custom">
+                        <i class="fa fa-info-circle" style="font-size:1.5em;" aria-hidden="true"></i>
+                        <span class="tooltiptext2">Idle duration setting in minutes before the user is logged out automatically.</span>
+                    </div>*@
+                </div>
+                <div class="form-group">
+                    <label for="pwd_exp" class="col-md-6 control-label required">Expiry duration from last date password is updated (days)</label>
+                    <div class="col-md-2">
+                        <input id="pwd_exp" type="text" class="form-control" name="pwd_exp" value="90" onchange="check_num(this.value,&#39;pwd_exp&#39;)" required="">
+                    </div>
+                    @*<div class="tooltip-custom">
+                        <i class="fa fa-info-circle" style="font-size:1.5em;" aria-hidden="true"></i>
+                        <span class="tooltiptext2">Set the expiration period from password updated end date .</span>
+                    </div>*@
+                </div>
+                <div class="form-group">
+                    <label for="pwd_remind" class="col-md-6 control-label required">Reminder before date expire (days)</label>
+                    <div class="col-md-2">
+                        <input id="pwd_remind" type="text" class="form-control" name="pwd_remind" value="1" onchange="check_num(this.value,&#39;pwd_remind&#39;)" required="">
+                    </div>
+                    @*<div class="tooltip-custom">
+                        <i class="fa fa-info-circle" style="font-size:1.5em;" aria-hidden="true"></i>
+                        <span class="tooltiptext2">Determination of days for reminder notification before the expiry date of the password to the user.</span>
+                    </div>*@
+                </div>
+
+                <div class="form-group">
+                    <label for="emelAddrs" class="col-md-6 control-label required">Admin Reset Password Email</label>
+                    <div class="col-md-5">
+                        <input id="emelAddrs" type="text" class="form-control" name="emelAddrs" value="myvdbs.csm@gmail.com" required="">
+
+                    </div>
+                    @*<div class="tooltip-custom">
+                        <i class="fa fa-info-circle" style="font-size:1.5em;" aria-hidden="true"></i>
+                        <span class="tooltiptext2">Set the Email address for system to send the superadmin forgot password's email.</span>
+                    </div>*@
+                </div>
+
+                @*<div class="form-group">
+                    <div class="col-md-6 col-md-offset-6">
+                        <button type="submit" class="btn btn-primary">
+                            <span class="fa fa-pencil-square-o"></span> Update
+                        </button>
+                    </div>
+                </div>*@
+                <div class="row" style="text-align:center">
+                    <div class="form-group">
+                        <button type="button" class="btn btn-primary btn-sm" style="background-color:#ff9900" onclick="location.href='Dashboard';">&nbsp;&nbsp;Back&nbsp;&nbsp;</button>
+                        <button type="submit" class="btn btn-primary btn-sm" style="background-color:#ff9900">&nbsp;&nbsp;Submit&nbsp;&nbsp;</button><br><br>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

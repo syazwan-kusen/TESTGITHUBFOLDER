@@ -1,0 +1,36 @@
+﻿@using Newtonsoft.Json;
+@using myvdbsSQL;
+@using MyVDBSDemo.Models;
+@*@model IEnumerable<MyVDBSDemo.Models.Verify>*@
+@model MyVDBSDemo.Models.SetUserRoleData 
+
+@{
+    ViewBag.Title = "Role and Access Right";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+   
+ 
+    <div style="background-origin:border-box;margin-top:80px;">
+
+        <div class="col-md-8 col-md-offset-2" style="margin-top: 20px;">
+            @Html.Partial("GrantRoleAdmin")
+        </div>
+
+
+              
+    </div>
+
+    <script>
+
+    var UserRoleList = @Html.Raw(JsonConvert.SerializeObject(@Model, Formatting.None,
+                              new JsonSerializerSettings()
+     {
+
+                                  ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+    }));
+
+    </script>
+
+
+
+

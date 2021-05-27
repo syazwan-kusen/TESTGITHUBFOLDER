@@ -1,0 +1,987 @@
+﻿@using Newtonsoft.Json;
+@using myvdbsSQL;
+@using MyVDBSDemo.Models;
+
+@{
+    ViewBag.Title = "XML Scanner Input";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<style>
+
+    /*label {
+      float: left;
+      text-align: center;
+      width: 30%;
+    }*/
+    .p {
+      float: none;
+      margin: 10px auto;
+      width: 30%;
+    }
+
+    #table-scroll {
+      height:300px;
+      overflow:auto;  
+      margin-top:20px;
+    }
+
+    #user-id-div
+    {
+     width:300px;
+     margin:auto;    
+    }
+
+    li.selected ul {
+      display: none
+    } 
+</style>
+<body>
+    <div class="col-md-12" style="margin-top:70px;" >
+        <div class="panel panel-info">
+            @*<div class="modal-header">
+                    <h4 align="center">Update DREAD Type </h4>
+                </div>*@
+            <div class="panel-heading">
+                <h3 class="panel-title">Load Data From XML</h3>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    @*<form>*@
+                    <form id="myForm" class="form-group col-md-12">
+                        <div id="user-id-div" class="form-group" style="text-align:center;">
+                            <label for="Description" class="col-form-label">XML Provider</label>
+                            <select id="XMLProvider" class="validate[required] form-control form-control-sm" data-bind="options: XMLProvider, optionsText: 'VulXMLProviderNm', optionsValue: 'VulXMLMap', optionsCaption: '--- Please Choose ---', valueAllowUnset: true ,valueUpdate: 'afterkeydown'"></select>
+
+                            @*<input type="text" class="form-control form-control-sm" id="xmlProvider" placeholder="cth: Xml Provider">*@
+                        </div>
+                    </form>
+                    @*<div>
+                <p>
+                    <input type="file" id="FileUpload1" name="upload_pict_path" class="filestyle validate[required] form-control" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" data-buttonText="<span class='glyphicon glyphicon-folder-open'></span>" data-size="sm" data-placeholder="No File Chosen">
+                    <label for="Description" class="col-form-label"><font color="blue">NOTE : Please select a XML Format Only.</font></label>
+                </p>
+            </div>
+
+
+            <div>
+                <div align="center">
+                    <button type="generate" class="btn btn-primary btn-sm m-t-10" id="btnGenerate"><span class="glyphicon glyphicon-upload"></span> Load XML</button>
+                </div>
+            </div>*@
+
+                        <div>
+                            <p class="p">
+                                @*<label for="Description" class="col-form-label">Load XML :</label>*@
+                                <input type="file" id="FileUpload1" name="upload_pict_path" class="filestyle validate[required] form-control" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" data-buttonText="<span class='glyphicon glyphicon-folder-open'></span>" data-size="sm" data-placeholder="No File Chosen">
+                                <label for="Description" class="col-form-label"><font color="blue">NOTE : Please select a XML Format Only.</font></label>
+                            </p>
+                        </div>
+
+
+                        <div>
+                            <div align="center">
+                                <button type="generate" class="btn btn-primary btn-sm m-t-10" id="btnGenerate"><span class="glyphicon glyphicon-upload"></span> Load XML</button>
+                            </div>
+                        </div>
+
+                        @*</from>*@
+
+</div>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <form>
+
+                        <div id="table-scroll" class="panel-body" style="overflow-x: scroll;">
+                            <div id="dvTable"></div>
+
+                        </div>
+
+                        <br />
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div align="center">
+                    @*<button type="submit" class="btn btn-primary btn-sm m-t-10" data-bind="click: LoadXmlFile"><span class="glyphicon glyphicon-upload"></span> Load XML</button>*@
+                    @*<button type="generate" class="btn btn-primary btn-sm m-t-10" id="btnGenerate" ><span class="glyphicon glyphicon-upload"></span> Load XML</button>*@
+                    <button type="submit" class="btn btn-success btn-sm m-t-10" data-bind="click:save"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @*<input type="text" id="hdn" name="hdn" value="0" />*@
+
+    @Html.Partial("MappingHeaderListModel")
+    <script src="~/Scripts/Lookup/XMLLoad.js"></script>
+    @*<script src="~/Scripts/Common/Common.js"></script>*@
+    <script>
+
+    $("#XMLTable").dataTable();
+
+    var User = @Html.Raw(JsonConvert.SerializeObject(@Model, Formatting.None,
+                new JsonSerializerSettings()
+    {
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+    }));
+
+    </script>
+    <script>
+    var viewModel;
+    var UserIdLogin = '@User.Identity.Name';
+
+       
+        $(function(){
+       
+            viewModel = {
+                User: ko.mapping.fromJS(User),
+                MappingHeaderList:  ko.observable(""),
+                total: ko.observable(""),
+                totalfield:ko.observable(0),
+                //category0: ko.observableArray([]),
+                //category1: ko.observableArray([]),
+                //category: ko.observableArray([]),
+                //category2: ko.observableArray([]),
+                //category3: ko.observableArray([]),
+                //category4: ko.observableArray([]),
+                XMLProvider: ko.observableArray([]),
+                NumRow: ko.observable("") ,
+                fileName: ko.observable(""),
+                OverallDataField: ko.observable(""),
+                countData: ko.observable(""),
+                charCode1: ko.observable(""),
+                charCode2: ko.observable(""),
+                xmlProviderdata: ko.observable(""),
+                VulXMLMap: ko.observableArray([]),
+                Checked: ko.observable(true),
+               
+
+
+                savexmlfile : function ()
+                {
+
+                    var formData = new FormData();
+                    var file = document.getElementById("FileUpload1").files[0];
+                    formData.append("FileUpload", file);
+                    //formData.append("Name", Name);
+
+                    $.ajax({
+                        type: "POST",
+                        url: '/Upload/SaveXmlFile',
+                        data: formData,
+                        dataType: 'json',
+                        contentType: false,
+                        processData: false,
+                        success: function (msg) {
+                            if (msg.OK) {
+
+                                viewModel.fileName(msg.fileName);
+                                readBlob(msg.getxmlformatdata);
+                                //readBlob2(msg.fullxml);
+
+                            }
+                            else
+                            {
+                                successMsg =  msg.message1;
+                            }
+
+                        },
+                        error: function (error) {
+                            successMsg = "File size is too big.";
+                        }
+                    });
+
+                },
+
+                LoadXmlFile: function () {
+
+
+
+                    //var totalFiles = document.getElementById("picfile").files.length;
+                    var totalFiles = viewModel.total();
+
+                    if (totalFiles != 0) {
+                        // viewModel.LoadXml();
+                        ShowDecisionMessage("Are you Sure To Load this File ? ", function () {
+                            viewModel.savexmlfile();
+                        });
+                    }
+                    else
+                    {
+                        ShowMessageWarning('No XML File Chosen');
+
+                    }
+
+
+                },
+
+                save: function () {
+                   
+                    var xmlProviderdata = document.getElementById('XMLProvider').value;
+                    viewModel.xmlProviderdata(xmlProviderdata);
+
+                    var FirstField = "";
+                    var allField = "";
+                    var CombineField ="";
+                    var j = viewModel.totalfield() - 1;
+
+                    for(var i = 1; i <= j; i++){
+
+                        var Field = document.getElementById('txtInput'+ i +'').value;
+                        var MapNodeXml = document.getElementById('nodexml'+ i +'').value;
+
+                        if(Field == ""){
+                            Field = "NoFIELD";
+                            MapNodeXml = "NoFIELD";
+                        }
+
+                        if(Field != ""){
+                            if (i == 1){
+                                FirstField = Field;
+                                FirstNodeMap = MapNodeXml;
+                            }
+                            else{
+                                if(CombineField == "" ){
+                                    CombineField = Field;
+                                    CombineNodeMap = MapNodeXml;
+                                }else{
+                                    CombineField = CombineField + "," + Field;
+                                    CombineNodeMap = CombineNodeMap + "," + MapNodeXml;
+                                }
+
+                                allField = FirstField + "," + CombineField;  // field untuk dimasukkan dalam tblvulmaninput
+                                allNodeMap = FirstNodeMap + "," + CombineNodeMap;  // Node untuk dimapkan dgn field
+
+                            }
+                        }
+
+
+                    };
+                    var OverallField = i - 1;
+                    //alert(OverallField);
+
+                    //var value = $("#myForm").validationEngine('validate');
+
+                    //if (value == true) {
+                    ShowDecisionMessage("Are you sure to save this Record ? ", function () {
+                        var unmapped = ko.mapping.toJS(viewModel);
+
+                        $.ajax({
+                            type: 'POST',
+                            url: server + '/XML/SaveNewXMLData',
+                            contentType: "application/json; charset=utf-8",
+                            data: JSON.stringify({ xmldatapath : viewModel.fileName(),OverallDataField : viewModel.OverallDataField(),  allField: allField, countData: viewModel.countData() ,charCode1: viewModel.charCode1(), charCode2: viewModel.charCode2(), OverallField: OverallField, xmlProviderdata: viewModel.xmlProviderdata(), allNodeMap: allNodeMap }),
+                            success: function (msg) {
+                                if (msg.OK) {
+                                    ShowMessageSuccess("Data successfully update.");
+                                    $(window).click(function () {
+                                        location.reload();
+                                        //location.href = "/User/XMLScannerInput";
+                                    });
+
+                                }
+                                else {
+                                    ShowMessage('Unsuccesfully update.');
+                                }
+
+                            },
+                            error: function (xhr) {
+                            }
+                        });
+
+                    });
+                    //} else {
+                    //    $("#myForm").validationEngine();
+                    //}
+                },
+
+                loadcontroller: function (){
+
+                    //alert('masuk');
+
+
+
+                },
+
+                callRefload: function () {
+
+
+
+                    for(var i = 0; i = 1; i++)
+                    {
+                        // testloadRefFromtblVulManInput(i);
+                    };
+
+
+                    //var value = $("#myForm").validationEngine('validate');
+
+                    //if (value == true) {
+                    //    ShowDecisionMessage("Are you sure to save this Record ? ", function () {
+                    //        var unmapped = ko.mapping.toJS(viewModel);
+
+                    //        $.ajax({
+                    //            type: 'POST',
+                    //            url: server + '/XML/SaveNewXMLData',
+                    //            contentType: "application/json; charset=utf-8",
+                    //            data: JSON.stringify({ mapping1 : viewModel.mappingCd.code(), mapping2 : viewModel.mappingCd.code2(), mapping3 : viewModel.mappingCd.code3(), mapping4 : viewModel.mappingCd.code4(), mapping5 : viewModel.mappingCd.code5(), xmldatapath : viewModel.Finding.fileNamePath() }),
+                    //            success: function (msg) {
+                    //                if (msg.OK) {
+                    //                    ShowMessageSuccess("Data successfully update.");
+                    //                    $(window).click(function () {
+                    //                        //location.reload();
+                    //                        location.href = "/User/XMLScannerInput";
+                    //                    });
+
+                    //                }
+                    //                else {
+                    //                    ShowMessage('Unsuccesfully update.');
+                    //                }
+
+                    //            },
+                    //            error: function (xhr) {
+                    //            }
+                    //        });
+
+                    //    });
+                    //} else {
+                    //    $("#myForm").validationEngine();
+                    //}
+                },
+
+                clickToMappinList: function (count,allField,OverallField) {
+                   
+                    $.ajax({
+                        type: "POST",
+                        url: server + "/Admin/MappingHeaderListInfo",
+                        data: JSON.stringify({ numberRow : count , allField : allField, OverallField: OverallField}),
+                        contentType: "application/json; charset=utf-8",
+                        success: function (msg) {
+                            if (msg.OK) {
+                                viewModel.MappingHeaderList(msg.list.MappingHeaderListInformation);
+                                viewModel.NumRow(count);
+                                //console.log(viewModel.MappingHeaderList());
+
+
+                                $("#searchMapping").modal({
+                                    show: 'true',
+                                    backdrop: 'true',
+                                    keyboard: 'true'
+                                });
+
+                            }
+                        }
+                    });
+                },
+
+                //myFunction2: function (){
+                //  //  loadRefVulCategory();
+                //},
+
+                //ClickMapping: function (){
+                //    alert('hahahahaa');
+                //},
+            };
+     
+            loadRefXMLProvider();
+            ko.applyBindings(viewModel);
+
+            // testloadRefFromtblVulManInput(0);
+            //loadRefFromtblVulManInput(0,0,0,0,0);
+            //loadRefFromtblVulManInput2(0,0,0,0,0);
+            //loadRefFromtblVulManInput3(0,0,0,0,0);
+            //loadRefFromtblVulManInput4(0,0,0,0,0);
+            //loadRefFromtblVulManInput5(0,0,0,0,0);
+        });
+ 
+    $('#FileUpload1').change(function (event) {
+        var tmppath = URL.createObjectURL(event.target.files[0]);
+
+        var input = this;
+        var url = $(this).val();
+        var file = input.files[0];
+
+
+        if (!isImage(url))
+        {
+            ShowMessageWarning('Please select a XML Format Only.');
+            $(this).val('');
+        }
+        else{
+            viewModel.total(1);
+        }
+
+    });
+
+    //$('#FileUpload1').change(function (event) {
+    //    var tmppath = URL.createObjectURL(event.target.files[0]);
+
+    //    var input = this;
+    //    var url = $(this).val();
+    //    var file = input.files[0];
+
+
+    //    if (!isImage(url))
+    //    {
+    //        ShowMessageWarning('Please select a XML Format Only.');
+    //        $(this).val('');
+    //    }
+    //    else{
+    //        viewModel.total(1);
+    //    }
+
+    //});
+
+    function isImage(filename) {
+        var ext = getExtension(filename);
+        switch (ext.toLowerCase()) {
+            case 'xml':
+                //etc
+                return true;
+        }
+        return false;
+    }
+
+    function getExtension(filename) {
+        var parts = filename.split('.');
+        return parts[parts.length - 1];
+    }
+
+    </script>
+    <script>
+    $(function () {
+        $("#btnGenerate").click(function () {
+
+            var totalFiles = viewModel.total();
+
+            var value = $("#myForm").validationEngine('validate');
+
+            if (value == true)
+            {
+                if (totalFiles != 0) {
+                    // viewModel.LoadXml();
+                    ShowDecisionMessage("Are you Sure To Load this File ? ", function () {
+                        viewModel.savexmlfile();
+
+
+                        //window.open(
+                        //'file:///E:/myVdbs/MyVDBSDemo/MyVDBSDemo/XMLFile/xmltemplate_20180918110425.xml',
+                        //'_blank' // <- This is what makes it open in a new window.
+                        //);
+
+                        //alert(Server.MapPath("/XMLFile/xmltemplate_20180918110425.xml"))
+
+
+
+                    });
+                }
+                else
+                {
+                    ShowMessageWarning('No XML File Chosen');
+
+                }
+            }
+            else{
+                $("#myForm").validationEngine();
+            }
+
+            //temp close
+            //viewModel.callRefload();
+            //end temp close
+
+            //testloadRefFromtblVulManInput();
+            //Build an XML containing Customer records.
+            //var xml = "<Customers><ThreatsTable>";
+            //xml += "<CustomerId>1</CustomerId><Name>John Hammond</Name><Country>United States</Country><Country2>United States</Country2><Country3>United States</Country3><Country>United States</Country><Country2>United States</Country2><Country3>United Statesaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</Country3>";
+            //xml += "</ThreatsTable>";
+            //xml += "<ThreatsTable>";
+            //xml += "<CustomerId>2</CustomerId><Name>Mudassar Khan</Name><Country>India</Country><Country2>United States</Country2><Country3>United States</Country3><Country>United States</Country><Country2>United States</Country2><Country3>United Statesaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</Country3>";
+            //xml += "</ThreatsTable>"
+            //xml += "<ThreatsTable>";
+            //xml += "<CustomerId>3</CustomerId><Name>Suzanne Mathews</Name><Country>France</Country><Country2>United States</Country2><Country3>United States</Country3><Country>United States</Country><Country2>United States</Country2><Country3>United Statesaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</Country3>";
+            //xml += "</ThreatsTable>";
+            //xml += "<ThreatsTable>";
+            //xml += "<CustomerId>4</CustomerId><Name>Robert Schidner</Name><Country>Russia</Country><Country2>United States</Country2><Country3>United States</Country3><Country>United States</Country><Country2>United States</Country2><Country3>United Statesaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</Country3>";
+            //xml += "</ThreatsTable></Customers>";
+
+            //var xml = "<ThreatsTable><ThreatsRow><SEVERITY>AAAAAAAAAAAA</SEVERITY><SHORTNAME>PAFF</SHORTNAME><NETSPARKER>PossibleAdminFile</NETSPARKER><VULNERABILITYNAME>[Possible] Administration Page Detected</VULNERABILITYNAME><PCI20>6.5.8</PCI20><PCI30>6.5.8</PCI30><PCI31>6.5.8</PCI31><WASC>34</WASC><CWE>425</CWE><CAPEC>87</CAPEC><OWASPTT2010>A8</OWASPTT2010><OWASPTT2013>A7</OWASPTT2013></ThreatsRow><ThreatsRow><SEVERITY>BBBBBBBBBB</SEVERITY><SHORTNAME>BFI</SHORTNAME><NETSPARKER>BackupFileFound</NETSPARKER><VULNERABILITYNAME>[Possible] Backup File Disclosure</VULNERABILITYNAME><PCI20>6.5.8</PCI20><PCI30>6.5.8</PCI30><PCI31>6.5.8</PCI31><WASC>34</WASC><CWE>530</CWE><CAPEC>87</CAPEC><OWASPTT2010>A8</OWASPTT2010><OWASPTT2013>A7</OWASPTT2013></ThreatsRow><ThreatsRow><SEVERITY>CCCCCCCCCCCC</SEVERITY><SHORTNAME>LPCI</SHORTNAME><NETSPARKER>PossibleCI</NETSPARKER><VULNERABILITYNAME>[Possible] Command Injection</VULNERABILITYNAME><PCI20>6.5.1</PCI20><PCI30>6.5.1</PCI30><PCI31>6.5.1</PCI31><WASC>31</WASC><CWE>78</CWE><CAPEC>88</CAPEC><OWASPTT2010>A1</OWASPTT2010><OWASPTT2013>A1</OWASPTT2013></ThreatsRow></ThreatsTable>";
+
+
+            //temp close
+            //var xml = "<Products><Product><ProductId>1</ProductId><ProductName>Generic Mouse</ProductName><ProductCost>30.00</ProductCost></Product><Product><ProductId>2</ProductId><ProductName>Generic Keyboard</ProductName><ProductCost>20.00</ProductCost></Product><Product><ProductId>3</ProductId><ProductName>Generic Hard Drive</ProductName><ProductCost>100.00</ProductCost></Product></Products> ";
+
+            //var xmlDoc = $.parseXML(xml);
+            //var customers = $(xmlDoc).find("Product");
+
+            ////Create a HTML Table element.
+            ////var head = $("<div class='panel-body' style='overflow-x: scroll;' />")
+            //var table = $("<table border='0' class='table table-condensed table-striped display' style='width:200%;height:10px;' id='XMLTable' align='center' />");
+            ////table[0].border = "1";
+
+            ////var count = 0;
+            ////Add the header row.
+            //var row = $(table[0].insertRow(-1));
+            //customers.eq(0).children().each(function () {
+            //    var headerCell = $("<th  style='background-color:moccasin;' />");
+            //    headerCell.html(this.nodeName);
+            //    row.append(headerCell);
+
+            //    //count ++;
+            //});
+
+            ////viewModel.totalfield(count);
+
+            //var m = 0;
+            ////Add the mapping
+            //var row = $(table[0].insertRow(-1));
+            //customers.eq(0).children().each(function () {
+            //    var tfootCell = $("<td />");
+            //    tfootCell.html("<select id='category[" + m + "]' class='validate[required] form-control' data-bind='options: category[" + m + "], optionsText: 'VulManInputColumnNm', optionsValue: 'code', optionsCaption: '-- Mapping --', valueAllowUnset: true, valueUpdate: 'afterkeydown'' />");
+            //    row.append(tfootCell);
+            //    m ++;
+            //});
+            ////alert(m);
+            ////viewModel.totalfield(m);
+
+            ////Add the data rows.
+            //$(customers).each(function () {
+            //    row = $(table[0].insertRow(-1));
+            //    $(this).children().each(function () {
+            //        var cell = $("<td width='30%' />");
+            //        cell.html($(this).text());
+            //        row.append(cell);
+            //    });
+            //});
+
+            //var dvTable = $("#dvTable");
+            //dvTable.html("");
+            //dvTable.append(table);
+
+            //end temp close
+        });
+
+
+    });
+    </script>
+
+    <script>
+    function readBlob(xmldaricontroller) {
+
+        loadtblVulXMLMap();
+
+
+        setTimeout(timeoutset, 1000);
+    
+
+    }
+     
+    function timeoutset(){
+        //alert(viewModel.VulXMLMap().length);
+        var xmlProviderdata = document.getElementById('XMLProvider').value;
+        //alert(xmlProviderdata)
+
+        var files = document.getElementById('FileUpload1').files;
+
+        //if (!files.length) {
+        //     ShowMessageWarning('No XML File Chosen');
+        //  return;
+        //}
+
+        var file = files[0];
+        //var start = parseInt(opt_startByte) || 0;
+        //var stop = parseInt(opt_stopByte) || file.size - 1;
+
+        var reader = new FileReader();
+
+
+        // If we use onloadend, we need to check the readyState.
+        reader.onloadend = function(evt) {
+            // var aaaa = '<data><Product><ProductId>sda</ProductId><ProductName>aaaaa</ProductName><ProductCost>30.00</ProductCost></Product><Product><ProductId>2</ProductId><ProductName>Generic Keyboard</ProductName><ProductCost>20.00</ProductCost></Product><Product><ProductId>3</ProductId><ProductName>Generic Hard Drive</ProductName><ProductCost>100.00</ProductCost></Product></data>'
+            var i = 0;
+            if (evt.target.readyState == FileReader.DONE) { // DONE == 2
+
+
+                //temp close
+                //var xml = '<data><Vulnerability><Title>CVE-2008-0055</Title><Notes><Note>Foundation in Apple Mac OS X 10.4.11 creates world-writabledirectories while NSFileManager copies files recursively and onlymodifies the permissions afterward, which allows local users to modifycopied files to cause a denial of service and possibly gainprivileges.</Note><Note>2008-03-18</Note></Notes><CVE>CVE-2008-0055</CVE><References><Reference><URL>http://docs.info.apple.com/article.html?artnum=307562</URL><Description>CONFIRM:http://docs.info.apple.com/article.html?artnum=307562</Description></Reference><Reference><URL>http://lists.apple.com/archives/security-announce/2008/Mar/msg00001.html</URL><Description>APPLE:APPLE-SA-2008-03-18</Description></Reference></References><test>sdadadas</test></Vulnerability><Vulnerability><Title>CVE-2008-0055</Title><Notes><![CDATA[<Note>Foundation in Apple Mac OS X 10.4.11 creates world-writabledirectories while NSFileManager copies files recursively and onlymodifies the permissions afterward, which allows local users to modifycopied files to cause a denial of service and possibly gainprivileges.</Note><Note>2008-03-18</Note>]]></Notes><CVE>CVE-2008-0055</CVE><References><![CDATA[<Reference><URL>http://docs.info.apple.com/article.html?artnum=307562</URL><Description>CONFIRM:http://docs.info.apple.com/article.html?artnum=307562</Description></Reference><Reference><URL>http://lists.apple.com/archives/security-announce/2008/Mar/msg00001.html</URL><Description>APPLE:APPLE-SA-2008-03-18</Description></Reference>]]></References><test>sdadadas</test></Vulnerability></data>'
+                //var xml = xmldaricontroller;
+            
+                if(xmlProviderdata == ''){
+                    ShowMessageSuccess("Please Choose XML Provider.");
+                    //$(window).click(function () {
+                    //    location.reload();
+                    //    //location.href = "/User/XMLScannerInput";
+                    //});
+                }
+                else{
+                    if(xmlProviderdata == '09'){
+                        var xml = evt.target.result;
+                        //var xml = xmldaricontroller;
+                    }else if(xmlProviderdata == '11'){
+                        alert('NETSPARKER ONLY');
+                    }
+                    else{
+                        alert('NETSPARKER ONLY');
+                    }
+                }
+                
+            
+            
+            
+                var xmlDoc = $.parseXML(xml);
+
+                //var x, y, i, xmlDoc, txt;
+                //xmlDoc = xml.responseXML;
+                //txt = "";
+                x = xmlDoc.documentElement;
+                w = xmlDoc.documentElement.childElementCount; //berapa nilai data keseluruhan
+                q = xmlDoc.documentElement.childNodes.length;
+
+                //var c = xmlDoc.documentElement.Vulnerability.childNodes;
+
+                var y = x.childNodes;
+
+                txt =  y[1].nodeName;
+
+                var customers = $(xmlDoc).find(txt);
+
+                //var customers = $(xmlDoc).find("RemediationType");
+
+                //Create a HTML Table element.
+                var table = $("<table border='0' class='table table-condensed table-striped display' style='width:500%;height:10px;' id='XMLTable' align='center' />");
+                //table[0].border = "1";
+
+                //var count = 0;
+                //Add the header row.
+                var row = $(table[0].insertRow(-1));
+
+                customers.eq(0).children().each(function () {
+                    var headerCell = $("<th align='center' style='background-color:moccasin;'  />");
+                    headerCell.html(this.nodeName);
+                    row.append(headerCell);
+
+                    //count ++;
+                });
+
+                //viewModel.totalfield(count);
+
+                var m = 1;
+                var valueFiled = '';
+                //Add the mapping
+                var row = $(table[0].insertRow(-1));
+                customers.eq(0).children().each(function () {
+                    //alert(this.nodeName);
+
+                    var tfootCell = $("<td />");
+                    //alert(viewModel.VulXMLMap);
+                    //alert(viewModel.VulXMLMap().length);
+
+                
+                    for (var k = 0; k < viewModel.VulXMLMap().length; k++) {
+                     
+                        //alert(viewModel.VulXMLMap()[k].XMLField);
+                        if(this.nodeName == viewModel.VulXMLMap()[k].XMLField){
+          
+                            valueFiled = viewModel.VulXMLMap()[k].VulField;
+                            tfootCell.html("<input type='text'  id='txtInput" + m + "' value='" + valueFiled + "' class='validate[required] form-control' placeholder='e.g. Field Name' autocomplete='off' readonly /></br><a href='#' onclick='clickToMapping(" + m + " )';><font color='blue'>Click to Mapping</font></a></br><input type='hidden'  id='nodexml" + m + "' value='" + this.nodeName + "' class='validate[required] form-control' />");        
+                            var masuk = 'ya';
+
+                        }else{
+
+                            if(masuk != 'ya'){
+                                valueFiled = '';
+                                tfootCell.html("<input type='text'  id='txtInput" + m + "' value='" + valueFiled + "' class='validate[required] form-control' placeholder='e.g. Field Name' autocomplete='off' readonly /></br><a href='#' onclick='clickToMapping(" + m + " )';><font color='blue'>Click to Mapping</font></a></br><input type='hidden'  id='nodexml" + m + "' value='" + this.nodeName + "' class='validate[required] form-control' />");        
+                            }
+                      
+                        }
+                    }
+                
+                
+                    //  tfootCell.html("<input type='text'  id='txtInput" + m + "' value='' class='validate[required] form-control' placeholder='e.g. Field Name' autocomplete='off' readonly /></br><a href='#' onclick='clickToMapping(" + m + " )';><font color='blue'>Click to Mapping</font></a></br><input type='hidden'  id='nodexml" + m + "' value='" + this.nodeName + "' class='validate[required] form-control' />");
+                    //tfootCell.html("<input type='text'  id='nodexml" + m + "' value='" + this.nodeName + "' class='validate[required] form-control' />");
+
+
+                    row.append(tfootCell);
+
+                    m ++;
+
+                });
+
+                viewModel.totalfield(m);
+
+                //Add the data rows.
+                var FirstDataField = "";
+                var CombineDataField = "";
+                var allDataField = "";
+                var OverallDataField = "";
+                var FirstAllDataField = "";
+                var CombineAllDataField = "";
+                var N = 1;
+                var O = 1;
+                var countData = 0;
+                var charCode1 =  String.fromCharCode(253);;
+                var charCode2 =  String.fromCharCode(255);;
+                $(customers).each(function () {
+                    row = $(table[0].insertRow(-1));
+                    $(this).children().each(function () {
+                        var cell = $("<td width='30%' />");
+                        //susun data
+                        var DataField = $(this).text();
+
+                        if(DataField != ""){
+
+                            if (N == 1){
+                                FirstDataField = DataField;
+                                N = 2;
+                            }
+                            else{
+                                if(CombineDataField == "" ){
+                                    CombineDataField = DataField;
+                                }else{
+                                    CombineDataField = CombineDataField + charCode1 + DataField;
+                                }
+
+                                allDataField = FirstDataField + charCode1 + CombineDataField;
+                            }
+                        }
+                        //end susun data
+
+                        cell.text($(this).text());
+                        // cell.html($(this).text());
+                        row.append(cell);
+                    });
+
+                    N = 1;
+                    if(allDataField != ""){
+
+                        if (O == 1){
+                            FirstAllDataField = allDataField;
+                            O = 2;
+                        }
+                        else{
+                            if(CombineAllDataField == "" ){
+                                CombineAllDataField = FirstAllDataField + charCode2 + allDataField;
+                            }else{
+                                CombineAllDataField = CombineAllDataField + charCode2 + allDataField;
+                            }
+
+                            OverallDataField = CombineAllDataField;  // data untuk dimasukkan dalam tblvulmaninput
+                        }
+                    }
+
+                    countData ++;
+                    allDataField = "";
+                    CombineDataField = "";
+                    FirstDataField = "";
+                });
+
+                viewModel.OverallDataField(OverallDataField);
+                viewModel.countData(countData);
+                viewModel.charCode1(charCode1);
+                viewModel.charCode2(charCode2);
+
+                var dvTable = $("#dvTable");
+
+                dvTable.html("");
+                dvTable.append(table);
+                //end temp close
+
+                // document.getElementById('byte_content').textContent = evt.target.result;
+            }
+        };
+
+        var blob = file.slice();
+        reader.readAsBinaryString(blob);
+
+    }
+
+    function readBlob2(fullxml) {
+
+        //var file = document.getElementById("FileUpload1").files[0];
+        //var reader = new FileReader();
+        //reader.readAsText(file);
+        //var xmlData = $(reader.result);
+        //alert(xmlData);
+
+        //var txt = '<?xml version="1.0" encoding="utf-8" standalone="yes"?><XmlReport Name="192.168.100.95-scan" XmlExportVersion="2.0"><AppScanInfo><Version>nama ko</Version><ServicePack /></AppScanInfo><Summary><TotalIssues>27</TotalIssues><TotalVariants>77</TotalVariants><TotalRemediations>23</TotalRemediations><TotalScanDuration>02:22:50.6565884</TotalScanDuration><Hosts><Host Name="http://192.168.100.95/"><TotalInformationalIssues>0</TotalInformationalIssues><TotalLowSeverityIssues>1</TotalLowSeverityIssues><TotalMediumSeverityIssues>26</TotalMediumSeverityIssues><TotalHighSeverityIssues>0</TotalHighSeverityIssues><Total>27</Total></Host></Hosts></Summary><Results><RemediationTypes><Total>16</Total><RemediationType ID="fix_52720"><Name>Always use SSL and POST (body) parameters when sending sensitive information.</Name><Priority>High</Priority><fixRecommendation type="General"><text>1. Make sure that all login requests are sent encrypted to the server.</text><text>2. Make sure that sensitive information such as:</text><indentText>- Username</indentText> <indentText>- Password</indentText><indentText>- Social Security number</indentText><indentText>- Credit Card number</indentText><indentText>- Drivers License number</indentText><indentText>- e-mail address</indentText><indentText>- Phone number</indentText><indentText>- Zip code</indentText><br /><text>is always sent encrypted to the server.</text></fixRecommendation></RemediationType><RemediationType ID="fix_52000"><Name>Review possible solutions for hazardous character injection</Name><Priority>High</Priority><fixRecommendation type="General"><text>There are several mitigation techniques:</text><text>[1] Strategy: Libraries or Frameworks</text><text>Use a vetted library or framework that does not allow this weakness or provides constructs that make it easier to avoid.</text><br /><text>[2] Strategy: Parameterization</text><text>If available, use structured mechanisms that automatically enforce separation between data and code. These mechanisms may be able to provide the relevant quoting, encoding, and validation automatically, instead of relying on the developer to provide this at every point where output is generated.</text><br /> <text>[3] Strategy: Environment Hardening</text><text>Run your code using the lowest privileges that are required to accomplish the necessary tasks.</text><br /><text>[4] Strategy: Output Encoding</text><text>If you need to use dynamically-generated query strings or commands in spite of the risk, properly quote arguments, and escape any special characters within those arguments.</text> <br /><text>[5] Strategy: Input Validation</text><text>Assume all input is malicious. Use an "accept known good" input validation strategy: a whitelist of acceptable inputs that strictly conform to specifications. Reject any input that does not strictly conform to specifications, or transform it into something that does. Do not rely exclusively on detecting for malicious or malformed inputs with a blacklist. However, blacklists can be useful for detecting potential attacks or determining which inputs are so malformed that they should be rejected outright.</text></fixRecommendation> </RemediationType></Results></XmlReport>';
+        var txt = fullxml;
+        //alert(pathxml);
+
+        if (window.DOMParser) {
+            parser = new DOMParser();
+            xmlDoc = parser.parseFromString(txt, "text/xml");
+        } else { // Internet Explorer
+            xmlDoc = new ActiveXObject("Microsoft.XMLDOM");
+            xmlDoc.async = false;
+            xmlDoc.loadXML(txt);
+        }
+
+        document.getElementById("dvTable2").innerHTML = "<ul>"+generate(xmlDoc.documentElement)+"</ul>";
+        //document.body.innerHTML = "<ul>"+generate(xmlDoc.documentElement)+"</ul>";
+
+    }
+
+
+
+    function generate(node) {
+
+        if (node.nodeType != 1) return "";
+        //var p = "<li><a href='#' style='color:#3E7CFF;' id=" + node.nodeName + " onClick='getValue(this.id)'>" + node.nodeName + "</a>";
+        var p = "<li><input type='checkbox' id=" + node.nodeName + "  name=" + node.nodeName + " onClick='getValue(this)'  >" + node.nodeName + "";
+        //var p = "<li> <input type='checkbox' name='one'>1</li>"
+
+        var htmlForChildNodes = "";
+        //var ValueNode = "";
+        for (var i = 0; i < node.childNodes.length; i++) {
+            var ValueNode = node.childNodes[i].nodeValue;
+           // var p = "<li><input type='checkbox' id=" + node.nodeName + "  name=" + node.nodeName + " value=" + node.nodeName + "   >" + node.nodeName + "";
+
+            if(ValueNode == null || ValueNode == ""){
+                htmlForChildNodes += generate(node.childNodes[i]);
+            }else{
+                htmlForChildNodes += generate(node.childNodes[i]) + ValueNode ;
+            }
+            //htmlForChildNodes += generate(node.childNodes[i]) + ValueNode ;
+        }
+
+        if (htmlForChildNodes) {
+            p += "<ul OnClick='DoMyOnClickCall()'>" + htmlForChildNodes + "</ul>";
+        }
+        p += "</li>";
+        //alert(p);
+
+        //$("#dvTable2").html(p);
+
+        return p;
+
+    }
+
+    function DoMyOnClickCall(){
+        event.target.classList.toggle("selected");
+    }
+
+    $(document).ready(function() {
+        $('input[type="checkbox"]').click(function() {
+            //alert('masuk sini');
+            //$('input[name="' + this.name + '"]:checkbox').prop('checked', this.checked)
+
+        });
+    });
+
+    function getValue(value){
+
+        $('input[type=checkbox]').each(function(){
+
+            if (value.checked){
+                if(this.name == value.name){
+                    this.checked=true;
+                }
+            }
+            else{
+                if(this.name == value.name){
+                    this.checked=false;
+                }
+            }
+
+
+        });
+        //$('input[name=Reference]:checkbox').prop('checked', this.checked);
+        //var elm = document.getElementByName(aaa);
+        //elm.checked = !elm.checked;
+
+
+        //var choices = [];
+        //var els = document.getElementsByName(aaa);
+        //for (var i=0;i<els.length;i++){
+        //    alert(i);
+        //    alert(aaa);
+        //    document.getElementsById("PC120").checked = true;
+        //}
+       // document.getElementsById(aaa).checked = true;
+        //document.getElementById("www").checked = true;
+        //var els = document.getElementsByName(aaa);
+        //alert(els.length)
+    }
+
+
+
+
+    function clickToMapping(count) {
+
+        var FirstField = "";
+        var FirstNodeMap = "";
+        var allField = "";
+        var allNodeMap = "";
+        var CombineField ="";
+        var CombineNodeMap ="";
+        var j = viewModel.totalfield() - 1;
+        for(var i = 1; i <= j; i++){
+
+            var Field = document.getElementById('txtInput'+ i +'').value;
+            var MapNodeXml = document.getElementById('nodexml'+ i +'').value;
+
+            if(Field == ""){
+                Field = "NoFIELD";
+                MapNodeXml = "NoFIELD";
+            }
+
+            if(Field != ""){
+                if (i == 1){
+                    FirstField = Field;
+                    FirstNodeMap = MapNodeXml;
+                }
+                else{
+                    if(CombineField == "" ){
+                        CombineField = Field;
+                        CombineNodeMap = MapNodeXml;
+                    }else{
+                        CombineField = CombineField + "," + Field;
+                        CombineNodeMap = CombineNodeMap + "," + MapNodeXml;
+                    }
+
+                    allField = FirstField + "," + CombineField;  // field untuk dimasukkan dalam tblvulmaninput
+                    allNodeMap = FirstNodeMap + "," + CombineNodeMap;  // Node untuk dimapkan dgn field
+
+                }
+            }
+
+
+        };
+
+        var OverallField = i - 1;
+
+        viewModel.clickToMappinList(count,allField,OverallField);
+        //$('#searchMapping').modal('show');
+
+    }
+
+    function cancelsearchMapping() {
+        $('#searchMapping').modal('hide');
+    }
+
+    function ClickMapping(field_name){
+
+        var numRow = viewModel.NumRow();
+
+        if(numRow != ""){
+            document.getElementById('txtInput' + numRow + '').value= field_name;
+        }
+
+        $('#searchMapping').modal('hide');
+        //viewModel.code(mappingIndex);
+    }
+
+    //function myFunction() {
+        
+    //    viewModel.myFunction2();
+    //}
+    //testloadRefFromtblVulManInput(0);
+    </script>
+
+    <script>
+
+
+
+    </script>
+</body>

@@ -1,0 +1,135 @@
+﻿
+@using Newtonsoft.Json;
+@using myvdbsSQL;
+@using MyVDBSDemo.Models;
+@model IEnumerable<MyVDBSDemo.Models.tblREFVulScope>
+
+@{
+    ViewBag.Title = @MyVDBSDemo.Resources.LangText.Vul_Scope;
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<head>
+</head>
+
+<body>
+    <div class="col-lg-12" style="margin-top:80px;">
+        <div class="panel panel-info">
+
+            <div class="panel-body">
+
+                <div class="panel panel-info">
+                    <div class="panel-body">
+                        <table class="table table-bordered table-striped display" id="scopeList">
+                            <thead style="background-color:moccasin">
+                                <tr>
+                                    <th class="text-center">@MyVDBSDemo.Resources.LangText.No</th>
+                                    <th class="col-sm-2 text-center">Vulnerability Scope Code</th>
+                                    <th class="col-sm-8 text-center">@MyVDBSDemo.Resources.LangText.Vul_Scope_Name</th>
+                                    <th class="col-sm-2 text-center"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                                @{
+                                    var count = 0;
+                                    foreach (var item in Model)
+
+                                    {
+                                        count = count + 1;
+                                        <tr>
+                                            <td style="text-align:center">@count</td>
+                                            <td>@Html.Raw(item.VulScopeCd)</td>
+                                            <td>@Html.Raw(item.VulScopeNm)</td>
+                                            <td style="text-align:center">
+                                                <button type="button" id="edit" class="btn btn-success btn-xs edit" onclick="edit('@item.VulScopeCd')"><span class="glyphicon glyphicon-pencil"></span> @MyVDBSDemo.Resources.LangText.Update</button>
+                                                <button type="button" id="delete" class="btn btn-danger btn-xs delete" onclick="hapus('@item.VulScopeCd')"><span class="glyphicon glyphicon-trash"></span> @MyVDBSDemo.Resources.LangText.Delete</button>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+
+                        <div align="right">
+                            <div id="drawSearchPaginateDT"></div>
+                        </div>
+
+                        <div align="center">
+
+                            <button data-bind="click : add, visible :true, enable: true" class="btn btn-primary btn-sm m-t-10">
+                                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Add
+                            </button>
+
+                            @*<button data-bind="click : cancel, visible :true, enable: true" class="btn btn-info btn-sm m-t-10">
+                                <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Cancel
+                            </button>*@
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    @Html.Partial("_CommonDialog")
+    @Html.Partial("ScopeAddDialog")
+    @Html.Partial("ScopeEditDialog")
+</body>
+
+<script>
+
+    var scope = @Html.Raw(JsonConvert.SerializeObject(@Model, Formatting.None,
+                              new JsonSerializerSettings()
+    {
+
+                                  ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+    }));
+
+</script>
+@if (TempData["Success"] != null)
+{
+    <script type="text/javascript">
+        alert('@TempData["Success"]');
+    </script>
+}
+<script src="~/Scripts/Lookup/ScopeAdmin.js"></script>
+<script src="~/Scripts/Common/datepicker.js"></script>
+<script src="~/Scripts/Common/CookieHelper.js"></script>
+
+<script>
+
+
+    function drawSearchPaginateDT() {
+
+        var searchPaginateDT = "<div id='hidesearch'> Page <input type='text' size='4'  id='paginatesearch' value ='1' onchange='searchPaginateList(this.value)' autocomplete='off'></input></div>";
+
+        $("#drawSearchPaginateDT").html(searchPaginateDT);
+    }
+
+    function searchPaginateList(pageNum) {
+        var lastPage = $('#scopeList').DataTable().page.info().pages;
+
+        if(pageNum > lastPage)
+            pageNum = lastPage;
+
+        $('#paginatesearch').val(pageNum);
+
+        var pageIndex = pageNum - 1;
+        $('#scopeList').DataTable().page(pageIndex).draw('page')
+
+    }
+    
+    var table = $('#scopeList').DataTable();
+ 
+    table.on( 'draw', function () {
+        $('#paginatesearch').val(table.page()+1);
+        setCookie("listingpage14", table.page()+1, 1);
+    } );
+    
+    $(document).ready(function(){
+        drawSearchPaginateDT();
+        checkListingPageCookie2("listingpage14");
+    });
+
+</script>

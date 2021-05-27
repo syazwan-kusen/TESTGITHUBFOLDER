@@ -1,0 +1,3738 @@
+﻿@using Newtonsoft.Json;
+@using myvdbsSQL;
+@using MyVDBSDemo.Models;
+@*@model IEnumerable<MyVDBSDemo.Models.Verify>*@
+@model MyVDBSDemo.Models.ManualInputListDataUpdate
+@using MVCEncrypt;
+
+@{
+    ViewBag.Title = "MyCERT Input List Information";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<style>
+    #hover1:hover {
+        background-color: ActiveBorder;
+    }
+
+    #hover2:hover {
+        background-color: ActiveBorder;
+    }
+
+    .inform {
+        font-size: 11px;
+        text-transform: lowercase;
+        margin: 10px;
+    }
+</style>
+<script>
+    $(function() {
+        $("#tabs").tabs();
+    });
+</script>
+
+<body>
+    @*<div class="col-lg-12">
+            <div class="panel-default" style="text-align:center;background-color:#7BE4E4;text-transform:uppercase;text-decoration:solid"><h3>Audit Trail</h3></div>
+        </div>*@
+
+    <div class="col-lg-12" style="margin-top:70px;">
+        <div class="panel panel-info">
+            <div class="panel-heading">
+                <h3 class="panel-title">Manual Input Update</h3>
+            </div>
+            @*<div class="panel panel-info">*@
+            <div class="panel-body">
+                <div class="col-md-2"></div>
+
+                <form id="myForm" class="form-group col-md-8">
+                    <div class="form-row">
+                        <div class="form-group col-md-10">
+                            <label for="inputAddress">MyVDB-ID</label><br />
+                            @Model.VulManInput.MyVDBID
+                            @*<input id="MyVDB_ID" type="text" name="MyVDB_ID" class="validate[required] form-control" placeholder="e.g. MyVDB-ID" autofocus data-bind="value:Finding.VulManInput.MyVDBID, valueUpdate:'afterkeydown'" autocomplete="off" readonly>*@
+                        </div>
+                    </div>
+
+                    @*<div class="form-row">
+                            <div class="form-group col-md-8">
+                                <label  for="inputAddress">CVE-ID</label>
+                                <textarea id="cve_id" type="text" class="form-control textarearesize" name="cve_id" maxlength="50" placeholder="e.g. CVE-ID" autofocus rows="1" data-bind="html:Finding.VulManInput.CVEId, valueUpdate:'afterkeydown'" onkeypress="return runScript(event)" autocomplete="off"></textarea>
+                            </div>
+                            <div class="form-group col-md-2">
+                            <label for="validId" style="color:transparent;">transparent</label>
+                            @{
+                                if (Model.ValidCveID != "")
+                                {
+                                    <input type="button" class="btn btn-primary btn-xs find" value="CVE-ID Details" onclick="window.open('@Model.ValidCveID')" />
+                                }
+                            }
+                            </div>
+                        </div>*@
+                    <div class="form-row">
+
+                        <div class="col-sm-8">
+                            <label for="inputAddress">CVE-ID</label>
+                            <div id="student-row-1">
+                                <div class="col-sm-8 form-group" style="padding-left: 0px;">
+                                    <textarea id="cve_id-1" type="text" class="form-control textarearesize filestyle" name="cve_id[0]" maxlength="50" placeholder="e.g. CVE-ID" autofocus rows="1" data-bind="html:Finding.VulManInput.CVEId, valueUpdate:'afterkeydown'" onkeypress="return runScript(event)" autocomplete="off"></textarea>
+                                </div>
+                                <div class="col-sm-4" style="padding-left: 0px;margin-bottom: 0px;">
+                                    <a title="add_new" data-toggle="modal" href="#" class="btn btn-primary btn-xs" data-url="student-row-1" style="display:solid;" id="student-add-more"><span class='glyphicon glyphicon-plus' aria-hidden='true'></span></a>
+                                    <a title="Delete" data-toggle="modal" href="#" class="btn btn-danger btn-xs hidden" data-url="student-row-1"><span class='glyphicon glyphicon-trash' aria-hidden='true'></span></a>
+
+                                    <a id="clicklink-1" title="link" data-toggle="modal" href="#" class="btn btn-success btn-xs find" style="display:none;background-color:#337ab7;border-color:#2e6da4;" onclick="openLinkFile('')" data-url="student-row-1">CVE-ID Details</a>
+                                </div>
+                            </div>
+                            <input type="hidden" id="count_file" value="1" />
+                        </div>
+
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-5">
+                            <label for="Category">Category</label>
+                            <select id="category" class="form-control" style="width: 60%;" onchange="choosecategory(this.value)" data-bind="options: category, optionsText: 'VulCategoryNm', optionsValue: 'VulCategoryCd', optionsCaption: '--- Please Choose ---', valueAllowUnset: true,value : Finding.VulManInput.VulCat,valueUpdate: 'afterkeydown'"></select>
+                        </div>
+                        @*<div class="form-group col-md-7">
+                                <label for="inputAddress" style="color:transparent;">transparent</label>
+                            </div>*@
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-8">
+                            <label id="vulcode" class="" for="inputAddress">Vulnerability Code</label>
+                            <input id="vulCdCmb" type="text" name="vulCdCmb" class="form-control" placeholder="e.g. Vulnerability Code" autofocus data-bind="value:Finding.VulManInput.VulnerabilityCSMCdCombine, valueUpdate:'afterkeydown'" autocomplete="off" readonly>
+                            <input id="vulCd" type="hidden" name="vulCd" class="form-control" placeholder="e.g. Vulnerability Code" autofocus data-bind="value:Finding.VulManInput.VulnerabilityCSMCd, valueUpdate:'afterkeydown'" autocomplete="off">
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="vul_code" style="color:transparent;">transparent</label><br />
+                            <button class="btn btn-primary btn-xs find" onclick="searchVulCode(); return false;"><span class="glyphicon glyphicon-search" aria-hidden="true"></span> Search</button>
+                        </div>
+                    </div>
+
+                    @*<div class="form-row">
+
+                            <div id="fields" class="form-group col-md-8">
+                                <label for="inputAddress">CVE-ID</label>&nbsp;&nbsp;
+                                <button class="btn btn-primary btn-xs" id="btnAddField"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add</button>
+
+
+                            </div>
+
+                            <div class="form-group col-md-2">
+                                <label for="validId" style="color:transparent;">transparent</label>
+
+                            </div>
+
+                        </div>*@
+
+                    <div class="form-row">
+                        <div class="form-group col-md-12">
+                            <label class="required" for="inputAddress">Vulnerability Description</label>
+                            @*<input id="vul_nm" type="text" name="vul_nm" class="validate[required] form-control" placeholder="e.g. Vulnerability Name" autofocus data-bind="value:Finding.VulManInput.VulNm, valueUpdate:'afterkeydown'" autocomplete="off">*@
+                            <textarea id="vul_nm" type="text" class="validate[required] form-control" name="vul_nm" placeholder="e.g. Vulnerability Name" autofocus rows="3" data-bind="html:Finding.VulManInput.VulNm, valueUpdate:'afterkeydown'"></textarea>
+                        </div>
+                        @*<div class="form-group col-md-2">
+                                <label for="inputAddress" style="color:transparent;">transparent</label>
+                            </div>*@
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-3">
+                            <label class="" for="inputAddress">CWEID</label>
+                            <input id="CWENm" type="text" name="CWENm" class="form-control" placeholder="e.g. CWEID" autofocus data-bind="value:Finding.VulManInput.CWEId, valueUpdate:'afterkeydown'" autocomplete="off" readonly>
+                            @*<input id="CWEId" type="hidden" name="CWEId" class="validate[required] form-control" placeholder="e.g. CWEID" autofocus data-bind="value:Finding.VulManInput.x.CWEId, valueUpdate:'afterkeydown'" autocomplete="off">*@
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label for="CWE_ID" style="color:transparent;">transparent</label>
+                            <button class="btn btn-primary btn-xs find" onclick="searchCWEID_Info(); return false;"><span class="glyphicon glyphicon-search" aria-hidden="true"></span> Search</button>
+                        </div>
+                    </div>
+
+                    <div data-bind="if: Finding.VulManInput.CWEId" class="row col-md-12" style="margin-bottom:4px;">
+                        <div class="col-md-2">
+                            <label>CWE Name</label>
+                        </div>
+                        <div class="col-md-1">
+                            <label> : </label>
+                        </div>
+
+                        <div data-bind="html:Finding.VulManInput.z.CWENm" class="col-md-7" style="text-align:left"></div>
+                    </div>
+
+                    <div data-bind="if: Finding.VulManInput.CWEId" class="row col-md-12" style="margin-bottom:4px;">
+                        <div class="col-md-2">
+                            <label>CWE Description</label>
+                        </div>
+                        <div class="col-md-1">
+                            <label> : </label>
+                        </div>
+                        <div data-bind="html:Finding.VulManInput.z.Description" class="col-md-7" style="text-align:left"></div>
+                    </div>
+
+                    <div data-bind="if: Finding.VulManInput.CWEId" class="row col-md-12" style="margin-bottom:4px;">
+                        <div class='col-md-2'>
+                            <label>CWE Details</label>
+                        </div>
+                        <div class="col-md-1">
+                            <label> : </label>
+                        </div>
+                        <div class="col-md-7">
+                            <a data-bind="attr: { href: Finding.VulManInput.z.UrlLink , title: 'Details' , target:'_blank', rel:'noopener noreferrer'}">
+                                <font color="blue" data-bind="html:Finding.VulManInput.z.UrlLink"></font>
+                            </a>
+                        </div>
+                    </div>
+
+
+                    <div class="form-group col-md-12">
+                        <label for="SecurityComp">Security Components</label>
+                        <textarea id="SecComp" type="text" class="form-control" name="Sec_Comp" placeholder="e.g. Security Components" autofocus rows="3" data-bind="html:Finding.VulManInput.VulSecComp, valueUpdate:'afterkeydown'"></textarea>
+                    </div>
+
+
+                    @Html.Partial("ManualInputAffectedItem")
+
+
+
+                    <div class="form-row">
+                        <div class="form-group col-md-8">
+                            <label class="required" for="inputAddress">Vulnerability Type</label>
+                            <input id="vulTypeNm" type="text" name="vulTypeNm" class="validate[required] form-control" placeholder="e.g. Vulnerability Type" autofocus data-bind="value:Finding.VulManInput.x.VulNm, valueUpdate:'afterkeydown'" autocomplete="off" readonly>
+                            <input id="vulTypeID" type="hidden" name="vulTypeID" class="validate[required] form-control" placeholder="e.g. Vulnerability Type" autofocus data-bind="value:Finding.VulManInput.VulType, valueUpdate:'afterkeydown'" autocomplete="off">
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label for="vul_type" style="color:transparent;">transparent</label>
+                            <button class="btn btn-primary btn-xs find" onclick="searchVulType(); return false;"><span class="glyphicon glyphicon-search" aria-hidden="true"></span> Search</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group col-md-12">
+                        <label for="addr1">Observation</label>
+                        <textarea id="Observation" type="text" class="form-control" name="area_of_impt" placeholder="e.g. Observation" autofocus rows="3" data-bind="html:Finding.VulManInput.ObservationRmk, valueUpdate:'afterkeydown'"></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-5">
+                            <label for="email">Severity</label><br />
+                            @Model.VulManInput.SeverityNm
+                            @*@{
+                                    if (@Model.VulManInput.ImpactLvl == null)
+                                    {
+                                        <select id="imp_lev" class="form-control" style="width: 60%;" data-bind="value:Finding.VulManInput.ImpactLvl, valueUpdate:'afterkeydown'">
+                                            <option selected value="0">--- Please Choose ---</option>
+                                            <option value="1">Low</option>
+                                            <option value="2">Medium</option>
+                                            <option value="3">High</option>
+                                            <option value="4">Critical</option>
+                                        </select>
+                                    }
+                                    else if (@Model.VulManInput.ImpactLvl.Trim() == "1")
+                                    {
+                                        <select id="imp_lev" class="form-control" style="width: 60%;" data-bind="value:Finding.VulManInput.ImpactLvl, valueUpdate:'afterkeydown'">
+                                            <option value="0">--- Please Choose ---</option>
+                                            <option selected value="1">Low</option>
+                                            <option value="2">Medium</option>
+                                            <option value="3">High</option>
+                                            <option value="4">Critical</option>
+                                        </select>
+                                    }
+                                    else if (@Model.VulManInput.ImpactLvl.Trim() == "2")
+                                    {
+                                        <select id="imp_lev" class="form-control" style="width: 60%;" data-bind="value:Finding.VulManInput.ImpactLvl, valueUpdate:'afterkeydown'">
+                                            <option value="0">--- Please Choose ---</option>
+                                            <option value="1">Low</option>
+                                            <option selected value="2">Medium</option>
+                                            <option value="3">High</option>
+                                            <option value="4">Critical</option>
+                                        </select>
+                                    }
+                                    else if (@Model.VulManInput.ImpactLvl.Trim() == "3")
+                                    {
+                                        <select id="imp_lev" class="form-control" style="width: 60%;" data-bind="value:Finding.VulManInput.ImpactLvl, valueUpdate:'afterkeydown'">
+                                            <option value="0">--- Please Choose ---</option>
+                                            <option value="1">Low</option>
+                                            <option value="2">Medium</option>
+                                            <option selected value="3">High</option>
+                                            <option value="4">Critical</option>
+                                        </select>
+                                    }
+                                    else if (@Model.VulManInput.ImpactLvl.Trim() == "4")
+                                    {
+                                        <select id="imp_lev" class="form-control" style="width: 60%;" data-bind="value:Finding.VulManInput.ImpactLvl, valueUpdate:'afterkeydown'">
+                                            <option value="0">--- Please Choose ---</option>
+                                            <option value="1">Low</option>
+                                            <option value="2">Medium</option>
+                                            <option value="3">High</option>
+                                            <option selected value="4">Critical</option>
+                                        </select>
+                                    }
+                                    else
+                                    {
+                                        <select id="imp_lev" class="form-control" style="width: 60%;" data-bind="value:Finding.VulManInput.ImpactLvl, valueUpdate:'afterkeydown'">
+                                            <option selected value="0">--- Please Choose ---</option>
+                                            <option value="1">Low</option>
+                                            <option value="2">Medium</option>
+                                            <option value="3">High</option>
+                                            <option value="4">Critical</option>
+                                        </select>
+                                    }
+
+                                }*@
+
+
+                        </div>
+                    </div>
+
+                    <div class="form-group col-md-12">
+                        <label for="addr1">Impact Remark</label>
+                        <textarea id="impact_remark" type="text" class="form-control" name="impact_remark" placeholder="e.g. Impact Remark" autofocus rows="3" data-bind="html:Finding.VulManInput.ImpactRmk, valueUpdate:'afterkeydown'"></textarea>
+                    </div>
+
+                    <div class="form-group col-md-12">
+                        <label for="addr1">Area of Improvement</label>
+                        <textarea id="area_of_impt" type="text" class="form-control" name="area_of_impt" placeholder="e.g. Area of Improvement" autofocus rows="3" data-bind="html:Finding.VulManInput.ImprovementRmk, valueUpdate:'afterkeydown'"></textarea>
+                    </div>
+
+                    @Html.Partial("ManualInputScreenshot")
+
+                    <br />
+
+                    <div class="form-row">
+                        <div class="form-group col-md-12">
+                            <div class="form-check">
+                                <label for="agency_abbrv">Status</label>
+                                <br />
+                                @{
+                                    if (@Model.VulManInput.Status == null)
+                                    {
+                                        <input type="radio" name="status" value="1" onchange="radioclick(this)">
+                                        <label>Open</label>
+                                            <input type="radio" name="status" value="0" onchange="radioclick(this)">
+                                            <label>Close</label>
+                                    }
+                                    else if (@Model.VulManInput.Status.Trim() == "1")
+                                    {
+                                        @*<input type="radio" name="visibility" id="public" value="0" checked onchange="AssignValue(this)">*@
+                                        <input type="radio" name="status" value="1" checked onchange="radioclick(this)">
+                                        <label>Open</label>
+                                            <input type="radio" name="status" value="0" onchange="radioclick(this)">
+                                            <label>Close</label>
+                                    }
+                                    else if (@Model.VulManInput.Status.Trim() == "0")
+                                    {
+                                        <input type="radio" name="status" value="1" onchange="radioclick(this)">
+                                        <label>Open</label>
+                                            <input type="radio" name="status" value="0" checked onchange="radioclick(this)">
+                                            <label>Close</label>
+                                    }
+                                    else
+                                    {
+                                        <input type="radio" name="status" value="1" onchange="radioclick(this)">
+                                        <label>Open</label>
+                                            <input type="radio" name="status" value="0" onchange="radioclick(this)">
+                                            <label>Close</label>
+                                    }
+
+                                }
+
+                                @*<input name="parent_agency_ind" type="radio" class="form-check-input" value="1" onchange="AssignValue(this)" checked>  Open
+                                    <input name="parent_agency_ind" type="radio" class="form-check-input" value="0" onchange="AssignValue(this)">  Close*@
+
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <br />
+
+                    <div class="form-row">
+                        <div class="form-group col-md-3">
+                            <label for="email">CVSS v3 Scoring</label>
+                            <input type="email" readonly class="form-control" id="imp_lev" placeholder="e.g. 25.00​" data-bind="value:Finding.VulManInput.CVSSScore, valueUpdate:'afterkeydown'">
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label style="color:transparent;">transparent</label>
+                            @*<button class="btn btn-primary btn-xs find" onclick="search(); return false;"><span class="glyphicon glyphicon-search" aria-hidden="true"></span> Search</button>*@
+
+                            <a class="btn btn-primary btn-xs" href='@Url.ActionEnc("mySecret", "CVSSVulManInputScoring", new { a = Model.VulManInput.VulManInptId })' onclick="getCVSSFindingScoringSession()"><span class="fas fa-calculator" aria-hidden="true"></span> Calculate </a>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label for="email">DREAD Scoring</label>
+                            <input type="email" readonly class="form-control" id="imp_lev" placeholder="e.g. 20.00​" data-bind="value:Finding.VulManInput.DreadScore, valueUpdate:'afterkeydown'">
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label style="color:transparent;">transparent</label>
+                            @{
+                                if (Model.GetCheckRelDREADVulManInputScoring.Count == 0)
+                                {
+                                    <a class="btn btn-primary btn-xs" href='@Url.ActionEnc("mySecret", "DREADVulManInputScoring", new { a = Model.VulManInput.VulManInptId })' onclick="getCVSSFindingScoringSession()"><span class="fas fa-calculator" aria-hidden="true"></span> Calculate </a>
+
+                                }
+                                else
+                                {
+                                    <a class="btn btn-primary btn-xs" href='@Url.ActionEnc("mySecret", "DREADVulManInputScoringUpdate", new { a = Model.VulManInput.VulManInptId })' onclick="getCVSSFindingScoringSession()"><span class="fas fa-calculator" aria-hidden="true"></span> Calculate </a>
+                                }
+                            }
+                        </div>
+                    </div>
+
+                    <div class="form-row col-md-12" style="padding-left:0px;">
+                        <div class="form-group col-md-12">
+                            <label for="calcVector">CVSS v3 Vector</label>
+                            <input type="calcVector" class="form-control" id="calcVector" placeholder="e.g. AV:A/AC:L/PR:L/UI:R/S:U/C:L/I:N/A:N" onchange="calculateCVSSVectorOnChange()" data-bind="value:Finding.VulManInput.CVSSVector, valueUpdate:'afterkeydown'" autocomplete="off">
+                        </div>
+                        @*<div class="form-group col-md-2">
+                        <label style="color:transparent;">transparent</label>
+
+                        <a class="btn btn-primary btn-xs"  data-bind="click:calculateCVSSVector" ><span class="fas fa-calculator" aria-hidden="true"></span> Calculate </a>
+                        </div>
+                        <div class="form-group col-md-3">
+                        </div>
+                        <div class="form-group col-md-2">
+                        </div>*@
+                    </div>
+
+                    <div class="form-row col-md-12" style="padding-left:0px;">
+                        <div class="form-group col-md-3">
+                            <label for="calcVector">CVSS v2 Scoring</label>
+                            <input type="text" class="form-control" id="CVSS2Score" placeholder="e.g. 3.5" data-bind="value:Finding.VulManInput.CVSS2Score, valueUpdate:'afterkeydown'" autocomplete="off" onkeypress="return isNumber(event)">
+                        </div>
+                        <div class="form-group col-md-9">
+                            <label for="calcVector">CVSS v2 Vector</label>
+                            <input type="text" class="form-control" id="CVSS2Vector" placeholder="e.g. AV:A/AC:L/PR:L/UI:R/S:U/C:L/I:N/A:N" data-bind="value:Finding.VulManInput.CVSS2Vector, valueUpdate:'afterkeydown'" autocomplete="off">
+                        </div>
+                    </div>
+
+                    @Html.Partial("ManualInputProductInfo")
+
+                </form>
+                <div align="center" class="form-group col-md-12">
+                    <button type="submit" class="btn btn-success btn-sm m-t-10" data-bind="click:UpdateFindingListInfo"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> Save</button>
+                    <button id="resetUpdate" class="btn btn-warning btn-sm m-t-10" data-bind="click:ResetFindingListInfo"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Reset </button>
+                    <button id="cancel" class="btn btn-info btn-sm m-t-10" onclick='cancel()'><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> Back </button>
+
+                </div>
+            </div>
+            @*</div>*@
+        </div>
+    </div>
+
+    <div id="searchdata" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+        <div class="modal-dialog" style="width:700px">
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Vulnerability List</h3>
+                </div>
+
+                <div class="modal-body">
+                    <div class="form-group">
+                        @*@Html.Partial("VulnerabilityList")*@
+                    </div>
+                </div>
+
+                @*<div class="modal-footer">
+                        <div align="center">
+                            <button class="btn btn-info btn-sm m-t-10" onclick="cancelUpdate(); return false;"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel</button>
+                        </div>
+                    </div>*@
+            </div>
+        </div>
+    </div>
+
+    <div id="FindingListAffectedItem" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+        <div class="modal-dialog" style="width:500px">
+            <div class="panel panel-info">
+                @*<div class="modal-header">
+                        <h4 align="center">Update DREAD Type </h4>
+                    </div>*@
+                <div class="panel-heading">
+                    <h3 class="panel-title">Add Affected Item/Asset</h3>
+                </div>
+
+                <div class="modal-body">
+                    <div class="form-group">
+                        <form id="editFormFindingListAffectedItem">
+                            <br />
+                            <div class="form-group">
+                                <label for="Page" class="col-form-label required">Page</label>
+                                <input type="text" class="validate[required] form-control" data-bind="value:FindingListAffectedItem.PageNm" id="Page" placeholder="e.g. Page">
+                            </div>
+                            <br />
+                            <div class="form-group">
+                                <label for="Parameter" class="col-form-label required">Parameter</label>
+                                <input type="text" class="validate[required] form-control" data-bind="value:FindingListAffectedItem.Parameter" id="IPAddressLOD" placeholder="e.g. Parameter">
+                            </div>
+                            <br />
+                        </form>
+
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <div align="center">
+                        <button id="saveUpdate" class="btn btn-success btn-sm m-t-10" data-bind="click:saveUpdateFindingListAffectedItem"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> Save </button>
+                        <button id="resetUpdate" class="btn btn-warning btn-sm m-t-10" data-bind="click:resetUpdateFindingListAffectedItem"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Reset </button>
+                        <button class="btn btn-info btn-sm m-t-10" onclick="cancelFindingListAffectedItem(); return false;"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel</button>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="FindingListScreenshot" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+        <div class="modal-dialog" style="width:500px">
+            <div class="panel panel-info">
+                @*<div class="modal-header">
+                        <h4 align="center">Update DREAD Type </h4>
+                    </div>*@
+                <div class="panel-heading">
+                    <h3 class="panel-title">Upload Screenshot</h3>
+                </div>
+
+                <div class="modal-body">
+                    <div class="form-group">
+                        <form id="editFormFindingListScreenshot">
+                            <br />
+                            <div class="form-group">
+                                <label for="Title" class="col-form-label required">Title</label>
+                                <input type="text" class="validate[required] form-control" data-bind="value:FindingListScreenshot.Title" id="Title" placeholder="e.g. Title" autocomplete="off">
+                            </div>
+                            <br />
+                            <div class="form-group">
+                                <label for="Description" class="col-form-label required">Description</label>
+                                <textarea id="Description" type="text" class="validate[required] form-control" name="Description" placeholder="e.g. Description" autofocus rows="3" data-bind="value:FindingListScreenshot.Description, valueUpdate:'afterkeydown'"></textarea>
+                            </div>
+                            <br />
+                            <div class="form-group">
+                                <label for="Description" class="col-form-label required">Attachment</label>
+                                <input type="file" id="picfile" name="upload_pict_path" class="validate[required] form-control" data-buttonText="cd" data-size="sm" data-placeholder="No File Chosen">
+                                <p class="inform">@Model.ExtensionFile format only.</p>
+                            </div>
+                            <br />
+
+                        </form>
+
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <div align="center">
+                        <button id="saveUpdate" class="btn btn-success btn-sm m-t-10" data-bind="click:saveScreenshot"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> Save </button>
+                        <button id="resetUpdate" class="btn btn-warning btn-sm m-t-10" data-bind="click:resetUpdateFindingListScreenshot"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Reset </button>
+                        <button class="btn btn-info btn-sm m-t-10" onclick="cancelFindingListScreenshot(); return false;"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel</button>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="searchVulTypedata" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+        <div class="modal-dialog" style="width:800px">
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Vulnerability Type List</h3>
+                </div>
+
+                <div class="modal-body">
+                    <div class="form-group">
+                        @Html.Partial("VulnerabilityTypeList")
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <div align="center">
+                        <button class="btn btn-info btn-sm m-t-10" onclick="cancelsearchVulType(); return false;"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="searchCWEID_Info" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+        <div class="modal-dialog" style="width:800px">
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    <h3 class="panel-title">CWE List</h3>
+                </div>
+
+                <div class="modal-body">
+                    <div class="form-group">
+                        @Html.Partial("CWEIDInfoList")
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <div align="center">
+                        <button class="btn btn-info btn-sm m-t-10" onclick="cancelsearchCWEID_Info(); return false;"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="decision_attachment" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header" align="center">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">MyVDBS</h4>
+                </div>
+                <div class="modal-body" align="center">
+                    <img src='/images/sureto.png' height='40'>&nbsp;&nbsp;Are you sure to delete this record ?
+                </div>
+                <div class="modal-footer">
+                    <a class="btn btn-default btn-ok" data-dismiss="modal" onclick="confirm_delete_file()">Yes</a>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">No</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="FindingListProductInfo" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+        <div class="modal-dialog" style="width:500px">
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Add Product Information</h3>
+                </div>
+
+                <div class="modal-body">
+                    <div class="form-group">
+                        <form id="editFormFindingListProductInfo">
+                            <br />
+                            <div class="form-group">
+                                <label for="ProductType" class="col-form-label required">Product Type</label>
+
+                                <select id="ProductType" style="width: 60%;" class="validate[required] form-control" data-bind="options: product, optionsText: 'ProductType', optionsValue: 'ProductType', optionsCaption: '--- Please Choose ---', valueAllowUnset: true,value : FindingListProductInfo.ProductType, valueUpdate: 'afterkeydown'"></select>
+
+                                @*<input type="text" class="validate[required] form-control" data-bind="value:FindingListProductInfo.ProductType" id="Page" placeholder="e.g. Product Type">*@
+                            </div>
+                            <br />
+                            <div class="form-group">
+                                <label for="ProductVendor" class="col-form-label required">Product Vendor</label>
+                                @* <input type="text" class="validate[required] form-control" data-bind="value:FindingListProductInfo.ProductVendor" id="ProductVendor" placeholder="e.g. Product Vendor">*@
+                                <textarea id="ProductVendor" type="text" maxlength="100" class="validate[required] form-control textarearesize" name="ProductVendor" placeholder="e.g. Product Vendor" autofocus rows="1" data-bind="html:FindingListProductInfo.ProductVendor, valueUpdate:'afterkeydown'" onkeypress="return runScript(event)"></textarea>
+                                <input type="hidden" class="form-control" data-bind="value:FindingListProductInfo.VulManInputProductId" id="ProductID">
+                                <input type="hidden" class="form-control" data-bind="value:FindingListProductInfo.addUpdInd" id="addUpdInd">
+                            </div>
+                            <br />
+                            <div class="form-group">
+                                <label for="ProductName" class="col-form-label required">Product Name</label>
+                                <textarea id="ProductName" type="text" maxlength="100" class="validate[required] form-control textarearesize" name="ProductName" placeholder="e.g. Product Name" autofocus rows="1" data-bind="html:FindingListProductInfo.ProductName, valueUpdate:'afterkeydown'" onkeypress="return runScript(event)"></textarea>
+                                @*<input type="text" class="validate[required] form-control" data-bind="value:FindingListProductInfo.ProductName" id="ProductName" placeholder="e.g. Product Name">*@
+                            </div>
+                            <br />
+                            <div class="form-group">
+                                <label for="ProductUpdate" class="col-form-label">Product Update</label>
+                                <textarea id="ProductUpdate" type="text" maxlength="100" class="form-control textarearesize" name="ProductUpdate" placeholder="e.g. Product Update" autofocus rows="1" data-bind="html:FindingListProductInfo.ProductUpdate, valueUpdate:'afterkeydown'" onkeypress="return runScript(event)"></textarea>
+                                @* <input type="text" class="form-control" data-bind="value:FindingListProductInfo.ProductUpdate" id="ProductUpdate" placeholder="e.g. Product Update">*@
+                            </div>
+                            <br />
+                            <div class="form-group">
+                                <label for="ProductVersion" class="col-form-label">Product Version</label>
+                                <textarea id="ProductVersion" type="text" maxlength="100" class="form-control textarearesize" name="ProductVersion" placeholder="e.g. Product Version" autofocus rows="1" data-bind="html:FindingListProductInfo.ProductVersion, valueUpdate:'afterkeydown'" onkeypress="return runScript(event)"></textarea>
+                                @* <input type="text" class="form-control" data-bind="value:FindingListProductInfo.ProductVersion" id="ProductVersion" placeholder="e.g. Product Version">*@
+                            </div>
+                            <br />
+                            <div class="form-group">
+                                <label for="ProductEdition" class="col-form-label">Product Edition</label>
+                                <textarea id="ProductEdition" type="text" maxlength="100" class="form-control textarearesize" name="ProductEdition" placeholder="e.g. Product Edition" autofocus rows="1" data-bind="html:FindingListProductInfo.ProductEdition, valueUpdate:'afterkeydown'" onkeypress="return runScript(event)"></textarea>
+                                @*<input type="text" class="form-control" data-bind="value:FindingListProductInfo.ProductEdition" id="ProductEdition" placeholder="e.g. Product Edition">*@
+                            </div>
+                            <br />
+                            <div class="form-group">
+                                <label for="ProductLanguage" class="col-form-label">Product Language</label>
+                                <textarea id="ProductLanguage" type="text" maxlength="100" class="form-control textarearesize" name="ProductLanguage" placeholder="e.g. Product Language" autofocus rows="1" data-bind="html:FindingListProductInfo.ProductLanguage, valueUpdate:'afterkeydown'" onkeypress="return runScript(event)"></textarea>
+                                @*<input type="text" class="form-control" data-bind="value:FindingListProductInfo.ProductLanguage" id="ProductLanguage" placeholder="e.g. Product Language">*@
+                            </div>
+                            <br />
+                        </form>
+
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <div align="center">
+                        <button id="saveUpdate" class="btn btn-success btn-sm m-t-10" data-bind="click:saveUpdateFindingListProductInfo"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> Save </button>
+                        <button id="resetUpdate" class="btn btn-warning btn-sm m-t-10" data-bind="click:resetUpdateFindingListProductInfo"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Reset </button>
+                        <button class="btn btn-info btn-sm m-t-10" onclick="cancelFindingListProductInfo(); return false;"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel</button>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="searchVulCodedata" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+        <div class="modal-dialog" style="width:800px">
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Vulnerability Code List</h3>
+                </div>
+
+                <div class="modal-body">
+                    <div class="form-group">
+                        @Html.Partial("VulnerabilityCodeList")
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <div align="center">
+                        <button class="btn btn-info btn-sm m-t-10" onclick="cancelsearchVulCode(); return false;"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @*@Html.Partial("_CommonDialog")*@
+</body>
+
+
+<script src="~/Scripts/Common/Common.js"></script>
+<script src="~/Scripts/Common/Pagination.js"></script>
+<script>
+
+    var Register = @Html.Raw(JsonConvert.SerializeObject(@Model, Formatting.None,
+                new JsonSerializerSettings()
+                {
+
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                }));
+
+    @*var Session = '@Session["vulName"]';*@
+
+    @functions{
+        public string TokenHeaderValue()
+        {
+            string cookieToken, formToken;
+            AntiForgery.GetTokens(null, out cookieToken, out formToken);
+            return cookieToken + ":" + formToken;                
+        }
+    }
+</script>
+
+<script>
+
+    $("#AffectedItem").dataTable({ pageLength: 5,"bLengthChange": false,});
+    $("#Screenshot").dataTable({ pageLength: 5,"bLengthChange": false,});
+    $("#vullist").dataTable({ pageLength: 8,"bLengthChange": false,});
+    $("#vulTypelist").dataTable({ pageLength: 8,"bLengthChange": false,});
+    $("#CWElist").dataTable({ pageLength: 8,"bLengthChange": false,});
+    $("#ProductInfo").dataTable({ pageLength: 5,"bLengthChange": false,});
+    //$("#vulCodelist").dataTable({ pageLength: 8,"bLengthChange": false,});
+    function isNumber(event){
+        var key = window.event ? event.keyCode : event.which;
+        if (event.keyCode === 8 || event.keyCode === 46) {
+            return true;
+        } else if ( key < 48 || key > 57 ) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    $('#deleteFindingListAffectedItem').click(function () {
+
+        var DelId = "";
+        var objchk = document.getElementsByName("chkdeleteFindingListAffectedItem")
+
+
+        for (var i = 0; i < objchk.length ; i++) {
+            if (objchk[i].checked == true) {
+                DelId = DelId + objchk[i].value + " , ";
+            }
+        }
+
+        if (DelId == "") {
+            ShowMessageWarning("Please select record");
+
+        }
+        else {
+            var count = 0; // utk elakkan decisionmessage masuk lebih dri 1 kali
+            ShowDecisionMessage("Are you sure to delete this record?", function () {
+
+                if (count == 0) {
+                    //       alert(DelId);
+                    viewModel.DeleteFindingListAffectedItem(DelId);
+
+                    count++;
+                }
+
+
+            });
+
+        }
+
+
+    })
+    $('#deleteFindingListScreenshot').click(function () {
+
+        var DelId = "";
+        var objchk = document.getElementsByName("chkFindingListScreenshot")
+
+
+        for (var i = 0; i < objchk.length ; i++) {
+            if (objchk[i].checked == true) {
+                DelId = DelId + objchk[i].value + " , ";
+            }
+        }
+
+        if (DelId == "") {
+            ShowMessageWarning("Please select record");
+
+        }
+        else {
+            var count = 0; // utk elakkan decisionmessage masuk lebih dri 1 kali
+            ShowDecisionMessage("Are you sure to delete this record?", function () {
+
+                if (count == 0) {
+                    //       alert(DelId);
+                    viewModel.DeleteFindingListScreenshot(DelId);
+
+                    count++;
+                }
+
+
+            });
+
+        }
+
+
+    });
+    $('#deleteFindingListProductInfo').click(function () {
+
+        var DelId = "";
+        var objchk = document.getElementsByName("chkdeleteFindingListProductInfo")
+
+
+        for (var i = 0; i < objchk.length ; i++) {
+            if (objchk[i].checked == true) {
+                DelId = DelId + objchk[i].value + " , ";
+            }
+        }
+
+        if (DelId == "") {
+            ShowMessageWarning("Please select record");
+
+        }
+        else {
+            var count = 0; // utk elakkan decisionmessage masuk lebih dri 1 kali
+            ShowDecisionMessage("Are you sure to delete this record?", function () {
+
+                if (count == 0) {
+                    //       alert(DelId);
+                    viewModel.DeleteFindingListProductInfo(DelId);
+
+                    count++;
+                }
+
+
+            });
+
+        }
+
+
+    })
+
+    $('#picfile').change(function(e) {
+
+        var file = $(this).val();
+
+        var extension = file.substr((file.lastIndexOf('.') + 1));
+
+        //alert(extension);
+
+        $.ajax({
+            type: "POST",
+            url: server + "/Admin/CheckFileType",
+            data: JSON.stringify({ ext: extension }),
+            contentType: "application/json; charset=utf-8",
+            error: function (xhr) { },
+            success: function (msg) {
+                if (msg.OK) {
+                    if (msg.list != true) {
+                        ShowMessageWarning('File type not allowed.');
+                        document.getElementById("picfile").value="";
+                    }
+
+                }
+            }
+        });
+
+
+    });
+
+
+
+    $('#student-add-more').click(function(e) {
+
+        e.preventDefault();
+
+        var count = $('div[id^=student-row-]').length;
+        var last = $('div[id^=student-row-]').last();
+        var $clone = last.clone(true);
+
+        var count_files =  $("#count_file").val();
+       // var rowCount = $('#material_display tr').length;
+        var next_id;
+        if (count_files!=0){
+            next_id = parseInt(count_files) + 1;;
+        }
+
+        $("#count_file").val(next_id);
+
+        $clone.attr('id', 'student-row-' + next_id);
+
+        var file_container = $clone.find('.filestyle').parent();
+        file_container.empty();
+
+        var fileinput = $('<textarea>').addClass('form-control').addClass('textarearesize').addClass('filestyle').attr('style', 'height:34px').attr({
+            id: 'cve_id-'+next_id,
+            name: 'cve_id['+next_id+']',
+            type: 'text',
+            placeholder: 'e.g. CVE-ID',
+        });
+
+        var cve_details = $clone.find('.btn-primary')
+            .attr('data-url', 'student-row-' + next_id)
+            .attr('href','#addModal')
+            .attr('class', 'btn btn-primary btn-xs btn-add')
+            .attr('style', 'display:none')
+        //.attr('onclick', 'delete_file('+ next_id + ')')
+        ;
+        cve_details.closest('.form-group').removeAttr('style');
+
+
+        file_container.append(fileinput);
+
+        //fileinput.filestyle({
+        //    icon: 'false',
+        //    classButton: 'btn btn-default',
+        //    classInput: 'form-control inline input-s',
+        //});
+        //var file_label_container = file_container.prev();
+        //var new_label = $('<textarea>').addClass('form-control textarearesize').attr('for', 'cve_id-'+next_id).text(file_label_container.find('textarea').text(''));
+        //file_label_container.find('textarea').remove();
+        //file_label_container.prepend(new_label);
+
+        var delete_button = $clone.find('.btn-danger')
+            .attr('data-url', 'student-row-' + next_id)
+            .attr('href','#deleteModal')
+            .attr('class', 'btn btn-danger btn-xs btn-delete')
+            //.attr('style', 'text-align:left')
+            .attr('onclick', 'delete_file('+ next_id + ')')
+        ;
+        delete_button.closest('.form-group').removeAttr('style');
+
+        var styledisp = "none";
+        var cve_link = $clone.find('.btn-success')
+          .attr('data-url', 'student-row-' + next_id)
+          .attr('href','#linkModal')
+          .attr('class', 'btn btn-success btn-xs find')
+          .attr('style', 'background-color:#337ab7;border-color:#2e6da4;display:' + styledisp + ';')
+          //.attr('onclick', 'openLinkFile("'+ tmp1[i] + '")')
+          .attr({
+              id: 'clicklink-'+next_id,
+          })
+        ;
+        cve_link.closest('.form-group').removeAttr('style');
+
+        $clone.show().insertAfter(last);
+    });
+
+    $('#student-reset').click(function(e) {
+        //ShowDecisionMessage("Are you sure to delete this record ? ", function () {
+        $("#cve_id-1").filestyle('clear');
+        //});
+
+    });
+
+    function delete_file(val){
+        this.fileval = val;
+        confirm_delete_file(this.fileval);
+       // $('#decision_attachment').modal('show');
+    }
+
+    function openLinkFile(link){
+
+        if(link == ""){
+            viewModel.GetlinkTab(viewModel.linkValidUrlFirst());
+        }else{
+            viewModel.GetlinkTab(link);
+        }
+
+
+    }
+
+    function confirm_delete_file(val){
+        var id = this.fileval;
+        $('#student-row-'+id).remove();
+    }
+
+    var viewModel;
+
+    var btnRefresh =  function () {
+        location.reload();
+    }
+
+    function radioclick(val)
+    {
+
+        if(val.value == "1")
+        {
+            viewModel.Finding.VulManInput.Status(val.value);
+        }
+        else
+        {
+            viewModel.Finding.VulManInput.Status(val.value);
+        }
+    }
+
+    $(function () {
+
+        viewModel = {
+            Finding: ko.mapping.fromJS(Register),
+            category: ko.observableArray([]),
+            FindingListAffectedItem :
+            {
+                PageNm: ko.observable(""),
+                Parameter: ko.observable(""),
+
+            },
+            FindingListScreenshot :
+            {
+                Title: ko.observable(""),
+                Description: ko.observable(""),
+            },
+            FindingListProductInfo :
+            {
+                ProductType: ko.observable(""),
+                ProductVendor: ko.observable(""),
+                ProductName: ko.observable(""),
+                ProductVersion: ko.observable(""),
+                ProductUpdate: ko.observable(""),
+                ProductEdition: ko.observable(""),
+                ProductLanguage: ko.observable(""),
+                VulManInputProductId: ko.observable(""),
+                addUpdInd: ko.observable(""),
+            },
+            FindingListProductInfo_Ori :
+            {
+                ProductType: ko.observable(""),
+                ProductVendor: ko.observable(""),
+                ProductName: ko.observable(""),
+                ProductVersion: ko.observable(""),
+                ProductUpdate: ko.observable(""),
+                ProductEdition: ko.observable(""),
+                ProductLanguage: ko.observable(""),
+                VulManInputProductId: ko.observable(""),
+                addUpdInd: ko.observable(""),
+            },
+            cvssTotal : {
+                TotalScoreType: ko.observable(""),
+                CVSSRatingNm: ko.observable(""),
+                ScoreTypeCd: ko.observable("")
+            },
+
+            product: ko.observableArray([]),
+            pageind: ko.observable(0),
+            countAllRow : ko.observable(""),
+            totaleachpage : ko.observable(""),
+            //scorecd: ko.observable(""),
+            //FindingValueType :
+            //{
+            //    ValueTypeNm: ko.observable(""),
+            //},
+            linkValidUrl: ko.observable(""),
+            linkValidUrlFirst: ko.observable(""),
+            styledisplay : ko.observableArray([0]),
+            VulnerabilityCSMCdListing: ko.observable(""),
+
+            baseScore: ko.observable(""),
+            Scope: ko.observable(""),
+            E: ko.observable(""),
+            RL: ko.observable(""),
+            RC: ko.observable(""),
+            AV: ko.observable(""),
+            AC: ko.observable(""),
+            PR: ko.observable(""),
+            UI: ko.observable(""),
+            C: ko.observable(""),
+            I: ko.observable(""),
+            A: ko.observable(""),
+            TotalScoreType_Base: ko.observable(""),
+            errorCalculateCvss: ko.observable(""),
+
+            CR: ko.observable(""),
+            IR: ko.observable(""),
+            AR: ko.observable(""),
+            MAV: ko.observable(""),
+            MAC: ko.observable(""),
+            MPR: ko.observable(""),
+            MUI: ko.observable(""),
+            MS: ko.observable(""),
+            MC: ko.observable(""),
+            MI: ko.observable(""),
+            MA: ko.observable(""),
+           
+            cvssSaveVector : {
+                Scope: ko.observable(""),
+                AV: ko.observable(""),
+                AC: ko.observable(""),
+                PR: ko.observable(""),
+                UI: ko.observable(""),
+                C: ko.observable(""),
+                I: ko.observable(""),
+                A: ko.observable(""),
+                ScopeMtrixCd: ko.observable(""),
+                AVMtrixCd: ko.observable(""),
+                ACMtrixCd: ko.observable(""),
+                PRMtrixCd: ko.observable(""),
+                UIMtrixCd: ko.observable(""),
+                CMtrixCd: ko.observable(""),
+                IMtrixCd: ko.observable(""),
+                AMtrixCd: ko.observable(""),
+
+                E: ko.observable(""),
+                RL: ko.observable(""),
+                RC: ko.observable(""),
+                EMtrixCd: ko.observable(""),
+                RLMtrixCd: ko.observable(""),
+                RCMtrixCd: ko.observable(""),
+
+                CR: ko.observable(""),
+                IR: ko.observable(""),
+                AR: ko.observable(""),
+                MAV: ko.observable(""),
+                MAC: ko.observable(""),
+                MPR: ko.observable(""),
+                MUI: ko.observable(""),
+                MS: ko.observable(""),
+                MC: ko.observable(""),
+                MI: ko.observable(""),
+                MA: ko.observable(""),
+                CRMtrixCd: ko.observable(""),
+                IRMtrixCd: ko.observable(""),
+                ARMtrixCd: ko.observable(""),
+                MAVMtrixCd: ko.observable(""),
+                MACMtrixCd: ko.observable(""),
+                MPRMtrixCd: ko.observable(""),
+                MUIMtrixCd: ko.observable(""),
+                MSMtrixCd: ko.observable(""),
+                MCMtrixCd: ko.observable(""),
+                MIMtrixCd: ko.observable(""),
+                MAMtrixCd: ko.observable(""),
+           
+            },
+            CVSSScoreOri: ko.observable(""),
+            CVSSVectorOri: ko.observable(""),
+            vectorLength: ko.observable(""),
+
+            saveUpdateFindingListAffectedItem: function () {
+
+                var count_row = $('#count_file').val();
+                var countAdaData = 0;
+                var cveid_data = "";
+
+                if(count_row != 0){
+                    for (let i = 1; i <= count_row; i ++) {
+
+                        var AttchmtPath = $('#cve_id-'+i).val();
+
+                        if(AttchmtPath == undefined || AttchmtPath == "" ){
+                            //alert('xdedata');
+                        }
+                        else
+                        {
+                            if(cveid_data == "")
+                            {
+                                cveid_data = AttchmtPath;
+                            }
+                            else{
+                                cveid_data = cveid_data + String.fromCharCode(253) + AttchmtPath ;
+                            }
+
+                            countAdaData ++;
+                        }
+
+                    }
+                    //alert(cveid_data);
+                    //alert(countAdaData);
+                }
+
+                var value = $("#editFormFindingListAffectedItem").validationEngine('validate');
+
+                if (value == true) {
+
+                    $.ajax({
+                        type: 'POST',
+                        url: '/Vulnerability/AddManualInputAffectedItem',//controller/nama function
+                        contentType: "application/json; charset=utf-8",
+                        data: JSON.stringify({ modelss: ko.mapping.toJS(viewModel.FindingListAffectedItem),VulManInptId: viewModel.Finding.VulManInput.VulManInptId() }), //parameter
+
+                        success: function (msg) {
+
+                            if (msg.ok) {
+                                // ShowMessageSuccess("Data successfully update.");
+                                $('#FindingListAffectedItem').modal('hide');
+                                //$(window).click(function() {
+
+                                sessionStorage.setItem("vulName", htmlEnc(document.getElementById("vul_nm").value));
+                                sessionStorage.setItem("ObservationRmk", htmlEnc(document.getElementById("Observation").value));
+                                sessionStorage.setItem("ImpactLvl", viewModel.Finding.VulManInput.ImpactLvl());
+                                sessionStorage.setItem("ImpactRmk", htmlEnc(document.getElementById("impact_remark").value));
+                                sessionStorage.setItem("ImprovementRmk", htmlEnc(document.getElementById("area_of_impt").value));
+                                sessionStorage.setItem("Status", viewModel.Finding.VulManInput.Status());
+                                sessionStorage.setItem("CVEID", cveid_data);
+                                sessionStorage.setItem("CWEID", $("#CWENm").val());
+                                //sessionStorage.setItem("CVEID", htmlEnc(document.getElementById("cve_id").value));
+                                sessionStorage.setItem("VulCategory", viewModel.Finding.VulManInput.VulCat());
+                                sessionStorage.setItem("VulTypeName", viewModel.Finding.VulManInput.x.VulNm());
+                                sessionStorage.setItem("VulTypeCd", viewModel.Finding.VulManInput.VulType());
+                                sessionStorage.setItem("SecComp", htmlEnc(document.getElementById("SecComp").value));
+                                sessionStorage.setItem("vulCd", htmlEnc(document.getElementById("vulCd").value));
+                                sessionStorage.setItem("vulCdCmb", htmlEnc(document.getElementById("vulCdCmb").value));
+
+                                location.reload();
+                                //});
+
+
+                            }
+                            else {
+                                $('#FindingListAffectedItem').modal('hide');
+                                ShowMessageDanger('Unsuccesfully add.');
+                            }
+
+                        },
+                        error: function (xhr) {
+                        }
+                    });
+                } else {
+                    $("#editFormFindingListAffectedItem").validationEngine();
+                }
+            },
+
+            saveScreenshot: function () {
+
+                var value = $("#editFormFindingListScreenshot").validationEngine('validate');
+
+                if (value == true)
+                {
+                    var totalFiles = document.getElementById("picfile").files.length;
+
+                    if (totalFiles != 0) {
+                       // alert(totalFiles);
+                         viewModel.UploadPic();
+                    }
+                    else
+                    {
+                      //  alert('save data sahaja');
+                        //  viewModel.saveUpdateFindingListScreenshot();
+                    }
+                }
+                else
+                {
+                    $("#editFormFindingListScreenshot").validationEngine();
+                }
+
+
+
+            },
+
+            UploadPic : function ()
+            {
+                var Name = $("#txtName").val();
+                var formData = new FormData();
+                var totalFiles = document.getElementById("picfile").files.length;
+
+                var file = document.getElementById("picfile").files[0];
+                formData.append("FileUpload", file);
+                formData.append("Name", Name);
+
+                $.ajax({
+                    type: "POST",
+                    url: '/Upload/SaveFindingListScreenshot',
+                    data: formData,
+                   // contentType: "application/json; charset=utf-8",
+                    //data: JSON.stringify({ modelss: ko.mapping.toJS(viewModel.FindingListScreenshot),VulProjFindingId: viewModel.Finding.VulProjFinding.VulProjFindingId() }), //parameter
+                    dataType: 'json',
+                    contentType: false,
+                    processData: false,
+                    success: function (msg) {
+                        if (msg.OK) {
+                            $('#FindingListScreenshot').modal('hide');
+                             ShowMessageSuccess(msg.message);
+                            //successMsg = msg.message;
+                             viewModel.saveUpdateFindingListScreenshot(msg.filePath, msg.OriName);
+                            //$(window).click(function() {
+                            //    viewModel.saveUpdateFindingListScreenshot(msg.filePath, msg.OriName);
+                            //});
+                            //success = 1;
+
+                        }
+                        else
+                        {
+                            //   alert("aaa" + msg.message1);
+                            successMsg =  msg.message1;
+                            //success = 2;
+                            //viewModel.SaveInfo();
+                        }
+
+                    },
+                    error: function (error) {
+                        //   alert("errror");
+                        successMsg = "File size is too big.";
+                        //success = 3;
+                        //viewModel.SaveInfo();
+                    }
+                });
+
+            },
+
+            saveUpdateFindingListScreenshot: function (filePath, OriName) {
+
+                var count_row = $('#count_file').val();
+                var countAdaData = 0;
+                var cveid_data = "";
+
+                if(count_row != 0){
+                    for (let i = 1; i <= count_row; i ++) {
+
+                        var AttchmtPath = $('#cve_id-'+i).val();
+
+                        if(AttchmtPath == undefined || AttchmtPath == "" ){
+                            //alert('xdedata');
+                        }
+                        else
+                        {
+                            if(cveid_data == "")
+                            {
+                                cveid_data = AttchmtPath;
+                            }
+                            else{
+                                cveid_data = cveid_data + String.fromCharCode(253) + AttchmtPath ;
+                            }
+
+                            countAdaData ++;
+                        }
+
+                    }
+                    //alert(cveid_data);
+                    //alert(countAdaData);
+                }
+
+                //var value = $("#editFormFindingListScreenshot").validationEngine('validate');
+                $.ajax({
+                    type: 'POST',
+                    url: '/Vulnerability/AddManualInputScreenshot',//controller/nama function
+                    contentType: "application/json; charset=utf-8",
+                    data: JSON.stringify({ modelss: ko.mapping.toJS(viewModel.FindingListScreenshot),VulManInptId: viewModel.Finding.VulManInput.VulManInptId(), filePath: filePath , OriName: OriName }), //parameter
+
+                    success: function (msg) {
+
+                        if (msg.ok) {
+                            //ShowMessageSuccess("Upload image success.");
+
+                            //$(window).click(function() {
+                            sessionStorage.setItem("vulName", htmlEnc(document.getElementById("vul_nm").value));
+                            sessionStorage.setItem("ObservationRmk", htmlEnc(document.getElementById("Observation").value));
+                            sessionStorage.setItem("ImpactLvl", viewModel.Finding.VulManInput.ImpactLvl());
+                            sessionStorage.setItem("ImpactRmk", htmlEnc(document.getElementById("impact_remark").value));
+                            sessionStorage.setItem("ImprovementRmk", htmlEnc(document.getElementById("area_of_impt").value));
+                            sessionStorage.setItem("Status", viewModel.Finding.VulManInput.Status());
+                            sessionStorage.setItem("CVEID", cveid_data);
+                            sessionStorage.setItem("CWEID", $("#CWENm").val());
+                            //sessionStorage.setItem("CVEID", htmlEnc(document.getElementById("cve_id").value));
+                            sessionStorage.setItem("VulCategory", viewModel.Finding.VulManInput.VulCat());
+                            sessionStorage.setItem("VulTypeName", viewModel.Finding.VulManInput.x.VulNm());
+                            sessionStorage.setItem("VulTypeCd", viewModel.Finding.VulManInput.VulType());
+                            sessionStorage.setItem("SecComp", htmlEnc(document.getElementById("SecComp").value));
+                            sessionStorage.setItem("vulCd", htmlEnc(document.getElementById("vulCd").value));
+                            sessionStorage.setItem("vulCdCmb", htmlEnc(document.getElementById("vulCdCmb").value));
+
+                            location.reload();
+                            //});
+                        }
+                        else {
+                            $('#FindingListScreenshot').modal('hide');
+                            ShowMessageDanger('Unsuccesfully add.');
+                        }
+
+                    },
+                    error: function (xhr) {
+                    }
+                });
+            },
+
+            DeleteFindingListAffectedItem: function (DelId) {
+
+                var count_row = $('#count_file').val();
+                var countAdaData = 0;
+                var cveid_data = "";
+
+                if(count_row != 0){
+                    for (let i = 1; i <= count_row; i ++) {
+
+                        var AttchmtPath = $('#cve_id-'+i).val();
+
+                        if(AttchmtPath == undefined || AttchmtPath == "" ){
+                            //alert('xdedata');
+                        }
+                        else
+                        {
+                            if(cveid_data == "")
+                            {
+                                cveid_data = AttchmtPath;
+                            }
+                            else{
+                                cveid_data = cveid_data + String.fromCharCode(253) + AttchmtPath ;
+                            }
+
+                            countAdaData ++;
+                        }
+
+                    }
+                    //alert(cveid_data);
+                    //alert(countAdaData);
+                }
+
+                showLoading();
+                $.ajax({
+                    type: "POST",
+                    url: "/Vulnerability/DeleteManualInputAffectedItem",
+                    contentType: "application/json; charset=utf-8",
+                    data: JSON.stringify({ VulManInptAffItemLstId: DelId }),
+                    datatype: "json",
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            //  hideLoading();
+
+                            ShowMessageSuccess("Data successfully delete.");
+                            //$(window).click(function() {
+                                sessionStorage.setItem("vulName", htmlEnc(document.getElementById("vul_nm").value));
+                                sessionStorage.setItem("ObservationRmk", htmlEnc(document.getElementById("Observation").value));
+                                sessionStorage.setItem("ImpactLvl", viewModel.Finding.VulManInput.ImpactLvl());
+                                sessionStorage.setItem("ImpactRmk", htmlEnc(document.getElementById("impact_remark").value));
+                                sessionStorage.setItem("ImprovementRmk", htmlEnc(document.getElementById("area_of_impt").value));
+                                sessionStorage.setItem("Status", viewModel.Finding.VulManInput.Status());
+                                sessionStorage.setItem("CVEID", cveid_data);
+                                sessionStorage.setItem("CWEID", $("#CWENm").val());
+                                //sessionStorage.setItem("CVEID", htmlEnc(document.getElementById("cve_id").value));
+                                sessionStorage.setItem("VulCategory", viewModel.Finding.VulManInput.VulCat());
+                                sessionStorage.setItem("VulTypeName", viewModel.Finding.VulManInput.x.VulNm());
+                                sessionStorage.setItem("VulTypeCd", viewModel.Finding.VulManInput.VulType());
+                                sessionStorage.setItem("SecComp", htmlEnc(document.getElementById("SecComp").value));
+                                sessionStorage.setItem("vulCd", htmlEnc(document.getElementById("vulCd").value));
+                                sessionStorage.setItem("vulCdCmb", htmlEnc(document.getElementById("vulCdCmb").value));
+
+                                location.reload();
+                            //});
+
+                        }
+                        else{
+                            ShowMessageDanger('Unsuccesfully delete.');
+                        }
+                    }
+                })
+            },
+
+            DeleteFindingListScreenshot: function (DelId) {
+
+                var count_row = $('#count_file').val();
+                var countAdaData = 0;
+                var cveid_data = "";
+
+                if(count_row != 0){
+                    for (let i = 1; i <= count_row; i ++) {
+
+                        var AttchmtPath = $('#cve_id-'+i).val();
+
+                        if(AttchmtPath == undefined || AttchmtPath == "" ){
+                            //alert('xdedata');
+                        }
+                        else
+                        {
+                            if(cveid_data == "")
+                            {
+                                cveid_data = AttchmtPath;
+                            }
+                            else{
+                                cveid_data = cveid_data + String.fromCharCode(253) + AttchmtPath ;
+                            }
+
+                            countAdaData ++;
+                        }
+
+                    }
+                    //alert(cveid_data);
+                    //alert(countAdaData);
+                }
+
+                showLoading();
+                $.ajax({
+                    type: "POST",
+                    url: "/Vulnerability/DeleteManualInputScreenshot",
+                    contentType: "application/json; charset=utf-8",
+                    data: JSON.stringify({ VulManInptScreenshotLstId: DelId }),
+                    datatype: "json",
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            //  hideLoading();
+
+                            ShowMessageSuccess("Data successfully delete.");
+                            //$(window).click(function() {
+                            sessionStorage.setItem("vulName", htmlEnc(document.getElementById("vul_nm").value));
+                            sessionStorage.setItem("ObservationRmk", htmlEnc(document.getElementById("Observation").value));
+                            sessionStorage.setItem("ImpactLvl", viewModel.Finding.VulManInput.ImpactLvl());
+                            sessionStorage.setItem("ImpactRmk", htmlEnc(document.getElementById("impact_remark").value));
+                            sessionStorage.setItem("ImprovementRmk", htmlEnc(document.getElementById("area_of_impt").value));
+                            sessionStorage.setItem("Status", viewModel.Finding.VulManInput.Status());
+                            sessionStorage.setItem("CVEID", cveid_data);
+                            sessionStorage.setItem("CWEID", $("#CWENm").val());
+                            //sessionStorage.setItem("CVEID", htmlEnc(document.getElementById("cve_id").value));
+                            sessionStorage.setItem("VulCategory", viewModel.Finding.VulManInput.VulCat());
+                            sessionStorage.setItem("VulTypeName", viewModel.Finding.VulManInput.x.VulNm());
+                            sessionStorage.setItem("VulTypeCd", viewModel.Finding.VulManInput.VulType());
+                            sessionStorage.setItem("SecComp", htmlEnc(document.getElementById("SecComp").value));
+                            sessionStorage.setItem("vulCd", htmlEnc(document.getElementById("vulCd").value));
+                            sessionStorage.setItem("vulCdCmb", htmlEnc(document.getElementById("vulCdCmb").value));
+
+                            location.reload();
+                            //});
+
+                        }
+                        else{
+                            ShowMessageDanger('Unsuccesfully delete.');
+                        }
+                    }
+                })
+            },
+
+            UpdateFindingListInfo : function(){
+
+                //save cvss score
+                if(viewModel.errorCalculateCvss() != 1){
+                    if(document.getElementById("calcVector").value != ''){
+                        $.ajax({
+                            type: "POST",
+                            url: server + "/Admin/DeleteCVSSVulManInputScoring",
+                            data: JSON.stringify({ id: viewModel.Finding.VulManInput.VulManInptId() }),
+                            contentType: "application/json; charset=utf-8",
+                            error: function (xhr) { },
+                            success: function (msg) {
+                                if (msg.OK) {
+                                    viewModel.save_total(viewModel.Finding.VulManInput.VulManInptId(),viewModel.Finding.VulManInput.CVSSScore(), viewModel.vectorLength());
+                                }
+                                else {
+                                    //ShowMessageDanger('Error.');
+                                }
+                            }
+                        })
+                    }
+                }
+               
+                //end save
+
+                var count_row = $('#count_file').val();
+                var countAdaData = 0;
+                var cveid_data = "";
+
+                if(count_row != 0){
+                    for (let i = 1; i <= count_row; i ++) {
+
+                        var AttchmtPath = $('#cve_id-'+i).val();
+
+                        if(AttchmtPath == undefined || AttchmtPath == "" ){
+                            //alert('xdedata');
+                        }
+                        else
+                        {
+                            if(cveid_data == "")
+                            {
+                                cveid_data = AttchmtPath;
+                            }
+                            else{
+                                cveid_data = cveid_data + String.fromCharCode(253) + AttchmtPath ;
+                            }
+
+                            countAdaData ++;
+                        }
+
+                    }
+                    //alert(cveid_data);
+                    //alert(countAdaData);
+                }
+
+                var value = $("#myForm").validationEngine('validate');
+
+               // alert($("#category").val());
+                //viewModel.Finding.VulManInput.CVEId (htmlEnc($("#cve_id").val()));
+                viewModel.Finding.VulManInput.VulCat ($("#category").val());
+                viewModel.Finding.VulManInput.CVEId (htmlEnc(cveid_data));
+                viewModel.Finding.VulManInput.VulNm (htmlEnc($("#vul_nm").val()));
+                viewModel.Finding.VulManInput.ObservationRmk (htmlEnc($("#Observation").val()));
+                viewModel.Finding.VulManInput.ImpactRmk (htmlEnc($("#impact_remark").val()));
+                viewModel.Finding.VulManInput.ImprovementRmk (htmlEnc($("#area_of_impt").val()));
+                viewModel.Finding.VulManInput.VulSecComp (htmlEnc($("#SecComp").val()));
+                viewModel.Finding.VulManInput.VulnerabilityCSMCd($("#vulCd").val());
+                viewModel.Finding.VulManInput.VulnerabilityCSMCdCombine($("#vulCdCmb").val());
+                viewModel.Finding.VulManInput.CVSS2Score($("#CVSS2Score").val());
+                viewModel.Finding.VulManInput.CVSS2Vector(htmlEnc($("#CVSS2Vector").val()));
+                //viewModel.Finding.VulManInput.calcVector (document.getElementById("calcVector").value);
+               
+                if (value == true)
+                {
+                    ShowDecisionMessage("Are you sure to save this Record ? ", function () {
+                            $.ajax({
+                            type: 'POST',
+                            url: server + '/Admin/UpdateVulManInputInfo',
+                            contentType: "application/json; charset=utf-8",
+                            data: JSON.stringify({ modelss: ko.mapping.toJS(viewModel.Finding.VulManInput), DataVectorV3 : $("#calcVector").val() }),
+                            success: function (msg) {
+                                if (msg.OK) {
+                                    ShowMessageSuccess("Data successfully update.",btnRefresh);
+
+                                }
+                                else {
+                                    ShowMessage('Unsuccesfully update.');
+                                }
+
+                            },
+                            error: function (xhr) {
+                            }
+                        });
+                    });
+                }else{
+                    $("#myForm").validationEngine();
+                }
+
+            },
+
+            ClickCweInformation: function (CWEId) {
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/FindingCweInformation",
+                    data: JSON.stringify({ CWEId: CWEId }),
+                    contentType: "application/json; charset=utf-8",
+                    success: function (msg) {
+                        if (msg.OK) {
+                            viewModel.Finding.VulManInput.CWEId(CWEId);
+                            viewModel.Finding.VulManInput.z.CWENm(msg.list.CWEDefinition.CWENm);
+                            viewModel.Finding.VulManInput.z.Description(msg.list.CWEDefinition.Description);
+                            viewModel.Finding.VulManInput.z.UrlLink(msg.list.CWEDefinition.UrlLink);
+
+
+                            $('#searchCWEID_Info').modal('hide');
+
+                        }
+                    }
+                });
+            },
+
+            GetlinkInfo : function(CVEID){
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetCheckValidCveID",
+                    data: JSON.stringify({ CVEID: CVEID }),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+                            //window.open(msg.list, '_blank');
+                            viewModel.linkValidUrl(msg.list);
+
+                            if(msg.list != ""){
+                                document.getElementById("clicklink-1").style.display = "";
+                            }else{
+                                document.getElementById("clicklink-1").style.display = "none";
+                            }
+
+
+                        }
+                        else {
+                            ShowMessageDanger('Error.');
+                        }
+                    }
+                });
+
+            },
+
+            GetlinkInfo2 : function(CVEID){
+
+               // alert(CVEID);
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetCheckValidCveID",
+                    async: false,
+                    data: JSON.stringify({ CVEID: CVEID }),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            viewModel.linkValidUrl(msg.list);
+
+                        }
+                        else {
+                            ShowMessageDanger('Error.');
+                        }
+                    }
+                });
+
+            },
+
+            GetlinkTab : function(CVEID){
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetCheckValidCveID",
+                    data: JSON.stringify({ CVEID: CVEID }),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+                            window.open(msg.list, '_blank','noopener');
+                            //viewModel.linkValidUrl(msg.list);
+
+                        }
+                        else {
+                            ShowMessageDanger('Error.');
+                        }
+                    }
+                });
+
+            },
+
+            saveUpdateFindingListProductInfo: function () {
+
+                var count_row = $('#count_file').val();
+                var countAdaData = 0;
+                var cveid_data = "";
+
+                if(count_row != 0){
+                    for (let i = 1; i <= count_row; i ++) {
+
+                        var AttchmtPath = $('#cve_id-'+i).val();
+
+                        if(AttchmtPath == undefined || AttchmtPath == "" ){
+                            //alert('xdedata');
+                        }
+                        else
+                        {
+                            if(cveid_data == "")
+                            {
+                                cveid_data = AttchmtPath;
+                            }
+                            else{
+                                cveid_data = cveid_data + String.fromCharCode(253) + AttchmtPath ;
+                            }
+
+                            countAdaData ++;
+                        }
+
+                    }
+                    //alert(cveid_data);
+                    //alert(countAdaData);
+                }
+
+                var value = $("#editFormFindingListProductInfo").validationEngine('validate');
+
+                viewModel.FindingListProductInfo.ProductVendor(htmlEnc($("#ProductVendor").val()));
+                viewModel.FindingListProductInfo.ProductName(htmlEnc($("#ProductName").val()));
+                viewModel.FindingListProductInfo.ProductVersion(htmlEnc($("#ProductVersion").val()));
+                viewModel.FindingListProductInfo.ProductUpdate(htmlEnc($("#ProductUpdate").val()));
+                viewModel.FindingListProductInfo.ProductEdition(htmlEnc($("#ProductEdition").val()));
+                viewModel.FindingListProductInfo.ProductLanguage(htmlEnc($("#ProductLanguage").val()));
+
+                if (value == true) {
+
+                    $.ajax({
+                        type: 'POST',
+                        url: '/Vulnerability/AddManualInputProductInfo',//controller/nama function
+                        contentType: "application/json; charset=utf-8",
+                        data: JSON.stringify({ modelss: ko.mapping.toJS(viewModel.FindingListProductInfo),VulManInptId: viewModel.Finding.VulManInput.VulManInptId() }), //parameter
+
+                        success: function (msg) {
+
+                            if (msg.ok) {
+                                // ShowMessageSuccess("Data successfully update.");
+                                $('#FindingListProductInfo').modal('hide');
+                                //$(window).click(function() {
+
+                                sessionStorage.setItem("vulName", htmlEnc(document.getElementById("vul_nm").value));
+                                sessionStorage.setItem("ObservationRmk", htmlEnc(document.getElementById("Observation").value));
+                                sessionStorage.setItem("ImpactLvl", viewModel.Finding.VulManInput.ImpactLvl());
+                                sessionStorage.setItem("ImpactRmk", htmlEnc(document.getElementById("impact_remark").value));
+                                sessionStorage.setItem("ImprovementRmk", htmlEnc(document.getElementById("area_of_impt").value));
+                                sessionStorage.setItem("Status", viewModel.Finding.VulManInput.Status());
+                                sessionStorage.setItem("CVEID", cveid_data);
+                                sessionStorage.setItem("CWEID", $("#CWENm").val());
+                                //sessionStorage.setItem("CVEID", htmlEnc(document.getElementById("cve_id").value));
+                                sessionStorage.setItem("VulCategory", viewModel.Finding.VulManInput.VulCat());
+                                sessionStorage.setItem("VulTypeName", viewModel.Finding.VulManInput.x.VulNm());
+                                sessionStorage.setItem("VulTypeCd", viewModel.Finding.VulManInput.VulType());
+                                sessionStorage.setItem("SecComp", htmlEnc(document.getElementById("SecComp").value));
+                                sessionStorage.setItem("vulCd", htmlEnc(document.getElementById("vulCd").value));
+                                sessionStorage.setItem("vulCdCmb", htmlEnc(document.getElementById("vulCdCmb").value));
+
+                                location.reload();
+                                //});
+
+
+                            }
+                            else {
+                                $('#FindingListProductInfo').modal('hide');
+                                ShowMessageDanger('Unsuccesfully add.');
+                            }
+
+                        },
+                        error: function (xhr) {
+                        }
+                    });
+                } else {
+                    $("#editFormFindingListProductInfo").validationEngine();
+                }
+            },
+
+            DeleteFindingListProductInfo: function (DelId) {
+
+                var count_row = $('#count_file').val();
+                var countAdaData = 0;
+                var cveid_data = "";
+
+                if(count_row != 0){
+                    for (let i = 1; i <= count_row; i ++) {
+
+                        var AttchmtPath = $('#cve_id-'+i).val();
+
+                        if(AttchmtPath == undefined || AttchmtPath == "" ){
+                            //alert('xdedata');
+                        }
+                        else
+                        {
+                            if(cveid_data == "")
+                            {
+                                cveid_data = AttchmtPath;
+                            }
+                            else{
+                                cveid_data = cveid_data + String.fromCharCode(253) + AttchmtPath ;
+                            }
+
+                            countAdaData ++;
+                        }
+
+                    }
+                    //alert(cveid_data);
+                    //alert(countAdaData);
+                }
+
+                showLoading();
+                $.ajax({
+                    type: "POST",
+                    url: "/Vulnerability/DeleteManualInputProductInfo",
+                    contentType: "application/json; charset=utf-8",
+                    data: JSON.stringify({ VulManInputProductId: DelId }),
+                    datatype: "json",
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            //  hideLoading();
+
+                            ShowMessageSuccess("Data successfully delete.");
+                            //$(window).click(function() {
+                            sessionStorage.setItem("vulName", htmlEnc(document.getElementById("vul_nm").value));
+                            sessionStorage.setItem("ObservationRmk", htmlEnc(document.getElementById("Observation").value));
+                            sessionStorage.setItem("ImpactLvl", viewModel.Finding.VulManInput.ImpactLvl());
+                            sessionStorage.setItem("ImpactRmk", htmlEnc(document.getElementById("impact_remark").value));
+                            sessionStorage.setItem("ImprovementRmk", htmlEnc(document.getElementById("area_of_impt").value));
+                            sessionStorage.setItem("Status", viewModel.Finding.VulManInput.Status());
+                            sessionStorage.setItem("CVEID", cveid_data);
+                            sessionStorage.setItem("CWEID", $("#CWENm").val());
+                            //sessionStorage.setItem("CVEID", htmlEnc(document.getElementById("cve_id").value));
+                            sessionStorage.setItem("VulCategory", viewModel.Finding.VulManInput.VulCat());
+                            sessionStorage.setItem("VulTypeName", viewModel.Finding.VulManInput.x.VulNm());
+                            sessionStorage.setItem("VulTypeCd", viewModel.Finding.VulManInput.VulType());
+                            sessionStorage.setItem("SecComp", htmlEnc(document.getElementById("SecComp").value));
+                            sessionStorage.setItem("vulCd", htmlEnc(document.getElementById("vulCd").value));
+                            sessionStorage.setItem("vulCdCmb", htmlEnc(document.getElementById("vulCdCmb").value));
+
+                            location.reload();
+                            //});
+
+                        }
+                        else{
+                            ShowMessageDanger('Unsuccesfully delete.');
+                        }
+                    }
+                })
+            },
+
+            searchVulCodedataList: function (pageind,CatCode,search_vulCode_name) {
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetVulCodedataList",
+                    async: false,
+                    data: JSON.stringify({pageind : pageind, CatCode : CatCode, VulnerabilityCSMCd: viewModel.Finding.VulCodeOri(),search_vulCode_name :search_vulCode_name   }),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            viewModel.VulnerabilityCSMCdListing(msg.list.VulnerabilityCSMCdInfo);
+                            viewModel.countAllRow(msg.list.GetTotalVulnerabilityCSMCdInfo.countAllRow);
+                            viewModel.totaleachpage(viewModel.VulnerabilityCSMCdListing().length);
+
+                            $('#searchVulCodedata').modal('show');
+                        }
+                        else{
+
+                        }
+                    }
+                });
+
+            },
+
+            searchVulCodedataList2: function (pageind,CatCode,search_vulCode_name) {
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetVulCodedataList",
+                    async: false,
+                    data: JSON.stringify({pageind : pageind, CatCode : CatCode, VulnerabilityCSMCd: viewModel.Finding.VulCodeOri(),search_vulCode_name :search_vulCode_name  }),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            viewModel.VulnerabilityCSMCdListing(msg.list.VulnerabilityCSMCdInfo);
+                            viewModel.countAllRow(msg.list.GetTotalVulnerabilityCSMCdInfo.countAllRow);
+                            viewModel.totaleachpage(viewModel.VulnerabilityCSMCdListing().length);
+
+                            //paginateCLICK(0, 1);
+                         
+                        }
+                        else{
+
+                        }
+                    }
+                });
+
+            },
+
+
+            EditVulManInputProduct: function (VulManInputProductId) {
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetVulManInputProduct",
+                    async: false,
+                    data: JSON.stringify({VulManInputProductId : VulManInputProductId}),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            // viewModel.FindingListProductInfo(msg.list.VulManInputProduct);
+
+                            viewModel.FindingListProductInfo.ProductType(msg.list.VulManInputProduct.ProductType);
+                            viewModel.FindingListProductInfo.ProductVendor(msg.list.VulManInputProduct.ProductVendor);
+                            viewModel.FindingListProductInfo.ProductName(msg.list.VulManInputProduct.ProductName);
+                            viewModel.FindingListProductInfo.ProductVersion(msg.list.VulManInputProduct.ProductVersion);
+                            viewModel.FindingListProductInfo.ProductUpdate(msg.list.VulManInputProduct.ProductUpdate);
+                            viewModel.FindingListProductInfo.ProductEdition(msg.list.VulManInputProduct.ProductEdition);
+                            viewModel.FindingListProductInfo.ProductLanguage(msg.list.VulManInputProduct.ProductLanguage);
+                            viewModel.FindingListProductInfo.VulManInputProductId(msg.list.VulManInputProduct.VulManInputProductId);
+
+                            viewModel.FindingListProductInfo_Ori.ProductType(msg.list.VulManInputProduct.ProductType);
+                            viewModel.FindingListProductInfo_Ori.ProductVendor(msg.list.VulManInputProduct.ProductVendor);
+                            viewModel.FindingListProductInfo_Ori.ProductName(msg.list.VulManInputProduct.ProductName);
+                            viewModel.FindingListProductInfo_Ori.ProductVersion(msg.list.VulManInputProduct.ProductVersion);
+                            viewModel.FindingListProductInfo_Ori.ProductUpdate(msg.list.VulManInputProduct.ProductUpdate);
+                            viewModel.FindingListProductInfo_Ori.ProductEdition(msg.list.VulManInputProduct.ProductEdition);
+                            viewModel.FindingListProductInfo_Ori.ProductLanguage(msg.list.VulManInputProduct.ProductLanguage);
+                            viewModel.FindingListProductInfo_Ori.VulManInputProductId(msg.list.VulManInputProduct.VulManInputProductId);
+                       
+                            $('#FindingListProductInfo').modal('show');
+                        }
+                        else{
+
+                        }
+                    }
+                });
+
+            },
+
+            calculateCVSSVector: function (ind) {
+
+                
+                try {
+                    // alert(viewModel.Finding.VulManInput.VulManInptId());
+                    var exploitabilityCoefficient = 8.22;
+                    var scopeCoefficient = 1.08;
+                    var valCvssVec = document.getElementById("calcVector").value;                       
+                    var tmp1 = valCvssVec.split("/");
+                    // var tmp1Count = tmp1.count();
+                                   
+                    var testerror = 0;                  
+
+                    if(tmp1.length == 8){
+                        var AVSplit = tmp1[0].split(":");
+                        var AV = AVSplit[1];
+                        if(AVSplit[0] == 'AV'){
+                            if (AV == 'N'){
+                                AV = 0.85; //Network
+                            }
+                            else if(AV == 'A'){
+                                AV = 0.62; //Adjacent
+                            }
+                            else if(AV == 'L'){
+                                AV = 0.55; //Local
+                            }
+                            else if(AV == 'P'){
+                                AV = 0.20; //Physical
+                            }
+                        }
+                   
+                        var ACSplit = tmp1[1].split(":");
+                        var AC = ACSplit[1];
+                        if(ACSplit[0] == 'AC'){
+                            if (AC == 'L'){
+                                AC = 0.77; //Low
+                            }
+                            else if(AC == 'H'){
+                                AC = 0.44; //High
+                            }
+                        }
+                    
+                        var PRSplit = tmp1[2].split(":");
+                        var PR = PRSplit[1];
+                        if(PRSplit[0] == 'PR'){
+                            if (PR == 'N'){
+                                PR = 0.85; //none
+                            }
+                            else if(PR == 'L'){
+                                PR = 0.62; //Low
+                            }
+                            else if(PR == 'H'){
+                                PR = 0.27; //High
+                            }
+                        }
+                    
+                        var UISplit = tmp1[3].split(":");
+                        var UI = UISplit[1];
+                        if(UISplit[0] == 'UI'){
+                            if (UI == 'N'){
+                                UI = 0.85; //None
+                            }
+                            else if(UI == 'R'){
+                                UI = 0.62; //Required
+                            }
+                        }
+                    
+                        var SSplit = tmp1[4].split(":");
+                        var S = SSplit[1];
+                        if(SSplit[0] == 'S'){
+                            if (S == 'U'){
+                                S = 6.42; //unchanged
+                            }
+                            else if (S == 'C'){
+                                S = 7.52; //changed
+                            }
+                        }
+                    
+                   
+                        var CSplit = tmp1[5].split(":");
+                        var C = CSplit[1];
+                        if(CSplit[0] == 'C'){
+                            if (C == 'H'){
+                                C = 0.56; //High
+                            }
+                            else if(C == 'L'){
+                                C = 0.22; //Low
+                            }
+                            else if (C == 'N'){
+                                C = 0.00; //None
+                            }
+                        }
+                   
+                        var ISplit = tmp1[6].split(":");
+                        var I = ISplit[1];
+                        if(ISplit[0] == 'I'){
+                            if (I == 'H'){
+                                I = 0.56; //High
+                            }
+                            else if(I == 'L'){
+                                I = 0.22; //Low
+                            }
+                            else if(I == 'N'){
+                                I = 0.00; //None
+                            }
+                        }
+                   
+                        var ASplit = tmp1[7].split(":");
+                        var A = ASplit[1];
+                        if(ASplit[0] == 'A'){
+                            if (A == 'H'){
+                                A = 0.56; //High
+                            }
+                            else if(A == 'L'){
+                                A = 0.22; //Low
+                            }
+                            else if (A == 'N'){
+                                A = 0.00; //None
+                            }
+                        }
+                    }
+                    
+                    else if(tmp1.length == 11){  //untuk kiraan Temporal Score Metrics
+
+                        var AVSplit = tmp1[0].split(":");
+                        var AV = AVSplit[1];
+                        if(AVSplit[0] == 'AV'){
+                            if (AV == 'N'){
+                                AV = 0.85; //Network
+                            }
+                            else if(AV == 'A'){
+                                AV = 0.62; //Adjacent
+                            }
+                            else if(AV == 'L'){
+                                AV = 0.55; //Local
+                            }
+                            else if(AV == 'P'){
+                                AV = 0.20; //Physical
+                            }
+                        }
+                   
+                        var ACSplit = tmp1[1].split(":");
+                        var AC = ACSplit[1];
+                        if(ACSplit[0] == 'AC'){
+                            if (AC == 'L'){
+                                AC = 0.77; //Low
+                            }
+                            else if(AC == 'H'){
+                                AC = 0.44; //High
+                            }
+                        }
+                    
+                        var PRSplit = tmp1[2].split(":");
+                        var PR = PRSplit[1];
+                        if(PRSplit[0] == 'PR'){
+                            if (PR == 'N'){
+                                PR = 0.85; //none
+                            }
+                            else if(PR == 'L'){
+                                PR = 0.62; //Low
+                            }
+                            else if(PR == 'H'){
+                                PR = 0.27; //High
+                            }
+                        }
+                    
+                        var UISplit = tmp1[3].split(":");
+                        var UI = UISplit[1];
+                        if(UISplit[0] == 'UI'){
+                            if (UI == 'N'){
+                                UI = 0.85; //None
+                            }
+                            else if(UI == 'R'){
+                                UI = 0.62; //Required
+                            }
+                        }
+                    
+                        var SSplit = tmp1[4].split(":");
+                        var S = SSplit[1];
+                        if(SSplit[0] == 'S'){
+                            if (S == 'U'){
+                                S = 6.42; //unchanged
+                            }
+                            else if (S == 'C'){
+                                S = 7.52; //changed
+                            }
+                        }
+                    
+                   
+                        var CSplit = tmp1[5].split(":");
+                        var C = CSplit[1];
+                        if(CSplit[0] == 'C'){
+                            if (C == 'H'){
+                                C = 0.56; //High
+                            }
+                            else if(C == 'L'){
+                                C = 0.22; //Low
+                            }
+                            else if (C == 'N'){
+                                C = 0.00; //None
+                            }
+                        }
+                   
+                        var ISplit = tmp1[6].split(":");
+                        var I = ISplit[1];
+                        if(ISplit[0] == 'I'){
+                            if (I == 'H'){
+                                I = 0.56; //High
+                            }
+                            else if(I == 'L'){
+                                I = 0.22; //Low
+                            }
+                            else if(I == 'N'){
+                                I = 0.00; //None
+                            }
+                        }
+                   
+                        var ASplit = tmp1[7].split(":");
+                        var A = ASplit[1];
+                        if(ASplit[0] == 'A'){
+                            if (A == 'H'){
+                                A = 0.56; //High
+                            }
+                            else if(A == 'L'){
+                                A = 0.22; //Low
+                            }
+                            else if (A == 'N'){
+                                A = 0.00; //None
+                            }
+                        }
+
+                        var ESplit = tmp1[8].split(":");
+                        var E = ESplit[1];
+                        if(ESplit[0] == 'E'){
+                            if (E == 'X'){
+                                E = 1.00; //High
+                            }
+                            else if(E == 'U'){
+                                E = 0.91; //Low
+                            }
+                            else if (E == 'P'){
+                                E = 0.94; //None
+                            }
+                            else if (E == 'F'){
+                                E = 0.97; //None
+                            }
+                            else if (E == 'H'){
+                                E = 1.00; //None
+                            }
+                        }
+                      
+                        var RLSplit = tmp1[9].split(":");
+                        var RL = RLSplit[1];
+                        if(RLSplit[0] == 'RL'){
+                            if (RL == 'X'){
+                                RL = 1.00; //High
+                            }
+                            else if(RL == 'O'){
+                                RL = 0.95; //Low
+                            }
+                            else if (RL == 'T'){
+                                RL = 0.96; //None
+                            }
+                            else if (RL == 'W'){
+                                RL = 0.97; //None
+                            }
+                            else if (RL == 'U'){
+                                RL = 1.00; //None
+                            }
+                        }
+
+                        var RCSplit = tmp1[10].split(":");
+                        var RC = RCSplit[1];
+                        if(RCSplit[0] == 'RC'){
+                            if (RC == 'X'){
+                                RC = 1.00; //High
+                            }
+                            else if(RC == 'U'){
+                                RC = 0.92; //Low
+                            }
+                            else if (RC == 'R'){
+                                RC = 0.96; //None
+                            }
+                            else if (RC == 'C'){
+                                RC = 1.00; //None
+                            }
+                        }
+
+                        testerror = E + RL + RC; //keluarkan error
+                      
+                    }
+                    
+                    else if(tmp1.length == 19){  //untuk kiraan Environmental
+
+                        var AVSplit = tmp1[0].split(":");
+                        var AV = AVSplit[1];
+                        if(AVSplit[0] == 'AV'){
+                            if (AV == 'N'){
+                                AV = 0.85; //Network
+                            }
+                            else if(AV == 'A'){
+                                AV = 0.62; //Adjacent
+                            }
+                            else if(AV == 'L'){
+                                AV = 0.55; //Local
+                            }
+                            else if(AV == 'P'){
+                                AV = 0.20; //Physical
+                            }
+                        }
+                   
+                        var ACSplit = tmp1[1].split(":");
+                        var AC = ACSplit[1];
+                        if(ACSplit[0] == 'AC'){
+                            if (AC == 'L'){
+                                AC = 0.77; //Low
+                            }
+                            else if(AC == 'H'){
+                                AC = 0.44; //High
+                            }
+                        }
+                    
+                        var PRSplit = tmp1[2].split(":");
+                        var PR = PRSplit[1];
+                        if(PRSplit[0] == 'PR'){
+                            if (PR == 'N'){
+                                PR = 0.85; //none
+                            }
+                            else if(PR == 'L'){
+                                PR = 0.62; //Low
+                            }
+                            else if(PR == 'H'){
+                                PR = 0.27; //High
+                            }
+                        }
+                    
+                        var UISplit = tmp1[3].split(":");
+                        var UI = UISplit[1];
+                        if(UISplit[0] == 'UI'){
+                            if (UI == 'N'){
+                                UI = 0.85; //None
+                            }
+                            else if(UI == 'R'){
+                                UI = 0.62; //Required
+                            }
+                        }
+                    
+                        var SSplit = tmp1[4].split(":");
+                        var S = SSplit[1];
+                        if(SSplit[0] == 'S'){
+                            if (S == 'U'){
+                                S = 6.42; //unchanged
+                            }
+                            else if (S == 'C'){
+                                S = 7.52; //changed
+                            }
+                        }
+                    
+                   
+                        var CSplit = tmp1[5].split(":");
+                        var C = CSplit[1];
+                        if(CSplit[0] == 'C'){
+                            if (C == 'H'){
+                                C = 0.56; //High
+                            }
+                            else if(C == 'L'){
+                                C = 0.22; //Low
+                            }
+                            else if (C == 'N'){
+                                C = 0.00; //None
+                            }
+                        }
+                   
+                        var ISplit = tmp1[6].split(":");
+                        var I = ISplit[1];
+                        if(ISplit[0] == 'I'){
+                            if (I == 'H'){
+                                I = 0.56; //High
+                            }
+                            else if(I == 'L'){
+                                I = 0.22; //Low
+                            }
+                            else if(I == 'N'){
+                                I = 0.00; //None
+                            }
+                        }
+                   
+                        var ASplit = tmp1[7].split(":");
+                        var A = ASplit[1];
+                        if(ASplit[0] == 'A'){
+                            if (A == 'H'){
+                                A = 0.56; //High
+                            }
+                            else if(A == 'L'){
+                                A = 0.22; //Low
+                            }
+                            else if (A == 'N'){
+                                A = 0.00; //None
+                            }
+                        }
+
+                        var CRSplit = tmp1[8].split(":");
+                        var CR = CRSplit[1];
+                        if(CRSplit[0] == 'CR'){
+                            if (CR == 'X'){
+                                CR = 1.00; 
+                            }
+                            else if(CR == 'L'){
+                                CR = 0.50; 
+                            }
+                            else if (CR == 'M'){
+                                CR = 1.00; 
+                            }
+                            else if (CR == 'H'){
+                                CR = 1.50; 
+                            }
+                        }
+
+                        var IRSplit = tmp1[9].split(":");
+                        var IR = IRSplit[1];
+                        if(IRSplit[0] == 'IR'){
+                            if (IR == 'X'){
+                                IR = 1.00; 
+                            }
+                            else if(IR == 'L'){
+                                IR = 0.50; 
+                            }
+                            else if (IR == 'M'){
+                                IR = 1.00; 
+                            }
+                            else if (IR == 'H'){
+                                IR = 1.50; 
+                            }
+                        }
+
+                        var ARSplit = tmp1[10].split(":");
+                        var AR = ARSplit[1];
+                        if(ARSplit[0] == 'AR'){
+                            if (RC == 'X'){
+                                RC = 1.00; 
+                            }
+                            else if(RC == 'L'){
+                                RC = 0.50; 
+                            }
+                            else if (RC == 'M'){
+                                RC = 1.00; 
+                            }
+                            else if (RC == 'H'){
+                                RC = 1.50; 
+                            }
+                        }
+
+                        var MAVSplit = tmp1[11].split(":");
+                        var MAV = MAVSplit[1];
+                        if(MAVSplit[0] == 'MAV'){
+                            if (MAV == 'X'){ //Not Defined
+                                MAV = 1.00; 
+                            }
+                            else if(MAV == 'N'){ //Network
+                                MAV = 0.85;  
+                            }
+                            else if (MAV == 'AN'){ //Adjacent Network
+                                MAV = 0.62; 
+                            }
+                            else if (MAV == 'L'){ //Local
+                                MAV = 0.55; 
+                            }
+                            else if (MAV == 'P'){ //Physical
+                                MAV = 0.20; 
+                            }
+                        }
+
+                        var MACSplit = tmp1[12].split(":");
+                        var MAC = MACSplit[1];
+                        if(MACSplit[0] == 'MAC'){
+                            if (MAC == 'X'){ //Not Defined
+                                MAC = 1.00; 
+                            }
+                            else if (MAC == 'L'){ //Low
+                                MAC = 0.77; 
+                            }
+                            else if (MAC == 'H'){ //High
+                                MAC = 0.44; 
+                            }
+                        }
+
+                        var MPRSplit = tmp1[13].split(":");
+                        var MPR = MPRSplit[1];
+                        if(MPRSplit[0] == 'MPR'){
+                            if (MPR == 'X'){ //Not Defined
+                                MPR = 1.00; 
+                            }
+                            else if (MPR == 'N'){ //None
+                                MPR = 0.85; 
+                            }
+                            else if (MPR == 'L'){ //Low
+                                MPR = 0.62; 
+                            }
+                            else if (MPR == 'H'){ //High
+                                MPR = 0.27; 
+                            }
+                        }
+
+                        var MUISplit = tmp1[14].split(":");
+                        var MUI = MUISplit[1];
+                        if(MUISplit[0] == 'MUI'){
+                            if (MUI == 'X'){ //Not Defined
+                                MUI = 1.00; 
+                            }
+                            else if (MUI == 'N'){ //None
+                                MUI = 0.85; 
+                            }
+                            else if (MUI == 'R'){ //Required
+                                MUI = 0.62; 
+                            }
+                        }
+
+                        var MSSplit = tmp1[15].split(":");
+                        var MS = MSSplit[1];
+                        if(MSSplit[0] == 'MS'){
+                            if (MS == 'X'){ //Not Defined
+                                MS = 1.00; 
+                            }
+                            else if (MS == 'U'){ //Unchanged
+                                MS = 6.42; 
+                            }
+                            else if (MS == 'C'){ //Changed
+                                MS = 7.52; 
+                            }
+                        }
+
+                        var MCSplit = tmp1[16].split(":");
+                        var MC = MCSplit[1];
+                        if(MCSplit[0] == 'MC'){
+                            if (MC == 'X'){ //Not Defined
+                                MC = 1.00; 
+                            }
+                            else if (MC == 'N'){ //None
+                                MC = 0.00; 
+                            }
+                            else if (MC == 'L'){ //Low
+                                MC = 0.22; 
+                            }
+                            else if (MC == 'H'){ //Height
+                                MC = 0.56; 
+                            }
+                        }
+
+                        var MISplit = tmp1[17].split(":");
+                        var MI = MISplit[1];
+                        if(MISplit[0] == 'MI'){
+                            if (MI == 'X'){ //Not Defined
+                                MI = 1.00; 
+                            }
+                            else if (MI == 'N'){ //None
+                                MI = 0.00; 
+                            }
+                            else if (MI == 'L'){ //Low
+                                MI = 0.22; 
+                            }
+                            else if (MI == 'H'){ //Height
+                                MI = 0.56; 
+                            }
+                        }
+
+                        var MASplit = tmp1[17].split(":");
+                        var MA = MASplit[1];
+                        if(MASplit[0] == 'MA'){
+                            if (MA == 'X'){ //Not Defined
+                                MA = 1.00; 
+                            }
+                            else if (MA == 'N'){ //None
+                                MA = 0.00; 
+                            }
+                            else if (MA == 'L'){ //Low
+                                MA = 0.22; 
+                            }
+                            else if (MA == 'H'){ //Height
+                                MA = 0.56; 
+                            }
+                        }
+
+                        testerror = CR + IR + AR + MAV + MAC + MPR + MUI + MS + MC + MI + MA; //keluarkan error
+                    }
+
+                    else if(tmp1.length == 22){  //untuk kiraan Temporal Score Metrics
+
+                        var AVSplit = tmp1[0].split(":");
+                        var AV = AVSplit[1];
+                        if(AVSplit[0] == 'AV'){
+                            if (AV == 'N'){
+                                AV = 0.85; //Network
+                            }
+                            else if(AV == 'A'){
+                                AV = 0.62; //Adjacent
+                            }
+                            else if(AV == 'L'){
+                                AV = 0.55; //Local
+                            }
+                            else if(AV == 'P'){
+                                AV = 0.20; //Physical
+                            }
+                        }
+                   
+                        var ACSplit = tmp1[1].split(":");
+                        var AC = ACSplit[1];
+                        if(ACSplit[0] == 'AC'){
+                            if (AC == 'L'){
+                                AC = 0.77; //Low
+                            }
+                            else if(AC == 'H'){
+                                AC = 0.44; //High
+                            }
+                        }
+                    
+                        var PRSplit = tmp1[2].split(":");
+                        var PR = PRSplit[1];
+                        if(PRSplit[0] == 'PR'){
+                            if (PR == 'N'){
+                                PR = 0.85; //none
+                            }
+                            else if(PR == 'L'){
+                                PR = 0.62; //Low
+                            }
+                            else if(PR == 'H'){
+                                PR = 0.27; //High
+                            }
+                        }
+                    
+                        var UISplit = tmp1[3].split(":");
+                        var UI = UISplit[1];
+                        if(UISplit[0] == 'UI'){
+                            if (UI == 'N'){
+                                UI = 0.85; //None
+                            }
+                            else if(UI == 'R'){
+                                UI = 0.62; //Required
+                            }
+                        }
+                    
+                        var SSplit = tmp1[4].split(":");
+                        var S = SSplit[1];
+                        if(SSplit[0] == 'S'){
+                            if (S == 'U'){
+                                S = 6.42; //unchanged
+                            }
+                            else if (S == 'C'){
+                                S = 7.52; //changed
+                            }
+                        }
+                    
+                   
+                        var CSplit = tmp1[5].split(":");
+                        var C = CSplit[1];
+                        if(CSplit[0] == 'C'){
+                            if (C == 'H'){
+                                C = 0.56; //High
+                            }
+                            else if(C == 'L'){
+                                C = 0.22; //Low
+                            }
+                            else if (C == 'N'){
+                                C = 0.00; //None
+                            }
+                        }
+                   
+                        var ISplit = tmp1[6].split(":");
+                        var I = ISplit[1];
+                        if(ISplit[0] == 'I'){
+                            if (I == 'H'){
+                                I = 0.56; //High
+                            }
+                            else if(I == 'L'){
+                                I = 0.22; //Low
+                            }
+                            else if(I == 'N'){
+                                I = 0.00; //None
+                            }
+                        }
+                   
+                        var ASplit = tmp1[7].split(":");
+                        var A = ASplit[1];
+                        if(ASplit[0] == 'A'){
+                            if (A == 'H'){
+                                A = 0.56; //High
+                            }
+                            else if(A == 'L'){
+                                A = 0.22; //Low
+                            }
+                            else if (A == 'N'){
+                                A = 0.00; //None
+                            }
+                        }
+
+                        var ESplit = tmp1[8].split(":");
+                        var E = ESplit[1];
+                        if(ESplit[0] == 'E'){
+                            if (E == 'X'){
+                                E = 1.00; //High
+                            }
+                            else if(E == 'U'){
+                                E = 0.91; //Low
+                            }
+                            else if (E == 'P'){
+                                E = 0.94; //None
+                            }
+                            else if (E == 'F'){
+                                E = 0.97; //None
+                            }
+                            else if (E == 'H'){
+                                E = 1.00; //None
+                            }
+                        }
+
+                        var RLSplit = tmp1[9].split(":");
+                        var RL = RLSplit[1];
+                        if(RLSplit[0] == 'RL'){
+                            if (RL == 'X'){
+                                RL = 1.00; //High
+                            }
+                            else if(RL == 'O'){
+                                RL = 0.95; //Low
+                            }
+                            else if (RL == 'T'){
+                                RL = 0.96; //None
+                            }
+                            else if (RL == 'W'){
+                                RL = 0.97; //None
+                            }
+                            else if (RL == 'U'){
+                                RL = 1.00; //None
+                            }
+                        }
+
+                        var RCSplit = tmp1[10].split(":");
+                        var RC = RCSplit[1];
+                        if(RCSplit[0] == 'RC'){
+                            if (RC == 'X'){
+                                RC = 1.00; //High
+                            }
+                            else if(RC == 'U'){
+                                RC = 0.92; //Low
+                            }
+                            else if (RC == 'R'){
+                                RC = 0.96; //None
+                            }
+                            else if (RC == 'C'){
+                                RC = 1.00; //None
+                            }
+                        }
+
+                        var CRSplit = tmp1[11].split(":");
+                        var CR = CRSplit[1];
+                        if(CRSplit[0] == 'CR'){
+                            if (CR == 'X'){
+                                CR = 1.00; 
+                            }
+                            else if(CR == 'L'){
+                                CR = 0.50; 
+                            }
+                            else if (CR == 'M'){
+                                CR = 1.00; 
+                            }
+                            else if (CR == 'H'){
+                                CR = 1.50; 
+                            }
+                        }
+
+                        var IRSplit = tmp1[12].split(":");
+                        var IR = IRSplit[1];
+                        if(IRSplit[0] == 'IR'){
+                            if (IR == 'X'){
+                                IR = 1.00; 
+                            }
+                            else if(IR == 'L'){
+                                IR = 0.50; 
+                            }
+                            else if (IR == 'M'){
+                                IR = 1.00; 
+                            }
+                            else if (IR == 'H'){
+                                IR = 1.50; 
+                            }
+                        }
+
+                        var ARSplit = tmp1[13].split(":");
+                        var AR = ARSplit[1];
+                        if(ARSplit[0] == 'AR'){
+                            if (AR == 'X'){
+                                AR = 1.00; 
+                            }
+                            else if(RC == 'L'){
+                                AR = 0.50; 
+                            }
+                            else if (RC == 'M'){
+                                AR = 1.00; 
+                            }
+                            else if (RC == 'H'){
+                                AR = 1.50; 
+                            }
+                        }
+
+                        var MAVSplit = tmp1[14].split(":");
+                        var MAV = MAVSplit[1];
+                        if(MAVSplit[0] == 'MAV'){
+                            if (MAV == 'X'){ //Not Defined
+                                MAV = 1.00; 
+                            }
+                            else if(MAV == 'N'){ //Network
+                                MAV = 0.85;  
+                            }
+                            else if (MAV == 'AN'){ //Adjacent Network
+                                MAV = 0.62; 
+                            }
+                            else if (MAV == 'L'){ //Local
+                                MAV = 0.55; 
+                            }
+                            else if (MAV == 'P'){ //Physical
+                                MAV = 0.20; 
+                            }
+                        }
+
+                        var MACSplit = tmp1[15].split(":");
+                        var MAC = MACSplit[1];
+                        if(MACSplit[0] == 'MAC'){
+                            if (MAC == 'X'){ //Not Defined
+                                MAC = 1.00; 
+                            }
+                            else if (MAC == 'L'){ //Low
+                                MAC = 0.77; 
+                            }
+                            else if (MAC == 'H'){ //High
+                                MAC = 0.44; 
+                            }
+                        }
+
+                        var MPRSplit = tmp1[16].split(":");
+                        var MPR = MPRSplit[1];
+                        if(MPRSplit[0] == 'MPR'){
+                            if (MPR == 'X'){ //Not Defined
+                                MPR = 1.00; 
+                            }
+                            else if (MPR == 'N'){ //None
+                                MPR = 0.85; 
+                            }
+                            else if (MPR == 'L'){ //Low
+                                MPR = 0.62; 
+                            }
+                            else if (MPR == 'H'){ //High
+                                MPR = 0.27; 
+                            }
+                        }
+
+                        var MUISplit = tmp1[17].split(":");
+                        var MUI = MUISplit[1];
+                        if(MUISplit[0] == 'MUI'){
+                            if (MUI == 'X'){ //Not Defined
+                                MUI = 1.00; 
+                            }
+                            else if (MUI == 'N'){ //None
+                                MUI = 0.85; 
+                            }
+                            else if (MUI == 'R'){ //Required
+                                MUI = 0.62; 
+                            }
+                        }
+
+                        var MSSplit = tmp1[18].split(":");
+                        var MS = MSSplit[1];
+                        if(MSSplit[0] == 'MS'){
+                            if (MS == 'X'){ //Not Defined
+                                MS = 1.00; 
+                            }
+                            else if (MS == 'U'){ //Unchanged
+                                MS = 6.42; 
+                            }
+                            else if (MS == 'C'){ //Changed
+                                MS = 7.52; 
+                            }
+                        }
+
+                        var MCSplit = tmp1[19].split(":");
+                        var MC = MCSplit[1];
+                        if(MCSplit[0] == 'MC'){
+                            if (MC == 'X'){ //Not Defined
+                                MC = 1.00; 
+                            }
+                            else if (MC == 'N'){ //None
+                                MC = 0.00; 
+                            }
+                            else if (MC == 'L'){ //Low
+                                MC = 0.22; 
+                            }
+                            else if (MC == 'H'){ //Height
+                                MC = 0.56; 
+                            }
+                        }
+
+                        var MISplit = tmp1[20].split(":");
+                        var MI = MISplit[1];
+                        if(MISplit[0] == 'MI'){
+                            if (MI == 'X'){ //Not Defined
+                                MI = 1.00; 
+                            }
+                            else if (MI == 'N'){ //None
+                                MI = 0.00; 
+                            }
+                            else if (MI == 'L'){ //Low
+                                MI = 0.22; 
+                            }
+                            else if (MI == 'H'){ //Height
+                                MI = 0.56; 
+                            }
+                        }
+
+                        var MASplit = tmp1[21].split(":");
+                        var MA = MASplit[1];
+                        if(MASplit[0] == 'MA'){
+                            if (MA == 'X'){ //Not Defined
+                                MA = 1.00; 
+                            }
+                            else if (MA == 'N'){ //None
+                                MA = 0.00; 
+                            }
+                            else if (MA == 'L'){ //Low
+                                MA = 0.22; 
+                            }
+                            else if (MA == 'H'){ //Height
+                                MA = 0.56; 
+                            }
+                        }
+
+                        testerror = E + RL + RC + CR + IR + AR + MAV + MAC + MPR + MUI + MS + MC + MI + MA; //keluarkan error
+
+                    }
+
+
+                    //alert(testerror);
+                    if (isNaN(testerror)) {
+                        var error = 1;
+                        viewModel.errorCalculateCvss(1);
+                        ShowMessageDanger('Incorrect Format');
+                        // document.getElementById("calcVector").value = '';
+                           
+                        viewModel.Finding.VulManInput.CVSSScore(viewModel.CVSSScoreOri());
+                        viewModel.Finding.VulManInput.CVSSVector(viewModel.CVSSVectorOri());
+
+                    }
+
+                    viewModel.Scope(S);
+                    viewModel.AV(AV);
+                    viewModel.AC(AC);
+                    viewModel.PR(PR);
+                    viewModel.UI(UI);
+                    viewModel.C(C);
+                    viewModel.I(I);
+                    viewModel.A(A);
+                  
+                    viewModel.E(E);
+                    viewModel.RL(RL);
+                    viewModel.RC(RC);
+
+                    viewModel.CR(CR);
+                    viewModel.IR(IR);
+                    viewModel.AR(AR);
+                    viewModel.MAV(MAV);
+                    viewModel.MAC(MAC);
+                    viewModel.MPR(MPR);
+                    viewModel.MUI(MUI);
+                    viewModel.MS(MS);
+                    viewModel.MC(MC);
+                    viewModel.MI(MI);
+                    viewModel.MA(MA);
+
+
+                    if (S == 6.42) { //unchange
+                        //tiada perubahan dalam table
+                    }
+                    else{ //change
+                        if(PR == 0.85){
+                            PR = 0.85;
+                        }else if(PR == 0.62){
+                            PR = 0.68;
+                        }else{
+                            PR = 0.5;
+                        }
+                    }
+
+                    var error = 2;
+                    viewModel.errorCalculateCvss(2);
+
+                }catch (err) {
+                    var error = 1;
+                    viewModel.errorCalculateCvss(1);
+                    ShowMessageDanger('Incorrect Format');
+                    document.getElementById("calcVector").value = '';
+                    //return err;
+                }
+
+
+                if (error != 1){
+                    try {
+                        var sum = 0;
+                        var baseScore;
+                        var impactSubScore;
+                        var exploitabalitySubScore = exploitabilityCoefficient * AV * AC * PR * UI;
+                        var impactSubScoreMultiplier = (1 - ((1 - C) * (1 - I) * (1 - A)));
+                        //alert(S);
+                        if (S == 6.42) { //unchange
+                            //alert('masuk');
+                            impactSubScore = S * impactSubScoreMultiplier;
+                        } else {
+                            impactSubScore = S * (impactSubScoreMultiplier - 0.029) - 3.25 * Math.pow(impactSubScoreMultiplier - 0.02, 15);
+                        }
+
+                        //if (val.S === 'U') {
+                        //    impactSubScore = metricWeight.S * impactSubScoreMultiplier;
+                        //} else {
+                        //    impactSubScore = metricWeight.S * (impactSubScoreMultiplier - 0.029) - 3.25 * Math.pow(impactSubScoreMultiplier - 0.02, 15);
+                        //}
+
+
+                        if (impactSubScore <= 0) {
+                            baseScore = 0;
+                        } else {
+                            if (S == 6.42) {
+                                baseScore = Math.min((exploitabalitySubScore + impactSubScore), 10);
+                            } else {
+                                baseScore = Math.min((exploitabalitySubScore + impactSubScore) * scopeCoefficient, 10);
+                            }
+                        }
+
+
+                        //alert((baseScore * 10) / 10);
+                        baseScore = Math.ceil(baseScore * 10) / 10;
+                       
+                       
+                        sum = baseScore;
+                        if (isNaN(sum)) {
+                            var error = 1;
+                            viewModel.errorCalculateCvss(1);
+                            ShowMessageDanger('Incorrect Format');
+                            //document.getElementById("calcVector").value = '';
+                           
+                            viewModel.Finding.VulManInput.CVSSScore(viewModel.CVSSScoreOri());
+                            viewModel.Finding.VulManInput.CVSSVector(viewModel.CVSSVectorOri());
+                        }else{
+                            
+                            viewModel.Finding.VulManInput.CVSSScore(sum);
+                        }
+                        
+                        //$("#Score_"+name).html(sum);
+                        //return baseScore;
+                    } catch (err) {
+                        var error = 1;
+                        viewModel.errorCalculateCvss(1);
+                        ShowMessageDanger('Incorrect Format');
+                        document.getElementById("calcVector").value = '';
+                        //return err;
+                    }
+
+
+                    //alert(sum);
+                    viewModel.getRating(sum);
+                    viewModel.vectorLength(tmp1.length);
+                }
+                
+               
+
+                if(ind != 1){
+                    ShowDecisionMessage("Are you sure to save cvss vector ? ", function () {
+
+                        //$.ajax({
+                        //    type: "POST",
+                        //    url: server + "/User/DeleteCVSSVulManInputScoring",
+                        //    data: JSON.stringify({ id: viewModel.Finding.VulManInput.VulManInptId() }),
+                        //    contentType: "application/json; charset=utf-8",
+                        //    error: function (xhr) { },
+                        //    success: function (msg) {
+                        //        if (msg.OK) {
+                        //            viewModel.save_total(viewModel.Finding.VulManInput.VulManInptId(),sum,tmp1.length);
+                        //        }
+                        //        else {
+                        //            //ShowMessageDanger('Error.');
+                        //        }
+                        //    }
+                        //})
+                    });
+                }
+                
+            },
+
+            save_total: function(VulManInptId,sum,vectorLength) {
+
+                var bil_score = 3; // B, T, E
+                var score ="";
+                for (let i = 1; i <= bil_score; i ++) {
+                    if (i == 1){
+                        score = 'B';
+                    }
+                    else if (i == 2){
+                        score = 'T';
+                    }
+                    else{
+                        score = 'E';
+                    }
+
+                   
+                    //var total_score = $('#Score_'+score).html();
+                    var total_score_nm = $('#ScoreNm_'+score).html();
+
+                    if(score == 'B'){//save score B dahaja dlm tblmanualinput
+                        viewModel.TotalScoreType_Base(sum);
+                    }
+
+                    //viewModel.cvssTotal.TotalScoreType(total_score);
+                    viewModel.cvssTotal.TotalScoreType(viewModel.TotalScoreType_Base()); //save total score Base sahaja
+                    viewModel.cvssTotal.CVSSRatingNm();
+                    viewModel.cvssTotal.ScoreTypeCd(score);
+
+                    $.ajax({
+                        type: "POST",
+                        url: server + "/Admin/FindVulManInputCVSSScoringTotal",
+                        data: JSON.stringify({ modelss: ko.mapping.toJS(viewModel.cvssTotal), VulManInptId: VulManInptId }), //parameter
+                        contentType: "application/json; charset=utf-8",
+                        error: function (xhr) { },
+                        success: function (msg) {
+                            if (msg.OK) {
+                                //viewModel.save_proc();
+                            }
+                            else {
+                                //ShowMessageDanger('Error.');
+                            }
+                        }
+                    })
+                }
+                viewModel.save_proc(VulManInptId);
+            },
+
+            save_proc: function(VulManInptId){
+                viewModel.cvssSaveVector.Scope(viewModel.Scope()); //B05
+                viewModel.cvssSaveVector.ScopeMtrixCd('B05');
+                viewModel.cvssSaveVector.AV(viewModel.AV()); //B01
+                viewModel.cvssSaveVector.AVMtrixCd('B01');  
+                viewModel.cvssSaveVector.AC(viewModel.AC()); //B02
+                viewModel.cvssSaveVector.ACMtrixCd('B02');  
+                viewModel.cvssSaveVector.PR(viewModel.PR()); //B03
+                viewModel.cvssSaveVector.PRMtrixCd('B03');  
+                viewModel.cvssSaveVector.UI(viewModel.UI()); //B04
+                viewModel.cvssSaveVector.UIMtrixCd('B04');  
+                viewModel.cvssSaveVector.C(viewModel.C()); //B06
+                viewModel.cvssSaveVector.CMtrixCd('B06');  
+                viewModel.cvssSaveVector.I(viewModel.I()); //B07
+                viewModel.cvssSaveVector.IMtrixCd('B07');   
+                viewModel.cvssSaveVector.A(viewModel.A()); //B08
+                viewModel.cvssSaveVector.AMtrixCd('B08');   
+
+                viewModel.cvssSaveVector.E(viewModel.E()); //T01
+                viewModel.cvssSaveVector.EMtrixCd('T01');
+                viewModel.cvssSaveVector.RL(viewModel.RL()); //T02
+                viewModel.cvssSaveVector.RLMtrixCd('T02');  
+                viewModel.cvssSaveVector.RC(viewModel.RC()); //T03
+                viewModel.cvssSaveVector.RCMtrixCd('T03'); 
+
+                viewModel.cvssSaveVector.CR(viewModel.CR()); //E01
+                viewModel.cvssSaveVector.CRMtrixCd('E01');
+                viewModel.cvssSaveVector.IR(viewModel.IR()); //E02
+                viewModel.cvssSaveVector.IRMtrixCd('E02');  
+                viewModel.cvssSaveVector.AR(viewModel.AR()); //E03
+                viewModel.cvssSaveVector.ARMtrixCd('E03');  
+                viewModel.cvssSaveVector.MAV(viewModel.MAV()); //E04
+                viewModel.cvssSaveVector.MAVMtrixCd('E04');  
+                viewModel.cvssSaveVector.MAC(viewModel.MAC()); //E05
+                viewModel.cvssSaveVector.MACMtrixCd('E05');  
+                viewModel.cvssSaveVector.MPR(viewModel.MPR()); //E06
+                viewModel.cvssSaveVector.MPRMtrixCd('E06');  
+                viewModel.cvssSaveVector.MUI(viewModel.MUI()); //E07
+                viewModel.cvssSaveVector.MUIMtrixCd('E07');   
+                viewModel.cvssSaveVector.MS(viewModel.MS()); //E08
+                viewModel.cvssSaveVector.MSMtrixCd('E08'); 
+                viewModel.cvssSaveVector.MC(viewModel.MC()); //E09
+                viewModel.cvssSaveVector.MCMtrixCd('E09'); 
+                viewModel.cvssSaveVector.MI(viewModel.MI()); //E10
+                viewModel.cvssSaveVector.MIMtrixCd('E10'); 
+                viewModel.cvssSaveVector.MA(viewModel.MA()); //E11
+                viewModel.cvssSaveVector.MAMtrixCd('E11'); 
+     
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/CVSSVulManInputVectorUpdate",
+                    data: JSON.stringify({ modelss: ko.mapping.toJS(viewModel.cvssSaveVector), VulManInptId: VulManInptId ,vectorLength: viewModel.vectorLength()}), //parameter
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+                            // location.reload();
+                            //viewModel.save_proc();
+                        }
+                        else {
+                            //ShowMessageDanger('Error.');
+                        }
+                    }
+                })
+
+            },
+
+            getRating: function(sum){
+                $.ajax({
+                    type: "POST",
+                    url: "/Admin/getRating",
+                    data: JSON.stringify({ sum: sum }),
+                    contentType: "application/json; charset=utf-8",
+                    datatype: "json",
+                    success: function (msg) {
+                        if (msg) {
+                            
+                            var RatingNm = msg.list.CVSSRatingNm;                  
+                            viewModel.cvssTotal.CVSSRatingNm(RatingNm);
+                        }
+                    }
+                });
+            },
+
+        }
+
+        viewModel.CVSSScoreOri(viewModel.Finding.VulManInput.CVSSScore());
+        viewModel.CVSSVectorOri(viewModel.Finding.VulManInput.CVSSVector());
+
+        if(sessionStorage["vulName"] != undefined)
+        {
+            viewModel.Finding.VulManInput.VulNm(sessionStorage["vulName"]);
+        }
+
+        if(sessionStorage["ObservationRmk"] != undefined)
+        {
+            viewModel.Finding.VulManInput.ObservationRmk(sessionStorage["ObservationRmk"]);
+        }
+        if(sessionStorage["ImpactLvl"] != undefined)
+        {
+            viewModel.Finding.VulManInput.ImpactLvl(sessionStorage["ImpactLvl"]);
+        }
+        if(sessionStorage["ImpactRmk"] != undefined)
+        {
+            viewModel.Finding.VulManInput.ImpactRmk(sessionStorage["ImpactRmk"]);
+        }
+        if(sessionStorage["ImprovementRmk"] != undefined)
+        {
+            viewModel.Finding.VulManInput.ImprovementRmk(sessionStorage["ImprovementRmk"]);
+        }
+        if(sessionStorage["Status"] != undefined)
+        {
+            viewModel.Finding.VulManInput.Status(sessionStorage["Status"]);
+        }
+
+        if(sessionStorage["CVEID"] != undefined)
+        {
+            viewModel.Finding.VulManInput.CVEId(sessionStorage["CVEID"]);
+        }
+
+        if(sessionStorage["CWEID"] != undefined)
+        {
+            viewModel.Finding.VulManInput.CWEId(sessionStorage["CWEID"]);
+        }
+
+
+        if(sessionStorage["VulCategory"] != undefined)
+        {
+            viewModel.Finding.VulManInput.VulCat(sessionStorage["VulCategory"]);
+        }
+
+
+
+        if(sessionStorage["VulTypeName"] != undefined)
+        {
+            viewModel.Finding.VulManInput.x.VulNm(sessionStorage["VulTypeName"]);
+        }
+
+        if(sessionStorage["VulTypeCd"] != undefined)
+        {
+            viewModel.Finding.VulManInput.VulType(sessionStorage["VulTypeCd"]);
+        }
+        if(sessionStorage["SecComp"] != undefined)
+        {
+            viewModel.Finding.VulManInput.VulSecComp(sessionStorage["SecComp"]);
+        }
+        if(sessionStorage["vulCd"] != undefined)
+        {
+            viewModel.Finding.VulManInput.VulnerabilityCSMCd(sessionStorage["vulCd"]);
+        }
+        if(sessionStorage["vulCdCmb"] != undefined)
+        {
+            viewModel.Finding.VulManInput.VulnerabilityCSMCdCombine(sessionStorage["vulCdCmb"]);
+        }
+
+
+
+        //localStorage.removeItem("vulName");
+        localStorage.clear();
+        localStorage.setItem("vulName", viewModel.Finding.VulManInput.VulNm());
+        localStorage.setItem("ObservationRmk", viewModel.Finding.VulManInput.ObservationRmk());
+        localStorage.setItem("ImpactLvl", viewModel.Finding.VulManInput.ImpactLvl());
+        localStorage.setItem("ImpactRmk", viewModel.Finding.VulManInput.ImpactRmk());
+        localStorage.setItem("ImprovementRmk", viewModel.Finding.VulManInput.ImprovementRmk());
+        localStorage.setItem("Status", viewModel.Finding.VulManInput.Status());
+        localStorage.setItem("CVEID", viewModel.Finding.VulManInput.CVEId());
+        localStorage.setItem("CWEID", viewModel.Finding.VulManInput.CWEId());
+        localStorage.setItem("VulCategory", viewModel.Finding.VulManInput.VulCat());
+        localStorage.setItem("VulTypeName", viewModel.Finding.VulManInput.x.VulNm());
+        localStorage.setItem("VulTypeCd", viewModel.Finding.VulManInput.VulType());
+        localStorage.setItem("SecComp", viewModel.Finding.VulManInput.VulSecComp());
+        localStorage.setItem("vulCd", viewModel.Finding.VulManInput.VulnerabilityCSMCd());
+        localStorage.setItem("vulCdCmb", viewModel.Finding.VulManInput.VulnerabilityCSMCdCombine());
+
+
+        //untuk back function
+        viewModel.Finding.VulManInput.VulNm.subscribe(function (newValue) {
+           // sessionStorage.setItem("vulName", newValue);
+            localStorage.setItem("vulName", newValue);
+        });
+        viewModel.Finding.VulManInput.ObservationRmk.subscribe(function (newValue) {
+            localStorage.setItem("ObservationRmk", newValue);
+        });
+        viewModel.Finding.VulManInput.ImpactLvl.subscribe(function (newValue) {
+            localStorage.setItem("ImpactLvl", newValue);
+        });
+        viewModel.Finding.VulManInput.ImpactRmk.subscribe(function (newValue) {
+            localStorage.setItem("ImpactRmk", newValue);
+        });
+        viewModel.Finding.VulManInput.ImprovementRmk.subscribe(function (newValue) {
+            localStorage.setItem("ImprovementRmk", newValue);
+        });
+        viewModel.Finding.VulManInput.Status.subscribe(function (newValue) {
+            localStorage.setItem("Status", newValue);
+        });
+        viewModel.Finding.VulManInput.CVEId.subscribe(function (newValue) {
+            localStorage.setItem("CVEID", newValue);
+        });
+        viewModel.Finding.VulManInput.CWEId.subscribe(function (newValue) {
+            localStorage.setItem("CWEID", newValue);
+        });
+        viewModel.Finding.VulManInput.VulCat.subscribe(function (newValue) {
+            localStorage.setItem("VulCategory", newValue);
+        });
+        viewModel.Finding.VulManInput.x.VulNm.subscribe(function (newValue) {
+            localStorage.setItem("VulTypeName", newValue);
+        });
+        viewModel.Finding.VulManInput.VulType.subscribe(function (newValue) {
+            localStorage.setItem("VulTypeCd", newValue);
+        });
+        viewModel.Finding.VulManInput.VulSecComp.subscribe(function (newValue) {
+            localStorage.setItem("SecComp", newValue);
+        });
+        viewModel.Finding.VulManInput.VulnerabilityCSMCd.subscribe(function (newValue) {
+            localStorage.setItem("vulCd", newValue);
+        });
+        viewModel.Finding.VulManInput.VulnerabilityCSMCdCombine.subscribe(function (newValue) {
+            localStorage.setItem("vulCdCmb", newValue);
+        });
+        //end back
+
+        var mypage =  sessionStorage["mypage"];
+        sessionStorage.clear();
+        sessionStorage.setItem("mypage", mypage);
+        loadProductType();
+        ko.applyBindings(viewModel);
+        loadRefVulCategory();
+    });
+
+
+
+    function search() {
+
+        $('#searchdata').modal('show');
+
+    }
+
+    function searchVulType() {
+
+        $('#searchVulTypedata').modal('show');
+
+    }
+
+    function searchVulCode() {
+
+        paginateCLICK2(0, 1)
+        //viewModel.searchVulCodedataList($("#category").val());
+    }
+
+
+    function searchCWEID_Info() {
+
+        $('#searchCWEID_Info').modal('show');
+
+    }
+
+    function Clickvultype(VulType,VulNm){
+        viewModel.Finding.VulManInput.VulType(VulType);
+        viewModel.Finding.VulManInput.x.VulNm(VulNm);
+        //viewModel.FindingValueType.ValueTypeNm(VulNm)
+        $('#searchVulTypedata').modal('hide');
+    }
+
+    function Clickvulcode(VulnerabilityCSMCd,VulnerabilityCSMCdCombine){
+        viewModel.Finding.VulManInput.VulnerabilityCSMCd(VulnerabilityCSMCd);
+        viewModel.Finding.VulManInput.VulnerabilityCSMCdCombine(VulnerabilityCSMCdCombine);
+        //viewModel.Finding.VulManInput.x.VulNm(VulNm);
+        //viewModel.FindingValueType.ValueTypeNm(VulNm)
+        $('#searchVulCodedata').modal('hide');
+    }
+
+    function ClickCweInfo(CWEId){
+
+        viewModel.ClickCweInformation(CWEId);
+        //viewModel.Finding.VulManInput.CWEId(CWEId);
+        //viewModel.Finding.VulManInput.z.CWENm(CWENm);
+        //viewModel.Finding.VulManInput.z.Description(Description);
+        //viewModel.Finding.VulManInput.z.UrlLink(UrlLink);
+        //viewModel.FindingValueType.ValueTypeNm(VulNm)
+
+    }
+
+    function cancelUpdate() {
+        $('#searchdata').modal('hide');
+        $('.modal').modal('hide');
+    }
+
+    function cancelsearchVulType() {
+        $('#searchVulTypedata').modal('hide');
+    }
+
+    function cancelsearchVulCode() {
+        $('#searchVulCodedata').modal('hide');
+    }
+
+    function cancelsearchCWEID_Info() {
+        $('#searchCWEID_Info').modal('hide');
+    }
+
+    function cancelFindingListAffectedItem() {
+        $('#FindingListAffectedItem').modal('hide');
+    }
+
+    function cancelFindingListScreenshot() {
+        $('#FindingListScreenshot').modal('hide');
+    }
+
+    function cancelFindingListProductInfo() {
+        $('#FindingListProductInfo').modal('hide');
+    }
+
+    function resetUpdateFindingListAffectedItem() {
+        viewModel.FindingListAffectedItem.PageNm("");
+        viewModel.FindingListAffectedItem.Parameter("");
+    }
+
+    function resetUpdateFindingListProductInfo() {
+        if(viewModel.FindingListProductInfo.addUpdInd() == "UPD"){
+            document.getElementById("ProductVendor").value = htmlDec(viewModel.FindingListProductInfo_Ori.ProductVendor());
+            document.getElementById("ProductName").value = htmlDec(viewModel.FindingListProductInfo_Ori.ProductName());
+            document.getElementById("ProductVersion").value = htmlDec(viewModel.FindingListProductInfo_Ori.ProductVersion());
+            document.getElementById("ProductUpdate").value = htmlDec(viewModel.FindingListProductInfo_Ori.ProductUpdate());
+            document.getElementById("ProductEdition").value = htmlDec(viewModel.FindingListProductInfo_Ori.ProductEdition());
+            document.getElementById("ProductLanguage").value = htmlDec(viewModel.FindingListProductInfo_Ori.ProductLanguage());
+            viewModel.FindingListProductInfo.ProductType(viewModel.FindingListProductInfo_Ori.ProductType());
+            //viewModel.FindingListProductInfo.ProductVendor(viewModel.FindingListProductInfo_Ori.ProductVendor());
+            //viewModel.FindingListProductInfo.ProductName(viewModel.FindingListProductInfo_Ori.ProductName());
+            //viewModel.FindingListProductInfo.ProductVersion(viewModel.FindingListProductInfo_Ori.ProductVersion());
+            //viewModel.FindingListProductInfo.ProductUpdate(viewModel.FindingListProductInfo_Ori.ProductUpdate());
+            //viewModel.FindingListProductInfo.ProductEdition(viewModel.FindingListProductInfo_Ori.ProductEdition());
+            //viewModel.FindingListProductInfo.ProductLanguage(viewModel.FindingListProductInfo_Ori.ProductLanguage());
+            viewModel.FindingListProductInfo.VulManInputProductId(viewModel.FindingListProductInfo_Ori.VulManInputProductId());
+        }
+        else
+        {
+            viewModel.FindingListProductInfo.ProductType("");
+            viewModel.FindingListProductInfo.ProductVendor("");
+            viewModel.FindingListProductInfo.ProductName("");
+            viewModel.FindingListProductInfo.ProductVersion("");
+            viewModel.FindingListProductInfo.ProductUpdate("");
+            viewModel.FindingListProductInfo.ProductEdition("");
+            viewModel.FindingListProductInfo.ProductLanguage("");
+        }
+
+    }
+
+    function resetUpdateFindingListScreenshot() {
+       // alert(document.getElementById("picfile").value);
+        viewModel.FindingListScreenshot.Title("");
+        viewModel.FindingListScreenshot.Description("");
+        document.getElementById("picfile").value = "";
+
+       // $("#picfile").val("");
+    }
+
+    function ResetFindingListInfo() {
+        var mypage =  sessionStorage["mypage"];
+        sessionStorage.clear();
+        sessionStorage.setItem("mypage", mypage);
+        localStorage.clear();
+        //localStorage.removeItem("vulName");
+        location.reload();
+
+    }
+
+    function cancel() {
+        //ShowDecisionMessage("Are you Sure ?", function () {
+        sessionStorage.setItem("myTab", "03");
+        sessionStorage.setItem("mypage", sessionStorage["mypage"]);
+        location.href = "/Admin/ManualInputList";
+        //});
+    }
+
+    function calculateCVSSVectorOnChange(){
+        
+        viewModel.calculateCVSSVector(1);
+
+    }
+
+
+    function getCVSSFindingScoringSession() {
+        //alert('mausk');
+        var count_row = $('#count_file').val();
+        var countAdaData = 0;
+        var cveid_data = "";
+
+        if(count_row != 0){
+            for (let i = 1; i <= count_row; i ++) {
+
+                var AttchmtPath = $('#cve_id-'+i).val();
+
+                if(AttchmtPath == undefined || AttchmtPath == "" ){
+                    //alert('xdedata');
+                }
+                else
+                {
+                    if(cveid_data == "")
+                    {
+                        cveid_data = AttchmtPath;
+                    }
+                    else{
+                        cveid_data = cveid_data + String.fromCharCode(253) + AttchmtPath ;
+                    }
+
+                    countAdaData ++;
+                }
+
+            }
+            //alert(cveid_data);
+            //alert(countAdaData);
+        }
+
+
+        localStorage.setItem("vulName", htmlEnc($("#vul_nm").val()));
+        localStorage.setItem("ObservationRmk", htmlEnc($("#Observation").val()));
+        localStorage.setItem("ImpactLvl", viewModel.Finding.VulManInput.ImpactLvl());
+        localStorage.setItem("ImpactRmk", htmlEnc($("#impact_remark").val()));
+        localStorage.setItem("ImprovementRmk", htmlEnc($("#area_of_impt").val()));
+        localStorage.setItem("Status", viewModel.Finding.VulManInput.Status());
+        localStorage.setItem("CVEID", cveid_data);
+        localStorage.setItem("CWEID", viewModel.Finding.VulManInput.CWEId());
+        //localStorage.setItem("CVEID", htmlEnc($("#cve_id").val()));
+        localStorage.setItem("VulCategory", viewModel.Finding.VulManInput.VulCat());
+        //localStorage.setItem("VulTypeName", viewModel.Finding.VulManInput.x.VulNm());
+        //localStorage.setItem("VulTypeCd", viewModel.Finding.VulManInput.VulType());
+        localStorage.setItem("SecComp", htmlEnc($("#SecComp").val()));
+        localStorage.setItem("vulCd", $("#vulCd").val());
+        localStorage.setItem("vulCdCmb", $("#vulCdCmb").val());
+
+
+    }
+
+    function paginateCLICK(page, ind) {
+
+        var CatCode = $("#category").val();
+        var pageind = 0;
+        if(ind == 0)
+        {
+            pageind = (parseInt($("#pagenum").val()) + 10);
+        }
+        else if(ind == 2)
+        {
+            pageind = (parseInt($("#pagenum").val()) - 10);
+        }
+        else
+        {
+            pageind = page;
+        }
+        var search_vulCode_name=  document.getElementById("search_code").value;;
+
+        viewModel.pageind(pageind);
+        viewModel.searchVulCodedataList(pageind,CatCode,search_vulCode_name);
+
+        //-----------------------------------------------------------------------------------------------------------------
+        paginatation(pageind);
+        //-----------------------------------------------------------------------------------------------------------------
+
+
+    }
+
+    function paginateCLICK2(page, ind){
+
+        
+        document.getElementById("search_code").value= "";
+
+        var CatCode = $("#category").val();
+        var pageind = 0;
+        if(ind == 0)
+        {
+            pageind = (parseInt($("#pagenum").val()) + 10);
+        }
+        else
+        {
+            pageind = page;
+        }
+
+        //var search_cve_id = document.getElementById('search_cve_id').value;
+        var search_vulCode_name = "";
+
+        viewModel.pageind(pageind);
+        viewModel.searchVulCodedataList(pageind,CatCode,search_vulCode_name);
+
+        //-----------------------------------------------------------------------------------------------------------------
+        paginatation(pageind);
+        //-----------------------------------------------------------------------------------------------------------------
+
+    }
+
+    function choosecategory(valueCd) {
+        //if(valueCd == ""){
+        viewModel.Finding.VulManInput.VulnerabilityCSMCd("");
+        viewModel.Finding.VulManInput.VulnerabilityCSMCdCombine("");
+
+        $("#vulcode").addClass("required");
+        $("#vulCdCmb").addClass("validate[required]");
+        $("#vulCd").addClass("validate[required]");
+        //}
+    }
+
+    function searchdataini(value){
+
+        var pageind = 0;
+        var CatCode = $("#category").val();
+     
+        var search_vulCode_name= value;
+        viewModel.pageind(pageind);
+        viewModel.searchVulCodedataList2(pageind,CatCode,search_vulCode_name);
+
+        //-----------------------------------------------------------------------------------------------------------------
+        paginatation(pageind);
+        //-----------------------------------------------------------------------------------------------------------------
+
+    }
+
+    $(document).ready(function() {
+
+        var next_id;
+        var new_cveid = viewModel.Finding.VulManInput.CVEId();
+        //alert(new_cveid);
+
+        if(new_cveid != null)
+        {
+            var tmp1 = new_cveid.split(String.fromCharCode(253));
+
+            for (let i = 0; i < tmp1.length; i ++) {
+                next_id = i + 1;
+
+                if(next_id == 1){
+                    //alert(tmp1[0]);
+                    document.getElementById("cve_id-1").value= (htmlDec(tmp1[0]));
+                
+                    viewModel.linkValidUrlFirst(htmlDec(tmp1[0]));
+
+                    viewModel.GetlinkInfo(htmlDec(tmp1[0]));
+                }
+                else
+                {
+               
+                    var styledisp = "none";
+
+                    viewModel.GetlinkInfo2(htmlDec(tmp1[i]));
+
+                    if(viewModel.linkValidUrl() != ""){
+                        styledisp = "";
+                    }
+                    //alert(viewModel.linkValidUrl());
+
+                    //-----------------------------------------------------------------------
+                    var count = $('div[id^=student-row-]').length;
+                    var last = $('div[id^=student-row-]').last();
+                    var $clone = last.clone(true);
+
+                    $("#count_file").val(next_id);
+
+                    $clone.attr('id', 'student-row-' + next_id);
+
+                    var file_container = $clone.find('.filestyle').parent();
+                    file_container.empty();
+
+                    var fileinput = $('<textarea>').val(htmlDec(tmp1[i])).addClass('form-control').addClass('textarearesize').addClass('filestyle').attr('style', 'height:34px').attr({
+                        id: 'cve_id-'+next_id,
+                        name: 'cve_id['+next_id+']',
+                        type: 'text',
+                        placeholder: 'e.g. CVE-ID',
+                    });
+
+
+                    file_container.append(fileinput);
+
+                    var delete_button = $clone.find('.btn-danger')
+                        .attr('data-url', 'student-row-' + next_id)
+                        .attr('href','#deleteModal')
+                        .attr('class', 'btn btn-danger btn-xs btn-delete')
+                        .attr('onclick', 'delete_file('+ next_id + ')')
+                    ;
+                    delete_button.closest('.form-group').removeAttr('style');
+
+                    var cve_details = $clone.find('.btn-primary')
+                       .attr('data-url', 'student-row-' + next_id)
+                       .attr('href','#addModal')
+                       .attr('class', 'btn btn-primary btn-xs btn-add')
+                       .attr('style', 'display:none')
+                    //.attr('onclick', 'delete_file('+ next_id + ')')
+                    ;
+                    cve_details.closest('.form-group').removeAttr('style');
+                    //var aaa= "www.google.com";
+
+                    var cve_link = $clone.find('.btn-success')
+                      .attr('data-url', 'student-row-' + next_id)
+                      .attr('href','#linkModal')
+                      .attr('class', 'btn btn-success btn-xs find')
+                      .attr('style', 'background-color:#337ab7;border-color:#2e6da4;display:' + styledisp + ';')
+                      .attr('onclick', 'openLinkFile("'+ htmlDec(tmp1[i]) + '")')
+                      .attr({
+                          id: 'clicklink-'+next_id,
+                      })
+                    ;
+                    cve_link.closest('.form-group').removeAttr('style');
+
+
+                    $clone.show().insertAfter(last);
+                    //------------------------------------------------------------------
+
+                }
+
+
+            }
+
+        }
+       
+    });
+
+    // function over riding. Redirecting to Console with Firebug installed.
+    function alert(message) { 
+        console.info(message);
+    }
+
+</script>
+<script src="~/Scripts/Common/datepicker.js"></script>
+
+@*@if (Session["vulName"] != null)
+    {
+        <script>
+            viewModel.Finding.VulProjFinding.VulNm('@Session["vulName"]');
+        </script>
+
+    }*@

@@ -1,0 +1,843 @@
+﻿@using Newtonsoft.Json;
+@using myvdbsSQL;
+@using MyVDBSDemo.Models;
+@*@model IEnumerable<MyVDBSDemo.Models.tblVulProjFinding>*@
+@model MyVDBSDemo.Models.FindingListData
+@using MVCEncrypt;
+
+
+@{
+    ViewBag.Title = "Finding List";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+
+}
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "__AjaxAntiForgeryForm" }))
+{
+    @Html.AntiForgeryToken()
+}
+<div class="col-lg-12" style="margin-top:70px">
+    <div class="panel panel-info">
+        <div class="panel-body">
+            <table class="table table-bordered table-striped display" id="pageList" align="center">
+                <thead style="background-color:moccasin">
+                    @*<tr>
+                            <th class="col-sm-1 text-center">No.</th>
+                            <th class="col-sm-4 text-center">Vulnerability Name</th>
+                            <th class="col-sm-3 text-center">Impact Level</th>
+                            <th class="col-sm-2 text-center">Status</th>
+                            <th class="col-sm-2 text-center"></th>
+                        </tr>*@
+                    <tr>
+                        <th class="">No.</th>
+                        <th class="col-sm-2 text-center">Vulnerability ID</th>
+                        <th class="col-sm-2 text-center">Vulnerability Description</th>
+                        <th class="text-center">Vulnerability Type</th>
+                        <th class="text-center">Severity</th>
+                        <th class="text-center">Registered Date</th>
+                        <th class="text-center">CVSS Score</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-center"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        var count = 0;
+                        foreach (var item in @Model.VulProjFinding)
+
+                        {
+                            count = count + 1;
+                            var Low = "Low";
+                            var Med = "Medium";
+                            var High = "High";
+                            var Open = "Open";
+                            var Close = "Close";
+                            var NoImpct = "No Impact Level";
+                            var NoStat = "No Status";
+                            var slash = " / ";
+                            var Dash = "-";
+                            <tr>
+                                <td style="text-align:center">@count</td>
+                                <td>
+
+                                    @*@{
+                                            if (@item.CVEId == null)
+                                            {
+                                                @item.MyVDBID
+                                            }
+                                            else
+                                            {
+                                                @item.CVEId  @slash {<br />}  @item.MyVDBID;
+                                            }
+                                        }*@
+
+                                    @{
+                                        if ((@item.CVEId == null || @item.CVEId == "") && (@item.MyVDBID != null || @item.MyVDBID != ""))
+                                        {
+                                            @*<a href="@Url.ActionEnc("mySecret", "VulnerabilityListInfo", new { a = @item.Id })"><font color="blue">@item.MyVDBID</font></a>*@
+                                            <a id="login" href="#" onclick='urlLinkClick(@item.VulProjFindingId);'><font color="blue">@Html.Raw(item.MyVDBID)</font></a>
+                                        }
+                                        else if ((@item.CVEId != null || @item.CVEId != "") && (@item.MyVDBID == null || @item.MyVDBID == ""))
+                                        {
+                                            @*<a href="@Url.ActionEnc("mySecret", "VulnerabilityListInfo", new { a = @item.Id })"><font color="blue">@item.CVEId</font></a>*@
+                                            <a id="login" href="#" onclick='urlLinkClick(@item.VulProjFindingId);'><font color="blue">@Html.Raw(item.CVEId)</font></a>
+                                        }
+                                        else if ((@item.CVEId != null || @item.CVEId != "") && (@item.MyVDBID != null || @item.MyVDBID != ""))
+                                        {
+                                            @*<a href="@Url.ActionEnc("mySecret", "VulnerabilityListInfo", new { a = @item.Id })"><font color="blue">@item.CVEId / @item.MyVDBID</font></a>*@
+                                            <a id="login" href="#" onclick='urlLinkClick(@item.VulProjFindingId);'><font color="blue">@Html.Raw(item.MyVDBID) / @Html.Raw(item.CVEId)</font></a>
+                                        }
+                                        else
+                                        {
+                                            @*<a href="@Url.ActionEnc("mySecret", "VulnerabilityListInfo", new { a = @item.Id })"><font color="blue">@Dash</font></a>*@
+                                            <a id="login" href="#" onclick='urlLinkClick(@item.VulProjFindingId);'><font color="blue">@Dash</font></a>
+                                        }
+                                    }
+
+                                </td>
+                                <td>@Html.Raw(item.VulNm)</td>
+                                <td>@item.x.VulNm</td>
+                                <td>
+
+                                    @{
+                                        if (@item.ImpactLvl == null)
+                                        {
+                                            @NoImpct
+                                        }
+                                        else if (@item.ImpactLvl.Trim() == "1")
+                                        {
+                                            @Low
+                                        }
+                                        else if (@item.ImpactLvl.Trim() == "2")
+                                        {
+                                            @Med
+                                        }
+                                        else if (@item.ImpactLvl.Trim() == "3")
+                                        {
+                                            @High
+                                        }
+                                        else
+                                        {
+                                            @NoImpct
+                                        }
+                                    }
+                                </td>
+                                <td style="text-align:center">
+                                    @*@{
+                                            DateTime ADate = Convert.ToDateTime(@item.CreatedDt);
+                                            var AppDate = ADate.ToString("dd/MM/yyyy");
+                                        }
+                                        @AppDate*@
+                                    @item.CreatedDt
+                                </td>
+                                <td style="text-align:center">
+                                    @item.CVSSScore
+                                </td>
+                                <td>
+                                    @{
+                                        if (@item.Status.Length == 0)
+                                        {
+                                            @NoStat
+                                        }
+                                        else if (@item.Status.Trim() == "1")
+                                        {
+                                            @Open
+                                        }
+                                        else if (@item.Status.Trim() == "0")
+                                        {
+                                            @Close
+                                        }
+                                        else
+                                        {
+                                            @NoStat
+                                        }
+                                    }
+                                </td>
+                                <td style="text-align:center">
+                                    <a class="btn btn-success btn-xs edit" href='@Url.ActionEnc("mySecret", "FindingListUpdate", new { a = item.VulProjFindingId })'><i class="glyphicon glyphicon-pencil"></i> Update</a>
+                                    <button type="button" id="delete" class="btn btn-danger btn-xs delete" onclick="hapus('@item.VulProjFindingId','@item.MyVDBID')"><span class="glyphicon glyphicon-trash"></span> Delete</button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+            <div class="row">
+                <div class="col-md-12" align="center">
+
+                    <button type="submit" class="btn btn-primary btn-sm m-t-10" onclick='submit(viewModel.Finding.VulProjID.VulProjectId())'><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add</button>
+                    <button id="cancel" class="btn btn-info btn-sm m-t-10" onclick='cancel()'><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> Back </button>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@Html.Partial("FindingListUpdateInfoModel")
+<script src="~/Scripts/Common/DateFormat.js"></script>
+<script src="~/Scripts/Common/Pagination.js"></script>
+<script>
+
+    var Rating = @Html.Raw(JsonConvert.SerializeObject(@Model, Formatting.None,
+                    new JsonSerializerSettings()
+    {
+                        ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+    }));
+    
+    var formCsrf = $('#__AjaxAntiForgeryForm');
+    var tokenCsrf = $('input[name="__RequestVerificationToken"]', formCsrf).val();
+</script>
+
+<script>
+    $("#pageList").dataTable();
+
+    var viewModel;
+    var UserIdLogin = '@User.Identity.Name';
+
+    var btnRefresh = function () {
+        location.reload();
+    }
+    $(function () {
+
+        viewModel = {
+            Finding: ko.mapping.fromJS(Rating),
+            CVEProductList: ko.observable(""),
+            CVEProductListCveDetail: ko.observable(""),
+            VulListInfo :
+              {
+                  Id: ko.observable(""),
+                  CVEId: ko.observable(""),
+                  MyVDBID: ko.observable(""),
+                  VulnerabilityType: ko.observable(""),
+                  Summary: ko.observable(""),
+                  ImprovementRmk: ko.observable(""),
+                  PublishDate: ko.observable(),
+                  Complexity: ko.observable(""),
+                  tblname: ko.observable(""),
+                  UrlLink: ko.observable(""),
+                  Score: ko.observable(""),
+                  IDData :  ko.observable(""),
+                  Reference :  ko.observable(""),
+                  CWEId :  ko.observable(""),
+                  CWENm :  ko.observable(""),
+                  CWEDefDesc :  ko.observable(""),
+                  CWEDefURL :  ko.observable(""),
+                  CVSSRatingNm :  ko.observable(""),
+
+              },
+            VulListInfoDetail :
+               {
+                   CVEId: ko.observable(""),
+                   MyVDBID: ko.observable(""),
+                   VulNm: ko.observable(""),
+                   VulCategoryNm: ko.observable(""),
+                   VulTypeNm: ko.observable(""),
+                   VulType: ko.observable(""),
+                   ObservationRmk: ko.observable(""),
+                   ImpactLvl: ko.observable(""),
+                   ImpactRmk: ko.observable(""),
+                   Status: ko.observable(""),
+                   CVSSScore: ko.observable(""),
+                   DreadScore: ko.observable(""),
+                   ImprovementRmk: ko.observable(""),
+                   VulManInputAffItemDetail: ko.observableArray(""),
+                   VulManInputScreenshotDetail: ko.observableArray(""),
+                   ValidCveID: ko.observable(""),
+                   VulnerabilityCSMCdCombine: ko.observable(""),
+                   VulSecComp: ko.observable(""),
+                   CWEId: ko.observable(""),
+                   CWENm: ko.observable(""),
+                   Description: ko.observable(""),
+                   UrlLink: ko.observable(""),
+                   VulManInputProductInfoDetail: ko.observableArray(""),
+                   Reference :  ko.observable(""),
+               },
+            VulListInfoCveDetail :
+               {
+                    Id: ko.observable(""),
+                    CVEId: ko.observable(""),
+                    MyVDBID: ko.observable(""),
+                    VulnerabilityType: ko.observable(""),
+                    Summary: ko.observable(""),
+                    ImprovementRmk: ko.observable(""),
+                    PublishDate: ko.observable(),
+                    Complexity: ko.observable(""),
+                    tblname: ko.observable(""),
+                    UrlLink: ko.observable(""),
+                    Score: ko.observable(""),
+                    IDData :  ko.observable(""),
+                    Reference :  ko.observable(""),
+                    CWEId :  ko.observable(""),
+                    CWENm :  ko.observable(""),
+                    CWEDefDesc :  ko.observable(""),
+                    CWEDefURL :  ko.observable(""),
+                    CVSSRatingNm :  ko.observable(""),
+                    VulManInputProductInfoDetail: ko.observableArray(""),
+               },
+
+            ManualInputListing: ko.observable(""),
+            pageind: ko.observable(0),
+            countAllRow : ko.observable(""),
+            totaleachpage : ko.observable(""),
+            linkValidUrl: ko.observable(""),
+
+
+            save : function(VulProjID){
+                    $.ajax({
+                        type: 'POST',
+                        url: server + '/Admin/AddFindingList',
+                        contentType: "application/json; charset=utf-8",
+                        headers: {
+                            '__RequestVerificationToken': tokenCsrf
+                        },
+                        data: JSON.stringify({ VulProjectId: VulProjID }),
+                        success: function (msg) {
+                            if (msg.OK) {
+                                var btnOk = function () {
+                                    location.href = msg.url;
+                                }
+                                ShowMessageSuccess("Successfully add. Please Update Finding List Information",btnOk);
+
+                            }
+                            else {
+                                ShowMessage('Unsuccesfully add.');
+                            }
+
+                        },
+                        error: function (xhr) {
+                        }
+                    });
+
+
+            },
+
+            remove: function(VulProjFindingId,MyVDBID) {
+                ShowDecisionMessage("Are you sure to delete this record ? ", function () {
+
+                    var btnOk = function () {
+
+                    }
+                    $.ajax({
+                        type: "POST",
+                        url: server + "/Vulnerability/DeleteVulProjFinding",
+                        data: JSON.stringify({ VulProjFindingId: VulProjFindingId , MyVDBID: MyVDBID}),
+                        contentType: "application/json; charset=utf-8",
+                        error: function (xhr) { },
+                        success: function (msg) {
+                            if (msg.OK) {
+                                ShowMessageSuccess("Record successfully deleted.", btnRefresh);
+                            }
+                            else {
+                                ShowMessageDanger('Unsuccesfully deleted.');
+                            }
+                        }
+                    })
+
+                });
+            },
+
+            clickUrlLink: function (id) {
+
+                name = "VulProjFinding";
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/FindingListUpdateInfo",
+                    data: JSON.stringify({ id: id, name:"VulProjFinding"}),
+                    contentType: "application/json; charset=utf-8",
+                    success: function (msg) {
+                        if (msg.OK) {
+                            viewModel.VulListInfoDetail.CVEId(msg.list.VulManInput.CVEId);
+                            viewModel.VulListInfoDetail.MyVDBID(msg.list.VulManInput.MyVDBID);
+                            viewModel.VulListInfoDetail.VulNm(msg.list.VulManInput.VulNm);
+                            viewModel.VulListInfoDetail.VulCategoryNm(msg.list.VulManInput.y.VulCategoryNm);
+                            viewModel.VulListInfoDetail.VulTypeNm(msg.list.VulManInput.x.VulNm);
+                            viewModel.VulListInfoDetail.VulType(msg.list.VulManInput.VulType);
+                            viewModel.VulListInfoDetail.ObservationRmk(msg.list.VulManInput.ObservationRmk);
+
+                            viewModel.VulListInfoDetail.ImpactLvl(msg.list.VulManInput.ImpactLvl);
+
+                            viewModel.VulListInfoDetail.ImpactRmk(msg.list.VulManInput.ImpactRmk);
+                            viewModel.VulListInfoDetail.Status(msg.list.VulManInput.Status);
+                            viewModel.VulListInfoDetail.CVSSScore(msg.list.VulManInput.CVSSScore);
+                            viewModel.VulListInfoDetail.DreadScore(msg.list.VulManInput.DreadScore);
+                            viewModel.VulListInfoDetail.VulManInputAffItemDetail(msg.list.VulManInputAffItem);
+                            viewModel.VulListInfoDetail.VulManInputScreenshotDetail(msg.list.VulManInputScreenshot);
+                            viewModel.VulListInfoDetail.ImprovementRmk(msg.list.VulManInput.ImprovementRmk);
+                            viewModel.VulListInfoDetail.ValidCveID(msg.ValidCveID);
+
+                            viewModel.VulListInfoDetail.VulnerabilityCSMCdCombine(msg.list.VulManInput.VulnerabilityCSMCdCombine);
+                            viewModel.VulListInfoDetail.VulSecComp(msg.list.VulManInput.VulSecComp);
+                            viewModel.VulListInfoDetail.CWEId(msg.list.VulManInput.CWEId);
+                            viewModel.VulListInfoDetail.CWENm(msg.list.VulManInput.z.CWENm);
+                            viewModel.VulListInfoDetail.Description(msg.list.VulManInput.z.Description);
+                            viewModel.VulListInfoDetail.UrlLink(msg.list.VulManInput.z.UrlLink);
+                            viewModel.VulListInfoDetail.VulManInputProductInfoDetail(msg.list.VulManInputProductInfo);
+
+                            //hyperlink untuk vulnerability ID
+
+                            if(msg.list.VulManInput.CVEId !=  null){
+                                var data2 = msg.list.VulManInput.CVEId.split(',');
+                                tableCveID = "";
+
+                                for (i = 0; i < data2.length; i++) {
+                                    var path = data2[i];
+                                    viewModel.GetlinkInfo(path);
+                                    //alert(viewModel.linkValidUrl());
+                                    if(viewModel.linkValidUrl() != ""){
+                                        //tableCveID += "<a href='"+ viewModel.linkValidUrl() +"' target='_blank'><font color='blue'>" + path + "</font></a>";
+                                        tableCveID += "<a href='#' onclick='Click_CVEID(\""+path+"\","+id+",\""+name+"\")'><font color='blue'>" + path + "</font></a>";
+
+                                    }else{
+                                        tableCveID += path ;
+                                    }
+
+                                    if (i < data2.length - 1){ // untuk separete by ,
+                                        tableCveID += ",";
+                                    }
+                                }
+                            }
+                            else{
+                                tableCveID = "";
+                            }
+
+                            document.getElementById("LinkVulnerabilityID").innerHTML = tableCveID;
+                            //end hyperlink
+
+                            if (msg.list.VulManInput.Status == null){
+                                viewModel.VulListInfoDetail.Status("");
+                            }
+                            else if (msg.list.VulManInput.Status == 1){
+                                viewModel.VulListInfoDetail.Status("Open");
+                            }
+                            else if (msg.list.VulManInput.Status == 0){
+                                viewModel.VulListInfoDetail.Status("Close");
+                            }
+                            else{
+                                viewModel.VulListInfoDetail.Status("");
+                            }
+
+
+                            $("#FindingListUpdateInfoModel").modal({
+                                show: 'true',
+                                backdrop: 'true',
+                                keyboard: 'true'
+                            });
+
+                        }
+                    }
+                });
+            },
+
+            GetlinkInfo : function(CVEID){
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetCheckValidCveID",
+                    async: false,
+                    data: JSON.stringify({ CVEID: CVEID }),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+                            //window.open(msg.list, '_blank');
+                            viewModel.linkValidUrl(msg.list);
+
+                        }
+                        else {
+                            ShowMessageDanger('Error.');
+                        }
+                    }
+                });
+
+            },
+
+            clickUrlLinkUsePath: function (path,id,name) {
+
+                name = "VulProjFinding";
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/VulnerabilityListInfoPathProjFinding",
+                    data: JSON.stringify({path:path, id: id, name:"VulProjFinding" }),
+                    contentType: "application/json; charset=utf-8",
+                    success: function (msg) {
+                        if (msg.OK) {
+                            viewModel.VulListInfoDetail.CVEId(msg.list.VulManInput.CVEId);
+                            viewModel.VulListInfoDetail.MyVDBID(msg.list.VulManInput.MyVDBID);
+                            viewModel.VulListInfoDetail.VulNm(msg.list.VulManInput.VulNm);
+                            viewModel.VulListInfoDetail.VulCategoryNm(msg.list.VulManInput.y.VulCategoryNm);
+                            viewModel.VulListInfoDetail.VulTypeNm(msg.list.VulManInput.x.VulNm);
+                            viewModel.VulListInfoDetail.VulType(msg.list.VulManInput.VulType);
+                            viewModel.VulListInfoDetail.ObservationRmk(msg.list.VulManInput.ObservationRmk);
+                            viewModel.VulListInfoDetail.ImpactLvl(msg.list.VulManInput.SeverityNm);
+                            viewModel.VulListInfoDetail.ImpactRmk(msg.list.VulManInput.ImpactRmk);
+                            viewModel.VulListInfoDetail.Status(msg.list.VulManInput.Status);
+                            viewModel.VulListInfoDetail.CVSSScore(msg.list.VulManInput.CVSSScore);
+                            viewModel.VulListInfoDetail.DreadScore(msg.list.VulManInput.DreadScore);
+                            viewModel.VulListInfoDetail.VulManInputAffItemDetail(msg.list.VulManInputAffItem);
+                            viewModel.VulListInfoDetail.VulManInputScreenshotDetail(msg.list.VulManInputScreenshot);
+                            viewModel.VulListInfoDetail.ImprovementRmk(msg.list.VulManInput.ImprovementRmk);
+                            viewModel.VulListInfoDetail.ValidCveID(msg.ValidCveID);
+                            viewModel.VulListInfoDetail.VulnerabilityCSMCdCombine(msg.list.VulManInput.VulnerabilityCSMCdCombine);
+                            viewModel.VulListInfoDetail.VulSecComp(msg.list.VulManInput.VulSecComp);
+                            viewModel.VulListInfoDetail.CWEId(msg.list.VulManInput.CWEId);
+                            viewModel.VulListInfoDetail.CWENm(msg.list.VulManInput.z.CWENm);
+                            viewModel.VulListInfoDetail.Description(msg.list.VulManInput.z.Description);
+                            viewModel.VulListInfoDetail.UrlLink(msg.list.VulManInput.z.UrlLink);
+                            viewModel.VulListInfoDetail.VulManInputProductInfoDetail(msg.list.VulManInputProductInfo);
+                            viewModel.VulListInfoDetail.Reference(msg.list.VulManInput.Reference);
+
+                            var bil = $('#bilangan_score2').val();
+                            var element = document.getElementById('scoreColour2');
+                            if(bil == 0.00){
+                                //alert(1);
+                                element.className = '';
+                                element.classList.add("scoreRating","none");
+                            }else if ( bil >= 0.1 && bil <= 3.9){
+                                //alert(2);
+                                element.className = '';
+                                element.classList.add("scoreRating","low");
+                            }else if (bil >= 4.0 && bil <= 6.9){
+                                //alert(3);
+                                element.className = '';
+                                element.classList.add("scoreRating","medium");
+                            }
+                            else if (bil >= 7.0 && bil <= 8.9){
+                                //alert(4);
+                                element.className = '';
+                                element.classList.add("scoreRating","high");
+                            }
+                            else if (bil >= 9.0){
+                                //alert(5);
+                                element.className = '';
+                                element.classList.add("scoreRating","critical");
+                            }
+
+                            var text, parser, xmlDoc;
+
+                            //add baca xml data dan list dalam ui
+                            var xmldata = viewModel.VulListInfoDetail.Reference();
+
+                            parser = new DOMParser();
+                            xmlDoc = parser.parseFromString(xmldata,"text/xml");
+
+                            var x,xmlhttp,xmlDoc
+
+                            x = xmlDoc.getElementsByTagName("Reference");
+                            //alert(x.length);
+                            table="";
+                            for (i = 0; i <x.length; i++) {
+                                var path = (x[i].getElementsByTagName("Url")[0].childNodes[0].nodeValue);
+                                table += "<tr><td style='color:blue;'><a href='"+ path +"' target='_blank' rel='noopener noreferrer'><font color='blue'>" + path + "</font></a>";
+                                //table +=  x[i].getElementsByTagName("Url")[0].childNodes[0].nodeValue.link(path);
+                                table += "</td></br></tr>";
+
+                            }
+
+                            //if(x.length == 0){
+                            //    document.getElementById("demo2").innerHTML = "-";
+                            //}else{
+                            //    document.getElementById("demo2").innerHTML = table;
+                            //}
+
+                            //end add
+
+                            //hyperlink untuk vulnerability ID
+
+                            if(msg.list.VulManInput.CVEId !=  null){
+                                var data2 = msg.list.VulManInput.CVEId.split(',');
+                                tableCveID = "";
+
+
+                                for (i = 0; i < data2.length; i++) {
+                                    var path = data2[i];
+                                    viewModel.GetlinkInfo(path);
+                                    //alert(viewModel.linkValidUrl());
+                                    if(viewModel.linkValidUrl() != ""){
+                                        //  tableCveID += "<a href='"+ viewModel.linkValidUrl() +"' target='_blank'><font color='blue'>" + path + "</font></a>";
+                                        tableCveID += "<a href='#' onclick='Click_CVEID(\""+path+"\","+id+",\""+name+"\")'><font color='blue'>" + path + "</font></a>";
+
+                                    }else{
+                                        tableCveID += path ;
+
+                                    }
+
+                                    if (i < data2.length - 1){ // untuk separete by ,
+                                        tableCveID += ",";
+
+                                    }
+                                }
+                            }
+                            else{
+                                tableCveID = "";
+
+                            }
+
+                            //document.getElementById("LinkVulnerabilityID").innerHTML = tableCveID;
+                            document.getElementById("LinkVulnerabilityID3").innerHTML = tableCveID;
+                            //end hyperlink
+
+
+                            if (msg.list.VulManInput.Status == null){
+                                viewModel.VulListInfoDetail.Status("");
+                            }
+                            else if (msg.list.VulManInput.Status == 1){
+                                viewModel.VulListInfoDetail.Status("Open");
+                            }
+                            else if (msg.list.VulManInput.Status == 0){
+                                viewModel.VulListInfoDetail.Status("Close");
+                            }
+                            else{
+                                viewModel.VulListInfoDetail.Status("");
+                            }
+
+
+                            //-------------------------------------------
+                            viewModel.VulListInfoCveDetail.Id(msg.list.VulnerabilityListInformationCveDetail.Id);
+                            viewModel.VulListInfoCveDetail.CVEId(msg.list.VulnerabilityListInformationCveDetail.CVEId);
+                            viewModel.VulListInfoCveDetail.MyVDBID(msg.list.VulnerabilityListInformationCveDetail.MyVDBID);
+                            viewModel.VulListInfoCveDetail.VulnerabilityType(msg.list.VulnerabilityListInformationCveDetail.VulnerabilityType);
+                            viewModel.VulListInfoCveDetail.Summary(msg.list.VulnerabilityListInformationCveDetail.Summary);
+                            viewModel.VulListInfoCveDetail.ImprovementRmk(msg.list.VulnerabilityListInformationCveDetail.ImprovementRmk);
+
+                            viewModel.VulListInfoCveDetail.PublishDate(msg.list.VulnerabilityListInformationCveDetail.PublishDate);
+                            var date = msg.list.VulnerabilityListInformationCveDetail.PublishDate;
+                            var nowDate = new Date(parseInt(date.substr(6)));
+                            var result = "";
+                            result += nowDate.format("dd/mm/yyyy");
+                            viewModel.VulListInfoCveDetail.PublishDate(result);
+
+                            viewModel.VulListInfoCveDetail.Complexity(msg.list.VulnerabilityListInformationCveDetail.Complexity);
+                            viewModel.VulListInfoCveDetail.tblname(msg.list.VulnerabilityListInformationCveDetail.tblname);
+                            viewModel.VulListInfoCveDetail.UrlLink(msg.list.VulnerabilityListInformationCveDetail.UrlLink);
+                            viewModel.VulListInfoCveDetail.Score(msg.list.VulnerabilityListInformationCveDetail.Score);
+
+                            if(msg.list.VulnerabilityListInformationCveDetail.Score == null)
+                            {
+                                viewModel.VulListInfoCveDetail.Score(0);
+                            }
+
+                            viewModel.VulListInfoCveDetail.CVSSRatingNm(msg.list.VulnerabilityListInformationCveDetail.CVSSRatingNm);
+
+                            if ((msg.list.VulnerabilityListInformationCveDetail.CVEId == null || msg.list.VulnerabilityListInformationCveDetail.CVEId == "") && (msg.list.VulnerabilityListInformationCveDetail.MyVDBID != null || msg.list.VulnerabilityListInformationCveDetail.MyVDBID != "")  ){
+                                viewModel.VulListInfoCveDetail.IDData(msg.list.VulnerabilityListInformationCveDetail.MyVDBID);
+                            }
+                            else if ((msg.list.VulnerabilityListInformationCveDetail.CVEId != null || msg.list.VulnerabilityListInformationCveDetail.CVEId != "") && (msg.list.VulnerabilityListInformationCveDetail.MyVDBID == null || msg.list.VulnerabilityListInformationCveDetail.MyVDBID == "")  ){
+                                viewModel.VulListInfoCveDetail.IDData(msg.list.VulnerabilityListInformationCveDetail.CVEId);
+                            }
+                            else if ((msg.list.VulnerabilityListInformationCveDetail.CVEId != null || msg.list.VulnerabilityListInformationCveDetail.CVEId != "") && (msg.list.VulnerabilityListInformationCveDetail.MyVDBID != null || msg.list.VulnerabilityListInformationCveDetail.MyVDBID != "")  ){
+                                viewModel.VulListInfoCveDetail.IDData(msg.list.VulnerabilityListInformationCveDetail.CVEId + " / " + msg.list.VulnerabilityListInformationCveDetail.MyVDBID);
+                            }
+                            else{
+                                viewModel.VulListInfoCveDetail.IDData("-");
+                            }
+
+
+                            var countCveIDCve = 0;
+                            var data1Cve = viewModel.VulListInfoCveDetail.IDData().split('/');
+                            var DatacveIDCve = data1Cve[0];
+                            var DataMyVDBIDCve = data1Cve[1];
+                            var data2Cve = DatacveIDCve.split(',');
+                            tableCveIDCve = "";
+
+                            if(DataMyVDBIDCve != undefined){
+                                for (i = 0; i < data2Cve.length; i++) {
+                                    var pathCve = data2Cve[i];
+                                    viewModel.GetlinkInfo(pathCve);
+                                    if(viewModel.linkValidUrl() != ""){
+                                        //tableCveIDCve += "<a href='"+ viewModel.linkValidUrl() +"' target='_blank'><font color='blue'>" + pathCve + "</font></a>";
+                                        tableCveIDCve += "<a href='#' onclick='Click_CVEID(\""+pathCve+"\")'><font color='blue'>" + pathCve + "</font></a>";
+                                    }else{
+                                        tableCveIDCve += pathCve ;
+                                    }
+
+                                    if (i < data2Cve.length - 1){ // untuk separete by ,
+                                        tableCveIDCve += ",";
+                                    }else{
+                                        tableCveIDCve += "/";
+                                        tableCveIDCve += DataMyVDBIDCve;
+                                    }
+                                }
+                            }
+                            else{
+                                tableCveIDCve = DatacveIDCve;
+                            }
+
+
+                            document.getElementById("LinkVulnerabilityID4").innerHTML = tableCveIDCve;
+
+                            if (msg.list.VulnerabilityListInformationCveDetail.Summary == null){
+                                viewModel.VulListInfoCveDetail.Summary("-");
+                            }
+                            else{
+                                viewModel.VulListInfoCveDetail.ImprovementRmk(msg.list.VulnerabilityListInformationCveDetail.Summary);
+                            }
+
+                            if (msg.list.VulnerabilityListInformationCveDetail.ImprovementRmk == null){
+                                viewModel.VulListInfoCveDetail.ImprovementRmk("-");
+                            }
+                            else{
+                                viewModel.VulListInfoCveDetail.ImprovementRmk(msg.list.VulnerabilityListInformationCveDetail.ImprovementRmk);
+                            }
+
+                            if (msg.list.VulnerabilityListInformationCveDetail.Complexity == 1){
+                                viewModel.VulListInfoCveDetail.Complexity("Low");
+                            }
+                            else if (msg.list.VulnerabilityListInformationCveDetail.Complexity == 2){
+                                viewModel.VulListInfoCveDetail.Complexity("Medium");
+                            }
+                            else if (msg.list.VulnerabilityListInformationCveDetail.Complexity == 3){
+                                viewModel.VulListInfoCveDetail.Complexity("High");
+                            }
+                            else if (msg.list.VulnerabilityListInformationCveDetail.Complexity == 4){
+                                viewModel.VulListInfoCveDetail.Complexity("Critical");
+                            }
+                            else if (msg.list.VulnerabilityListInformationCveDetail.Complexity == 0){
+                                viewModel.VulListInfoCveDetail.Complexity("No Impact Level");
+                            }
+                            else{
+                                viewModel.VulListInfoCveDetail.Complexity(msg.list.VulnerabilityListInformationCveDetail.Complexity);
+                            }
+
+                            viewModel.VulListInfoCveDetail.Reference(msg.list.VulnerabilityListInformationCveDetail.Reference);
+                            viewModel.VulListInfoCveDetail.CWEId(msg.list.VulnerabilityListInformationCveDetail.CWEId);
+                            viewModel.VulListInfoCveDetail.CWENm(msg.list.VulnerabilityListInformationCveDetail.x.CWENm);
+                            viewModel.VulListInfoCveDetail.CWEDefDesc(msg.list.VulnerabilityListInformationCveDetail.x.Description);
+                            viewModel.VulListInfoCveDetail.CWEDefURL(msg.list.VulnerabilityListInformationCveDetail.x.UrlLink);
+                            viewModel.VulListInfoCveDetail.VulManInputProductInfoDetail(msg.list.CVEProductListCveDetail);
+
+                            var bil = $('#bilangan_score3').val();
+                            var element = document.getElementById('scoreColour3');
+                            if(bil == 0.00){
+                                //alert(1);
+                                element.className = '';
+                                element.classList.add("scoreRating","none");
+                            }else if ( bil >= 0.1 && bil <= 3.9){
+                                //alert(2);
+                                element.className = '';
+                                element.classList.add("scoreRating","low");
+                            }else if (bil >= 4.0 && bil <= 6.9){
+                                //alert(3);
+                                element.className = '';
+                                element.classList.add("scoreRating","medium");
+                            }
+                            else if (bil >= 7.0 && bil <= 8.9){
+                                //alert(4);
+                                element.className = '';
+                                element.classList.add("scoreRating","high");
+                            }
+                            else if (bil >= 9.0){
+                                //alert(5);
+                                element.className = '';
+                                element.classList.add("scoreRating","critical");
+                            }
+
+                            var text, parser, xmlDoc;
+
+                            //add baca xml data dan list dalam ui
+                            var xmldata = viewModel.VulListInfoCveDetail.Reference();
+
+                            parser = new DOMParser();
+                            xmlDoc = parser.parseFromString(xmldata,"text/xml");
+
+                            var x,xmlhttp,xmlDoc
+
+                            x = xmlDoc.getElementsByTagName("Reference");
+                            //alert(x.length);
+                            table="";
+                            for (i = 0; i <x.length; i++) {
+                                var path = (x[i].getElementsByTagName("Url")[0].childNodes[0].nodeValue);
+                                table += "<tr><td style='color:blue;'><a href='"+ path +"' target='_blank' rel='noopener noreferrer'><font color='blue'>" + path + "</font></a>";
+                                //table +=  x[i].getElementsByTagName("Url")[0].childNodes[0].nodeValue.link(path);
+                                table += "</td></br></tr>";
+
+                            }
+
+                            if(x.length == 0){
+                                document.getElementById("demo4").innerHTML = "-";
+                            }else{
+                                document.getElementById("demo4").innerHTML = table;
+                            }
+
+                            //end add
+                            //-------------------------------------------
+
+
+
+                            $('#VulListInfo2').modal({
+                                backdrop: false,
+                                show: true
+                            });
+
+
+                            $('#FindingListUpdateInfoModel').modal('hide');
+
+
+                            document.getElementById("splitRight").style.display = "block";
+
+                            //$('.modal-dialog').draggable({
+                            //    handle: ".panel-heading"
+                            //});
+
+                            //$("#FindingListUpdateInfoModel").modal({
+                            //    show: 'true',
+                            //    backdrop: 'false',
+                            //    keyboard: 'true'
+                            //});
+
+
+                            //$('#FindingListUpdateInfoModel .modal-dialog').draggable({
+                            //    handle: ".modal-header"
+                            //});
+
+                        }
+                    }
+                });
+            },
+        }
+
+        ko.applyBindings(viewModel);
+    });
+
+    function hapus (VulProjFindingId,MyVDBID) {
+        viewModel.remove(VulProjFindingId,MyVDBID);
+    }
+
+    function cancel() {
+        //ShowDecisionMessage("Are you Sure ?", function () {
+
+             location.href = "/Admin/VulnerabilityProjectList";
+        //});
+    }
+
+    function submit(VulProjectId) {
+        ShowDecisionMessage("Are you sure to add new Finding?", function () {
+             viewModel.save(VulProjectId);
+        });
+    }
+
+    function urlLinkClick(id) {
+        viewModel.clickUrlLink(id);
+    }
+
+    function FindingListBack() {
+        $('#FindingListUpdateInfoModel').modal('hide');
+    }
+
+    function cancelFindingListInfo(){
+        document.getElementById("splitRight").style.display = "none";
+        $('#FindingListUpdateInfoModel').modal('hide');
+        $('#VulListInfo2').modal('hide');
+    }
+
+    function Click_CVEID(path,Id,tblname){
+
+        viewModel.clickUrlLinkUsePath(path,Id,tblname);
+
+    }
+
+    function cancelVulListInfo3Right(){
+        document.getElementById("splitRight").style.display = "none";
+    }
+</script>

@@ -1,0 +1,560 @@
+﻿
+@using Newtonsoft.Json;
+@using myvdbsSQL;
+@using MyVDBSDemo.Models;
+@model IEnumerable<MyVDBSDemo.Models.tblREFCVSSMatrix>
+
+@{
+    ViewBag.Title = MyVDBSDemo.Resources.LangText.Matrix;
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<head></head>
+
+<body>
+    <div class="col-lg-12" style="margin-top:80px;">
+        <div class="panel panel-info">
+
+            <div class="panel-body">
+
+                <div class="col-lg-12" style="margin-top:20px">
+                    <div class="panel panel-info">
+                        <div class="panel-body">
+                            <table class="table table-bordered table-striped display" id="pageList" align="center" width="100%">
+                                <thead style="background-color:moccasin">
+                                    <tr>
+                                        <th class="text-center">@MyVDBSDemo.Resources.LangText.No</th>
+                                        <th class="col-sm-1 text-center">Matrix Code</th>
+                                        <th class="col-sm-2 text-center">@MyVDBSDemo.Resources.LangText.Matrix_Name</th>
+                                        <th class="col-sm-1 text-center" align="center">@MyVDBSDemo.Resources.LangText.Matrix_Abbrv</th>
+                                        <th class="col-sm-2 text-center">@MyVDBSDemo.Resources.LangText.Score_Type</th>
+                                        <th class="col-sm-4 text-center">@MyVDBSDemo.Resources.LangText.Matrix_Desc</th>
+                                        <th class="col-sm-2 text-center"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        var count = 0;
+                                        foreach (var item in Model)
+
+                                        {
+                                            count = count + 1;
+                                            <tr>
+                                                <td style="text-align:center">@count</td>
+                                                <td>@item.MatrixCd</td>
+                                                <td>@Html.Raw(item.MatrixNm)</td>
+                                                <td>@item.MatrixAbbrv</td>
+                                                <td>@Html.Raw(item.x.scoreTypeNm)</td>
+                                                <td>@Html.Raw(item.MatrixDesc)</td>
+                                                <td style="text-align:center">
+                                                    <button type="button" id="edit" class="btn btn-success btn-xs edit" onclick="edit('@item.MatrixCd')"><span class="glyphicon glyphicon-pencil"></span> @MyVDBSDemo.Resources.LangText.Update</button>
+                                                    <button type="button" id="delete" class="btn btn-danger btn-xs delete" onclick="hapus('@item.MatrixCd')"><span class="glyphicon glyphicon-trash"></span> @MyVDBSDemo.Resources.LangText.Delete</button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                            <div align="right">
+                                <div id="drawSearchPaginateDT"></div>
+                            </div>
+
+                            <div align="center">
+
+                                <button data-bind="click : add, visible :true, enable: true" class="btn btn-primary btn-sm m-t-10">
+                                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Add
+                                </button>
+
+                                @*<button data-bind="click : cancel, visible :true, enable: true" class="btn btn-info btn-sm m-t-10">
+                                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Cancel
+                                </button>*@
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="MatrixAdd" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+        <div class="modal-dialog" style="width:500px">
+            <div class="modal-content">
+                <div class="modal-header heady">
+
+                    <h4 align="center">@MyVDBSDemo.Resources.LangText.Add_Matrix</h4>
+                </div>
+
+                <div class="modal-body">
+                    <div class="form-group">
+                        <form id="addForm">
+                            <div class="row">
+                                <div class='col-md-5'>
+                                    <label class="required">@MyVDBSDemo.Resources.LangText.Matrix_Code</label>
+                                </div>
+                                <div class="col-md-1"><label> : </label></div>
+                                <div class="col-md-6">
+                                    <input type="text" class="validate[required] form-control" id="MatrixCd" data-bind="value:matrix2.MatrixCd" onchange="checkExist(this)" maxlength="5"/>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class='col-md-5'>
+                                    <label class="required">@MyVDBSDemo.Resources.LangText.Matrix_Name</label>
+                                </div>
+                                <div class="col-md-1"><label> : </label></div>
+                                <div class="col-md-6">
+                                    <input type="text" class="validate[required] form-control" id="MatrixNm" data-bind="value:matrix2.MatrixNm" placeholder="e.g. Attack Vector" />
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class='col-md-5'>
+                                    <label class="required">@MyVDBSDemo.Resources.LangText.Score_Type</label>
+                                </div>
+                                <div class="col-md-1"><label> : </label></div>
+                                <div class="col-md-6">
+                                    <select id="ScoreTypeCd" class="validate[required] form-control" data-bind="options: score, optionsText: 'scoreTypeNm', optionsValue: 'scoreTypeCd', optionsCaption: '--- Please Choose ---', valueAllowUnset: true,value : matrix2.ScoreTypeCd, valueUpdate: 'afterkeydown'"></select>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class='col-md-5'>
+                                    <label class="required">@MyVDBSDemo.Resources.LangText.Matrix_Abbrv</label>
+                                </div>
+                                <div class="col-md-1"><label> : </label></div>
+                                <div class="col-md-6">
+                                    <input type="text" class="validate[required] form-control" id="MatrixAbbrv" onchange="CheckMatrixAbbr(this.value)" data-bind="value:matrix2.MatrixAbbrv" placeholder="e.g. AV" maxlength="3"/>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="MatrixDesc" class="col-form-label">Matrix Description:</label>
+                                <textarea name="MatrixDesc" class="form-control" data-bind="value:matrix2.MatrixDesc" rows="3" placeholder="e.g. This is Attack Vector description."></textarea>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <div align="center">
+                        <button id="saveDialog" class="btn btn-success btn-sm m-t-10" data-bind="click:saveDialog"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Save </button>
+                        <button id="resetDialog" class="btn btn-warning btn-sm m-t-10" data-bind="click:resetDialog"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Reset </button>
+                        <button id="cancelDialog" class="btn btn-info btn-sm m-t-10" data-bind="click:cancelDialog"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Cancel </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="MatrixEdit" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+        <div class="modal-dialog" style="width:500px">
+            <div class="modal-content">
+                <div class="modal-header heady">
+
+                    <h4 align="center">@MyVDBSDemo.Resources.LangText.Update_Matrix</h4>
+                </div>
+
+                <div class="modal-body">
+                    <div class="form-group">
+                        <form id="editForm">
+                            <div class="row">
+                                <div class='col-md-5'>
+                                    <label class="required">Matrix Code</label>
+                                </div>
+                                <div class="col-md-1"><label> : </label></div>
+                                <div class="col-md-6">
+                                    <input type="text" class="validate[required] form-control" id="MatrixNm" data-bind="value:matrix3.MatrixCd" disabled/>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class='col-md-5'>
+                                    <label class="required">@MyVDBSDemo.Resources.LangText.Matrix_Name</label>
+                                </div>
+                                <div class="col-md-1"><label> : </label></div>
+                                <div class="col-md-6">
+                                    @*<input type="text" class="validate[required] form-control" id="MatrixNm" data-bind="value:matrix3.MatrixNm" placeholder="e.g. Attack Vector" />*@
+                                    <textarea id="MatrixNm1" type="text" class="form-control textarearesize" name="MatrixNm1" placeholder="e.g. Attack Vector" autofocus rows="1" data-bind="html:matrix3.MatrixNm, valueUpdate:'afterkeydown'" onkeypress="return runScript(event)" autocomplete="off"></textarea>
+                                    <input type="hidden" class="validate[required] form-control" id="MatrixCd" data-bind="value:matrix3.MatrixCd" />
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class='col-md-5'>
+                                    <label class="required">@MyVDBSDemo.Resources.LangText.Score_Type</label>
+                                </div>
+                                <div class="col-md-1"><label> : </label></div>
+                                <div class="col-md-6">
+                                    <select id="ScoreTypeCd" class="validate[required] form-control" data-bind="options: score, optionsText: 'scoreTypeNm', optionsValue: 'scoreTypeCd', optionsCaption: '--- Please Choose ---', valueAllowUnset: true,value : matrix3.ScoreTypeCd, valueUpdate: 'afterkeydown'"></select>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class='col-md-5'>
+                                    <label class="required">@MyVDBSDemo.Resources.LangText.Matrix_Abbrv</label>
+                                </div>
+                                <div class="col-md-1"><label> : </label></div>
+                                <div class="col-md-6">
+                                    <input type="text" class="validate[required] form-control" id="MatrixAbbrv"  maxlength="3" onchange="CheckMatrixAbbr(this.value)" data-bind="value:matrix3.MatrixAbbrv" placeholder="e.g. AV" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="MatrixDesc" class="col-form-label">@MyVDBSDemo.Resources.LangText.Matrix_Desc:</label>
+                                <textarea id="MatrixDesc1" name="MatrixDesc1" class="form-control" data-bind="html:matrix3.MatrixDesc" rows="3" placeholder="e.g. This is Attack Vector description."></textarea>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <div align="center">
+                        <button id="saveUpdate" class="btn btn-success btn-sm m-t-10" data-bind="click:saveUpdate"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Save </button>
+                        <button id="resetUpdate" class="btn btn-warning btn-sm m-t-10" data-bind="click:resetUpdate"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Reset </button>
+                        <button id="cancelUpdate" class="btn btn-info btn-sm m-t-10" data-bind="click:cancelUpdate"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Cancel </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    @Html.Partial("_CommonDialog")
+</body>
+<script src="~/Scripts/Common/Common.js"></script>
+<script src="~/Scripts/Common/CookieHelper.js"></script>
+<script>
+
+    var matrix= @Html.Raw(JsonConvert.SerializeObject(@Model, Formatting.None,
+                              new JsonSerializerSettings()
+    {
+
+                                  ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+    }));
+
+    @functions{
+        public string TokenHeaderValue()
+        {
+            string cookieToken, formToken;
+            AntiForgery.GetTokens(null, out cookieToken, out formToken);
+            return cookieToken + ":" + formToken;                
+        }
+    }
+
+    var _csrftoken = '@TokenHeaderValue()';
+
+</script>
+
+<script>
+    var dtInstance = $("#pageList").DataTable({
+        "scrollCollapse": false,
+        "paging": true,
+        "columnDefs": [{
+            "searchable": false,
+            "orderable": false,
+            "targets": 0
+        }],
+        "order": [[1, 'asc']]
+    });
+
+    dtInstance.on('order.dt search.dt', function () {
+        dtInstance.column(0, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
+            cell.innerHTML = i + 1;
+        });
+    }).draw();
+
+    dtInstance.on( 'draw', function () {
+        $('#paginatesearch').val(dtInstance.page()+1);
+        setCookie("listingpage6", dtInstance.page()+1, 1);
+    } );
+
+    var viewModel;
+
+    function cancel() {
+        ShowDecisionMessage("@MyVDBSDemo.Resources.LangText.Are_U_Sure_Cancel", function () {
+
+            location.href = "/Admin/Dashboard";
+        });
+    }
+
+    function edit(matrixCd) {
+        viewModel.update(matrixCd);
+    }
+
+    function checkExist(val) {
+        viewModel.validate(val.value);
+    }
+
+    var btnRefresh = function () {
+        location.reload();
+    }
+
+    $(function () {
+
+        viewModel = {
+            score: ko.observableArray([]),
+            scorecd: ko.observable(""),
+            matrix1: ko.mapping.fromJS(matrix),
+            matrix2 :
+            {
+                MatrixCd: ko.observable(""),
+                MatrixNm: ko.observable(""),
+                MatrixAbbrv: ko.observable(""),
+                ScoreTypeCd: ko.observable(""),
+                MatrixDesc: ko.observable(""),
+            },
+            matrix3 :
+            {
+                MatrixCd: ko.observable(""),
+                MatrixNm: ko.observable(""),
+                MatrixAbbrv: ko.observable(""),
+                ScoreTypeCd: ko.observable(""),
+                MatrixDesc: ko.observable(""),
+            },
+
+            remove: function(matrixCd) {
+                ShowDecisionMessage("@MyVDBSDemo.Resources.LangText.Are_U_Sure_Del", function () {
+
+                    var btnOk = function () {
+
+                    }
+                    $.ajax({
+                        type: "POST",
+                        url: server + "/Admin/DeleteMatrix",
+                        data: JSON.stringify({ matrixCd: matrixCd }),
+                        contentType: "application/json; charset=utf-8",
+                        error: function (xhr) { },
+                        success: function (msg) {
+                            if (msg.OK) {
+                                ShowMessageSuccess("@MyVDBSDemo.Resources.LangText.Success_Del_Msg",btnRefresh);
+                            }
+                            else {
+                                ShowMessageDanger("@MyVDBSDemo.Resources.LangText.Unsuccess_Del_Msg");
+                            }
+                        }
+                    })
+
+                });
+            },
+            add: function () {
+                $('#MatrixAdd').modal('show');
+            },
+            update: function (matrixCd) {
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetMatrixEdit",
+                    data: JSON.stringify({ cd: matrixCd }),
+                    contentType: "application/json; charset=utf-8",
+                    headers: {
+                        'RequestVerificationToken': '@TokenHeaderValue()'
+                    },
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+                            viewModel.matrix3.MatrixCd(msg.list.MatrixCd);
+                            viewModel.matrix3.MatrixNm(msg.list.MatrixNm);
+                            viewModel.matrix3.MatrixAbbrv(msg.list.MatrixAbbrv);
+                            viewModel.matrix3.ScoreTypeCd(msg.list.ScoreTypeCd);
+                            viewModel.matrix3.MatrixDesc(msg.list.MatrixDesc);
+
+                            $("#MatrixNm1").val(msg.list.MatrixNm);
+                            $("#MatrixDesc1").val(msg.list.MatrixDesc);
+
+                            $("#MatrixEdit").modal({
+                                show: 'true',
+                                backdrop: 'true',
+                                keyboard: 'true'
+                            });
+
+                        }
+                    }
+                });
+            },
+            saveDialog: function () {
+                var value = $("#addForm").validationEngine('validate');
+
+                if (value == true) {
+                    $.ajax({
+                        type: 'POST',
+                        url: '/Admin/AddMatrix',//controller/nama function
+                        contentType: "application/json; charset=utf-8",
+                        data: JSON.stringify({ modelss: ko.mapping.toJS(viewModel.matrix2) }), //parameter
+
+                        success: function (msg) {
+
+                            if (msg.ok) {
+                                $('#MatrixAdd').modal('hide');
+                                ShowMessageSuccess("@MyVDBSDemo.Resources.LangText.Success_Add_Msg",btnRefresh);
+                            }
+                            else {
+                                $('#MatrixAdd').modal('hide');
+                                ShowMessageDanger("@MyVDBSDemo.Resources.LangText.Unsuccess_Add_Msg");
+                            }
+
+                        },
+                        error: function (xhr) {
+                        }
+                    });
+                } else {
+                    $("#addForm").validationEngine();
+                }
+            },
+            validate: function (matrix) {
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetMatrixEdit",
+                    data: JSON.stringify({ cd: matrix }),
+                    contentType: "application/json; charset=utf-8",
+                    headers: {
+                        'RequestVerificationToken': '@TokenHeaderValue()'
+                    },
+                    success: function (msg) {
+                        if (msg.OK) {
+                            if (msg.list.MatrixCd != null) {
+                                ShowMessageWarning("@MyVDBSDemo.Resources.LangText.Code_Exist_Msg");
+                                viewModel.matrix2.MatrixCd('');
+                            }
+
+                        }
+                    }
+                });
+            },
+            validateDelete: function (matrixCd) {
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/ValidateMatrix",
+                    data: JSON.stringify({ cd: matrixCd }),
+                    contentType: "application/json; charset=utf-8",
+                    success: function (msg) {
+                        if (msg.OK) {
+                            if (msg.list.MatrixCd != null) {
+                                ShowMessageWarning("@MyVDBSDemo.Resources.LangText.Matrix_Cant_Del");
+                            }else {
+                                viewModel.remove(matrixCd);
+                            }
+
+                        }
+                    }
+                });
+            }
+        }
+        loadScoreTypeNew(_csrftoken);
+        ko.applyBindings(viewModel);
+    });
+
+    function hapus (matrixCd) {
+        viewModel.remove(matrixCd);
+    }
+
+    function resetDialog() {
+        viewModel.matrix2.MatrixCd("");
+        viewModel.matrix2.MatrixNm("");
+        viewModel.matrix2.MatrixAbbrv("");
+        viewModel.matrix2.ScoreTypeCd("");
+        viewModel.matrix2.MatrixDesc("");
+    }
+
+    function cancelDialog() {
+        $('#MatrixAdd').modal('hide');
+    }
+
+    function resetUpdate() {
+        viewModel.update(viewModel.matrix3.MatrixCd());
+    }
+
+    function cancelUpdate() {
+        $('#MatrixEdit').modal('hide');
+        $('.modal').modal('hide');
+    }
+
+    function saveUpdate() {
+        var value = $("#editForm").validationEngine('validate');
+
+        viewModel.matrix3.MatrixNm(htmlEnc($('#MatrixNm1').val()));
+        viewModel.matrix3.MatrixDesc(htmlEnc($('#MatrixDesc1').val()));
+
+        if (value == true) {
+            $.ajax({
+                type: "POST",
+                url: server + "/Admin/UpdateMatrix",
+                data: JSON.stringify({ modelss: ko.mapping.toJS(viewModel.matrix3) }),
+                contentType: "application/json; charset=utf-8",
+                error: function (xhr) { },
+                success: function (msg) {
+                    if (msg.OK) {
+                        $('#MatrixEdit').modal('hide');
+                        ShowMessageSuccess("@MyVDBSDemo.Resources.LangText.Success_Update_Msg",btnRefresh);
+                    }
+                    else {
+                        $('#MatrixEdit').modal('hide');
+                        ShowMessageDanger("@MyVDBSDemo.Resources.LangText.Unsuccess_Update_Msg");
+                    }
+                }
+            });
+        } else {
+            $("#editForm").validationEngine();
+        }
+    }
+
+    function hapus(matrixCd) {
+        viewModel.validateDelete(matrixCd);
+    }
+
+    function CheckMatrixAbbr(MatrixAbbrv) {
+      
+        $.ajax({
+            type: "POST",
+            url: "/Admin/CheckMatrixAbbr",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({ MatrixAbbrvData: MatrixAbbrv }),
+            datatype: "json",
+            success: function (msg) {
+                if (msg.OK) {
+                    if (msg.list) {
+                        ShowMessageWarning("Matrix Abbreviation already exist.");
+                        viewModel.matrix3.MatrixAbbrv("");       
+                    }
+                    else{
+                        
+                    }
+                }
+            }
+
+        })
+
+    }
+
+    function drawSearchPaginateDT() {
+
+        var searchPaginateDT = "<div id='hidesearch'> Page <input type='text' size='4'  id='paginatesearch' value ='1' onchange='searchPaginateList(this.value)' autocomplete='off'></input></div>";
+
+        $("#drawSearchPaginateDT").html(searchPaginateDT);
+    }
+
+    function searchPaginateList(pageNum) {
+        var lastPage = $('#pageList').DataTable().page.info().pages;
+
+        if(pageNum > lastPage)
+            pageNum = lastPage;
+
+        $('#paginatesearch').val(pageNum);
+
+        var pageIndex = pageNum - 1;
+        $('#pageList').DataTable().page(pageIndex).draw('page')
+
+    }
+    
+    //var table = $('#pageList').DataTable();
+ 
+    //table.on( 'draw', function () {
+    //    $('#paginatesearch').val(table.page()+1);
+    //    setCookie("listingpage6", table.page()+1, 1);
+    //} );
+    
+    $(document).ready(function(){
+        drawSearchPaginateDT();
+        checkListingPageCookie2("listingpage6");
+    });
+
+</script>

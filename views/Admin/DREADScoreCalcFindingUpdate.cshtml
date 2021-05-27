@@ -1,0 +1,459 @@
+﻿@using Newtonsoft.Json;
+@using myvdbsSQL;
+@using MyVDBSDemo.Models;
+@*@model IEnumerable<MyVDBSDemo.Models.tblREFDREADValue>*@
+@model MyVDBSDemo.Models.DREADFindScoringUpdateData
+@using MVCEncrypt;
+
+@{
+    ViewBag.Title = "DREAD Score Calculator";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<style></style>
+<body>
+
+    @*<div class="col-lg-8 col-md-offset-2">
+            <div class="panel-default" style="text-align:center;background-color:#7BE4E4;text-transform:uppercase;text-decoration:solid;"><h3 class="linear-wipe">DREAD Score Calculator</h3></div>
+        </div>*@
+
+
+    <div class="col-lg-8 col-md-offset-2" style="margin-top:70px;">
+        <div class="panel panel-info">
+            <div class="panel-body">
+
+                <div align="center">
+                    <div class="col-lg-12" style="margin-top:20px">
+                        <table border="0" class="table table-bordered table-striped display" align="center" width="100%">
+                            <tr style="background-color:moccasin">
+                                @*<th class="text-center">THREAT</th>*@
+                                <th class="text-center">D</th>
+                                <th class="text-center">R</th>
+                                <th class="text-center">E</th>
+                                <th class="text-center">A</th>
+                                <th class="text-center">D</th>
+                                <th class="text-center">RISK</th>
+                                <th class="text-center">SEVERITY</th>
+                            </tr>
+                            <tbody>
+                                <tr>
+                                    @*<td width="30%">Sql Injection used to obtain confindential information from a database</td>*@
+                                    <td width="8%">
+                                        <input type="text" style="text-align:center;" readonly class="validate[required] form-control" id="DREADValueD" data-bind="value:matrix2.DREADValueD" />
+                                    </td>
+                                    <td width="8%" class="text-centers">
+                                        <input type="text" style="text-align:center;" readonly class="validate[required] form-control" id="DREADValueR" data-bind="value:matrix2.DREADValueR" />
+                                    </td>
+                                    <td width="8%" class="text-centers">
+                                        <input type="text" style="text-align:center;" readonly class="validate[required] form-control" id="DREADValueE" data-bind="value:matrix2.DREADValueE" />
+                                    </td>
+                                    <td width="8%" class="text-centers">
+                                        <input type="text" style="text-align:center;" readonly class="validate[required] form-control" id="DREADValueA" data-bind="value:matrix2.DREADValueA" />
+                                    </td>
+                                    <td width="8%" class="text-centers">
+                                        <input type="text" style="text-align:center;" readonly class="validate[required] form-control" id="DREADValueD2" data-bind="value:matrix2.DREADValueD2" />
+                                    </td>
+                                    <td width="15%" class="text-centers">
+                                        <input type="text" style="text-align:center;" readonly class="validate[required] form-control" id="DREADRisk" data-bind="value:matrix2.DREADRisk" />
+                                    </td>
+                                    <td width="25%" class="text-centers">
+                                        <input type="text" style="text-align:center;" readonly class="validate[required] form-control" id="SeverityNm" data-bind="value:matrix2.SeverityNm" />
+                                    </td>
+                                </tr>
+                            </tbody>
+
+                        </table>
+                    </div>
+                    <br />
+                    <div class="col-lg-12" style="margin-top:20px">
+                        <table border="0" class="table table-bordered table-striped display" align="center" width="50%">
+
+                            @foreach (var group in Model.DREADValueList.GroupBy(z => z.DREADTypeCd))
+                            {
+                                <tbody>
+                                    <tr>
+                                        <td colspan="2" align="left">
+                                            <b>@group.First().x.DREADTypeNm</b>
+                                            <br />
+                                            @group.First().x.DREADTypeDesc
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-centers">
+                                            <table border="0" class="table display" align="center" width="100%">
+
+                                                @foreach (var item in group)
+                                                {
+                                                    <tr>
+                                                        <td align="center" width="10%">
+                                                            @{
+                                                                string name = "A";
+                                                            }
+                                                            @foreach (var item2 in Model.RelDREADVulFindScoringList)
+                                                            {
+                                                                if (@item.DREADValueCd == @item2.DREADValueCd)
+                                                                {
+                                                                    @*<script>
+                                                                            loaddata(@item.DREADValueCd,@item.DREADTypeCd,@item.DREADValue);
+                                                                        </script>*@
+                                                                    <input type="radio" name="@item.DREADTypeCd" checked onclick="radioclick('@item.DREADValueCd',@item.DREADTypeCd,@item.DREADValue)" />
+                                                                    @item.DREADValue
+
+                                                                    name = "B";
+
+                                                                }
+
+                                                            }
+
+                                                            @if (name != "B")
+                                                            {
+                                                                <input type="radio" name="@item.DREADTypeCd" onclick="radioclick('@item.DREADValueCd',@item.DREADTypeCd,@item.DREADValue)" />
+                                                                @item.DREADValue
+                                                            }
+
+
+                                                        </td>
+                                                        <td align="left" width="90%">
+                                                            @item.DREADValueDesc
+                                                        </td>
+                                                        <td hidden="hidden">@item.DREADValueCd</td>
+
+                                                    </tr>
+
+                                                                }
+
+
+                                            </table>
+
+                                        </td>
+                                    </tr>
+
+
+                                </tbody>
+                                                                }
+
+                        </table>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <div align="center">
+                        <button id="saveDialog" class="btn btn-success btn-sm m-t-10" onclick="savefunction(@Model.RelDREADVulFindScoringList.First().VulProjFindingId)"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> Save </button>
+                        <button id="resetDialog" class="btn btn-warning btn-sm m-t-10" data-bind="click:resetDialog"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Reset </button>
+                        @*<button id="cancelDialog" class="btn btn-info btn-sm m-t-10" data-bind="click:cancelDialog"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel </button>*@
+                        <button id="saveDialog" class="btn btn-info btn-sm m-t-10" onclick="Back(@Model.RelDREADVulFindScoringList.First().VulProjFindingId)"><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> Back </button>
+                        @*<a class="btn btn-info btn-sm m-t-10" href='@Url.ActionEnc("mySecret", "FindingListUpdate", new { a = Model.RelDREADVulFindScoringList.First().VulProjFindingId  })'><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> Back </a>*@
+
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+</body>
+
+<script>
+
+    var matrix= @Html.Raw(JsonConvert.SerializeObject(@Model, Formatting.None,
+                              new JsonSerializerSettings()
+    {
+
+             ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+    }));
+
+</script>
+
+<script>
+
+
+    var viewModel;
+
+    $(function () {
+
+        viewModel = {
+            //score: ko.observableArray([]),
+            //scorecd: ko.observable(""),
+            matrix2 :
+            {
+
+                DREADValueD: ko.observable("0"),
+                DREADValueR: ko.observable("0"),
+                DREADValueE: ko.observable("0"),
+                DREADValueA: ko.observable("0"),
+                DREADValueD2: ko.observable("0"),
+                DREADValueCdD: ko.observable(""),
+                DREADValueCdR: ko.observable(""),
+                DREADValueCdE: ko.observable(""),
+                DREADValueCdA: ko.observable(""),
+                DREADValueCdD2: ko.observable(""),
+                DREADRisk: ko.observable(""),
+                DREADTotal: ko.observable(""),
+                SeverityNm: ko.observable(""),
+            },
+
+
+            checkSeverity: function (totalBesar) {
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetDREADRisk",
+                    data: JSON.stringify({ val: totalBesar }),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+                            viewModel.matrix2.SeverityNm(msg.list.SeverityNm);
+
+                        }
+                    }
+                });
+
+            },
+
+
+            save: function (VulProjFindingId) {
+
+                ShowDecisionMessage("Are you Sure To Save this Records ? ", function () {
+
+                    viewModel.Submit(VulProjFindingId);
+                });
+
+            },
+
+            Submit: function (VulProjFindingId) {
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetCheckDREADFindScoreData",
+                    data: JSON.stringify({ VulProjFindingId: VulProjFindingId }),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.Count > 0 ) {
+
+                            // alert('update'); // viewModel.matrix2.SeverityNm(msg.list.SeverityNm);
+                            DeleteOld = "yes";
+                            viewModel.Update(VulProjFindingId,DeleteOld);
+
+                        }
+                        else{
+
+                           // alert('insert');
+                            DeleteOld = "no";
+                            viewModel.Update(VulProjFindingId,DeleteOld);
+
+
+                        }
+                    }
+                });
+
+
+
+            },
+
+            Update: function (VulProjFindingId , DeleteOld) {
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetUpdateDREADFindScoreData",
+                    data: JSON.stringify({ DeleteOld : DeleteOld , VulProjFindingId: VulProjFindingId , modelsss : ko.mapping.toJS(viewModel.matrix2)  }),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.ok) {
+                            ShowMessageSuccess("Data successfully save.");
+                            // $(window).click(function() {
+
+                                sessionStorage.setItem("vulName", localStorage.getItem("vulName"));
+                                sessionStorage.setItem("ObservationRmk", localStorage.getItem("ObservationRmk"));
+                                sessionStorage.setItem("ImpactLvl", localStorage.getItem("ImpactLvl"));
+                                sessionStorage.setItem("ImpactRmk", localStorage.getItem("ImpactRmk"));
+                                sessionStorage.setItem("ImprovementRmk", localStorage.getItem("ImprovementRmk"));
+                                sessionStorage.setItem("Status", localStorage.getItem("Status"));
+                                sessionStorage.setItem("CVEID", localStorage.getItem("CVEID"));
+                                sessionStorage.setItem("CWEID", localStorage.getItem("CWEID"));
+                                sessionStorage.setItem("VulCategory", localStorage.getItem("VulCategory"));
+                                sessionStorage.setItem("VulTypeName", localStorage.getItem("VulTypeName"));
+                                sessionStorage.setItem("VulTypeCd", localStorage.getItem("VulTypeCd"));
+                                sessionStorage.setItem("SecComp", localStorage.getItem("SecComp"));
+                                sessionStorage.setItem("vulCd", localStorage.getItem("vulCd"));
+                                sessionStorage.setItem("vulCdCmb", localStorage.getItem("vulCdCmb"));
+                                sessionStorage.setItem("AffecApp", localStorage.getItem("AffecApp"));
+                                location.href = msg.url;
+                                //localStorage.removeItem("vulName");
+                           // });
+                        }
+                        else{
+                            ShowMessageDanger('Unsuccesfully save.');
+                        }
+                    }
+                });
+
+
+
+            },
+
+            BackFunc: function (VulProjFindingId) {
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetBackFunc",
+                    data: JSON.stringify({ VulProjFindingId: VulProjFindingId }),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.ok) {
+                                                   
+                            sessionStorage.setItem("vulName", localStorage.getItem("vulName"));
+                            sessionStorage.setItem("ObservationRmk", localStorage.getItem("ObservationRmk"));
+                            sessionStorage.setItem("ImpactLvl", localStorage.getItem("ImpactLvl"));
+                            sessionStorage.setItem("ImpactRmk", localStorage.getItem("ImpactRmk"));
+                            sessionStorage.setItem("ImprovementRmk", localStorage.getItem("ImprovementRmk"));
+                            sessionStorage.setItem("Status", localStorage.getItem("Status"));
+                            sessionStorage.setItem("CVEID", localStorage.getItem("CVEID"));
+                            sessionStorage.setItem("CWEID", localStorage.getItem("CWEID"));
+                            sessionStorage.setItem("VulCategory", localStorage.getItem("VulCategory"));
+                            sessionStorage.setItem("VulTypeName", localStorage.getItem("VulTypeName"));
+                            sessionStorage.setItem("VulTypeCd", localStorage.getItem("VulTypeCd"));
+                            sessionStorage.setItem("SecComp", localStorage.getItem("SecComp"));
+                            sessionStorage.setItem("vulCd", localStorage.getItem("vulCd"));
+                            sessionStorage.setItem("vulCdCmb", localStorage.getItem("vulCdCmb"));
+                            sessionStorage.setItem("AffecApp", localStorage.getItem("AffecApp"));
+                            location.href = msg.url;
+   
+                        }
+                        else{
+                            ShowMessageDanger('Unsuccesfully Back.');
+                        }
+                    }
+                });
+
+
+
+            },
+
+            resetDialog: function(){
+                location.reload();
+            },
+
+        }
+
+        ko.applyBindings(viewModel);
+        onload();
+
+    });
+
+
+    var D = 0;
+    var R = 0;
+    var E = 0;
+    var A = 0;
+    var D2 = 0;
+
+
+    function radioclick(DREADValueCd,DREADTypeCd,DREADValue){
+        if(DREADTypeCd == 1){
+            viewModel.matrix2.DREADValueD(DREADValue);
+            viewModel.matrix2.DREADValueCdD(DREADValueCd);
+            D = DREADValue;
+        }
+        else if(DREADTypeCd == 2) {
+            viewModel.matrix2.DREADValueR(DREADValue);
+            viewModel.matrix2.DREADValueCdR(DREADValueCd);
+            R = DREADValue;
+        }
+        else if(DREADTypeCd == 3) {
+            viewModel.matrix2.DREADValueE(DREADValue);
+            viewModel.matrix2.DREADValueCdE(DREADValueCd);
+            E = DREADValue;
+        }
+        else if(DREADTypeCd == 4) {
+            viewModel.matrix2.DREADValueA(DREADValue);
+            viewModel.matrix2.DREADValueCdA(DREADValueCd);
+            A = DREADValue;
+        }
+        else if(DREADTypeCd == 5) {
+            viewModel.matrix2.DREADValueD2(DREADValue);
+            viewModel.matrix2.DREADValueCdD2(DREADValueCd);
+            D2 = DREADValue;
+        }
+
+        var total = D + R + E + A + D2;
+        totalBesar = total / 5;
+        totalDraw = total + "/" + 5 + " = " + totalBesar ;
+        viewModel.matrix2.DREADRisk(totalDraw);
+        viewModel.matrix2.DREADTotal(totalBesar);
+
+        viewModel.checkSeverity(totalBesar);
+
+    }
+
+    function savefunction(VulProjFindingId){
+
+        viewModel.save(VulProjFindingId);
+    }
+
+    function Back(VulProjFindingId){
+
+        viewModel.BackFunc(VulProjFindingId);
+    }
+
+    //window.onload = function() {
+    function onload(){
+       
+        for(var i = 0 ; i < matrix.DREADValueList.length ; i ++){
+
+            for(var j = 0 ; j < matrix.RelDREADVulFindScoringList.length ; j ++){
+
+                if(matrix.DREADValueList[i].DREADValueCd ==  matrix.RelDREADVulFindScoringList[j].DREADValueCd) {
+
+                    if(matrix.DREADValueList[i].DREADTypeCd == 1){
+                        viewModel.matrix2.DREADValueD(matrix.DREADValueList[i].DREADValue);
+                        viewModel.matrix2.DREADValueCdD(matrix.DREADValueList[i].DREADValueCd);
+                        D = matrix.DREADValueList[i].DREADValue;
+                    }
+                    else if(matrix.DREADValueList[i].DREADTypeCd == 2) {
+                        viewModel.matrix2.DREADValueR(matrix.DREADValueList[i].DREADValue);
+                        viewModel.matrix2.DREADValueCdR(matrix.DREADValueList[i].DREADValueCd);
+                        R = matrix.DREADValueList[i].DREADValue;
+                    }
+                    else if(matrix.DREADValueList[i].DREADTypeCd == 3) {
+                        viewModel.matrix2.DREADValueE(matrix.DREADValueList[i].DREADValue);
+                        viewModel.matrix2.DREADValueCdE(matrix.DREADValueList[i].DREADValueCd);
+                        E = matrix.DREADValueList[i].DREADValue;
+                    }
+                    else if(matrix.DREADValueList[i].DREADTypeCd == 4) {
+                        viewModel.matrix2.DREADValueA(matrix.DREADValueList[i].DREADValue);
+                        viewModel.matrix2.DREADValueCdA(matrix.DREADValueList[i].DREADValueCd);
+                        A = matrix.DREADValueList[i].DREADValue;
+                    }
+                    else if(matrix.DREADValueList[i].DREADTypeCd == 5) {
+                        viewModel.matrix2.DREADValueD2(matrix.DREADValueList[i].DREADValue);
+                        viewModel.matrix2.DREADValueCdD2(matrix.DREADValueList[i].DREADValueCd);
+                        D2 = matrix.DREADValueList[i].DREADValue;
+                    }
+                }
+
+
+
+            }
+
+        }
+
+        var total = D + R + E + A + D2;
+        totalBesar = total / 5;
+        totalDraw = total + "/" + 5 + " = " + totalBesar ;
+        viewModel.matrix2.DREADRisk(totalDraw);
+        viewModel.matrix2.DREADTotal(totalBesar);
+        viewModel.checkSeverity(totalBesar);
+
+    };
+
+
+
+</script>
+

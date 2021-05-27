@@ -1,0 +1,586 @@
+﻿@using Newtonsoft.Json;
+@using myvdbsSQL;
+@using MyVDBSDemo.Models;
+@*@model IEnumerable<MyVDBSDemo.Models.Verify>*@
+@model MyVDBSDemo.Models.AuditTrailData
+
+@{
+    ViewBag.Title = "Audit Trail";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<script>
+    $(function() {
+        $("#tabs").tabs();
+    });
+</script>
+
+<body>
+    @*<div class="col-lg-12">
+            <div class="panel-default" style="text-align:center;background-color:#7BE4E4;text-transform:uppercase;text-decoration:solid"><h3>Audit Trail</h3></div>
+        </div>*@
+
+    <div class="col-lg-12" style="margin-top:80px;">
+        <div class="panel panel-info">
+            <div class="panel-heading">
+                <h3 class="panel-title">Audit trail list</h3>
+            </div>
+            <div id="tabs">
+                <ul>
+                    <li><a href="#tabs-1" onclick="tabchange(1);">@MyVDBSDemo.Resources.LangText.User</a></li>
+                    @*<li><a href="#tabs-2">@MyVDBSDemo.Resources.LangText.Agency</a></li>*@
+                    <li><a href="#tabs-3" onclick="tabchange(3);">@MyVDBSDemo.Resources.LangText.Role</a></li>
+                    @*<li><a href="#tabs-4">@MyVDBSDemo.Resources.LangText.Achievement</a></li>*@
+                    @*<li><a href="#tabs-5">@MyVDBSDemo.Resources.LangText.Component</a></li>*@
+                    <li><a href="#tabs-6" onclick="tabchange(6);">@MyVDBSDemo.Resources.LangText.Param_Config</a></li>
+                    <li style="float: right;">
+                        <a class="btn btn-primary" data-toggle="collapse" data-target="#filter-panel">
+                            <span class="glyphicon glyphicon-cog" style="color:white;"></span><font color="white">@MyVDBSDemo.Resources.LangText.Search</font>
+                        </a>
+                    </li>
+                </ul>
+
+                <div id="filter-panel" class="collapse filter-panel ">
+                    <div class="col-md-12" style="margin-top: 40px">
+                        <div class="row">
+                            <div class="col-md-1"></div>
+                            <div class="col-md-5">
+                                <div class="form-group">
+                                    <label for="cve_id" class="col-md-4 control-label">Record Owner</label>
+
+                                    <div class="col-md-8">
+                                        <input id="search_record_owner" type="text" class="form-control" maxlength="70" name="search_record_owner" data-bind="value:search.search_record_owner" autofocus>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="form-group">
+                                    <label for="type" class="col-md-4 control-label">Process</label>
+
+                                    <div class="col-md-8">
+                                        <input id="search_process" type="text" class="form-control" maxlength="70" name="search_process" data-bind="value:search.search_process" autofocus>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-md-1"></div>
+                            <div class="col-md-5">
+                                <div class="form-group">
+                                    <label for="type" class="col-md-4 control-label">Alter Information</label>
+
+                                    <div class="col-md-8">
+                                        <input id="search_alter_info" type="text" class="form-control" maxlength="70" name="search_alter_info" data-bind="value:search.search_alter_info" autofocus>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="form-group">
+                                    <label for="impact_lvl" class="col-md-4 control-label">Updated By</label>
+
+                                    <div class="col-md-8">
+                                        <input id="search_updated_by" type="text" class="form-control" maxlength="70" name="search_updated_by" data-bind="value:search.search_updated_by" autofocus>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-md-1"></div>
+                            <div class="col-md-5">
+                                <div class="form-group">
+                                    <label for="type" class="col-md-4 control-label">Start Date</label>
+                                    <div class="col-md-5">
+                                        <input id="txtFromDate" type="text" class="form-control" name="search_start_date" data-bind="value:search.search_start_date" autofocus readonly="readonly" style="cursor:pointer; background-color: #FFFFFF">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="form-group">
+                                    <label for="impact_lvl" class="col-md-4 control-label">End Date</label>
+                                    <div class="col-md-5">
+                                        <input id="txtToDate" type="text" class="form-control" name="search_end_date" data-bind="value:search.search_end_date" autofocus onblur="CheckdateEnd()" readonly="readonly" style="cursor:pointer; background-color: #FFFFFF">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-md-1"></div>
+                            <div class="col-md-5">
+                                <div class="form-group">
+                                    @*<label for="type" class="col-md-4 control-label">Previous Data</label>*@
+
+                                    <div class="col-md-8">
+                                        <input id="search_previous_data" type="hidden" class="form-control" maxlength="70" name="search_previous_data" data-bind="value:search.search_previous_data" autofocus>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="form-group">
+                                    @*<label for="impact_lvl" class="col-md-4 control-label">New Data</label>*@
+
+                                    <div class="col-md-8">
+                                        <input id="search_new_data" type="hidden" class="form-control" maxlength="70" name="search_new_data" data-bind="value:search.search_new_data" autofocus>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12" align="center" style="margin-top: 20px">
+                        <div class="row">
+                            <button type="search" class="btn btn-primary btn-sm m-t-10" id="proceed" data-bind="click:SearchListing">
+                                <span class="fa fa-search"></span> Proceed
+                            </button>
+                            <button id="resetUpdate" class="btn btn-warning btn-sm m-t-10" onclick='reset()'>
+                                <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Reset
+                            </button>
+
+                        </div>
+                    </div>
+                    <input type="hidden" name="fromSearch" value="1">
+
+                </div>
+
+                <div id="tabs-1">
+                    @Html.Partial("AuditTrailUserList")
+                </div>
+                @*<div id="tabs-2">
+                        @Html.Partial("AuditTrailAgencyList")
+                    </div>*@
+                <div id="tabs-3">
+                    @Html.Partial("AuditTrailUserRoleList")
+                </div>
+                @*<div id="tabs-4">
+                        @Html.Partial("SokonganKelulusan")
+                    </div>*@
+                @*<div id="tabs-5">
+                        @Html.Partial("SokonganKelulusan")
+                    </div>*@
+                <div id="tabs-6">
+                    @Html.Partial("AuditTrailPwdConfigList")
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @*@Html.Partial("_CommonDialog")*@
+</body>
+
+<script>
+
+    var Register = @Html.Raw(JsonConvert.SerializeObject(@Model, Formatting.None,
+                              new JsonSerializerSettings()
+    {
+
+                                  ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+    }));
+
+    @functions{
+        public string TokenHeaderValue()
+        {
+            string cookieToken, formToken;
+            AntiForgery.GetTokens(null, out cookieToken, out formToken);
+            return cookieToken + ":" + formToken;                
+        }
+    }
+</script>
+
+@*<script src="~/Scripts/Common/Verify.js"></script>*@
+<script src="~/Scripts/Common/Pagination.js"></script>
+<script>
+    $("#tabs").tabs({ active: 0 });
+
+    //$( function() {
+    //    $( "#datepicker" ).datepicker({
+    //        changeMonth: true,
+    //        changeYear: true,
+    //        dateFormat: 'dd/mm/yy'
+    //    });
+    //} );
+
+    //$( function() {
+    //    $( "#datepicker2" ).datepicker({
+    //        changeMonth: true,
+    //        changeYear: true,
+    //        dateFormat: 'dd/mm/yy'
+    //    });
+    //} );
+
+    $(document).ready(function(){
+        $("#txtFromDate").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd/mm/yy',
+           // minDate: 0,
+           // maxDate: "+60D",
+           // numberOfMonths: 2,
+            onSelect: function(selected) {
+                $("#txtToDate").datepicker("option","minDate", selected)
+            }
+        });
+        $("#txtToDate").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd/mm/yy',
+           // minDate: 0,
+           // maxDate:"+60D",
+           // numberOfMonths: 2,
+            onSelect: function(selected) {
+                $("#txtFromDate").datepicker("option","maxDate", selected)
+            }
+        });
+    });
+
+
+    var viewModel;
+    var UserIdLogin = '@User.Identity.Name';
+
+
+    $(function () {
+
+
+        viewModel = {
+            rating1: ko.mapping.fromJS(Register),
+            CVEProductList: ko.observable(""),
+
+
+            //ValidCveID: ko.observable(""),
+
+
+            AuditTrailUserListing: ko.observable(""),
+            AuditTrailUserRoleListing: ko.observable(""),
+            AuditTrailPwdConfigListing: ko.observable(""),
+            pageind: ko.observable(0),
+            onclickCVEIdMyVDBID: ko.observable(""),
+
+            countAllRow : ko.observable(""),
+            totaleachpage : ko.observable(""),
+            tabnumber : ko.observable(1),
+
+            search :
+           {
+               search_record_owner: ko.observable(""),
+               search_process: ko.observable(""),
+               search_alter_info: ko.observable(""),
+               search_updated_by: ko.observable(""),
+               search_previous_data : ko.observable(""),
+               search_new_data : ko.observable(""),
+               search_start_date : ko.observable(""),
+               search_end_date : ko.observable(""),
+           },
+
+            searchFunctionBasedonPaginate_USER: function (pageind, search_record_owner,search_process, search_alter_info,search_updated_by, search_previous_data,search_new_data,search_start_date,search_end_date) {
+
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/AuditTrailTable",
+                    data: JSON.stringify({ pageind : pageind, search_record_owner : search_record_owner, search_process: search_process , search_alter_info: search_alter_info, search_updated_by: search_updated_by, search_previous_data: search_previous_data, search_new_data: search_new_data, search_start_date: search_start_date,search_end_date: search_end_date}),
+                    contentType: "application/json; charset=utf-8",
+                    headers: {
+                        'RequestVerificationToken': '@TokenHeaderValue()'
+                    },
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            viewModel.AuditTrailUserListing(msg.list.AuditTrailUserList);
+                            viewModel.countAllRow(msg.list.GetAuditTrailUserList_total.countAllRow);
+                            viewModel.totaleachpage(viewModel.AuditTrailUserListing().length);
+
+
+
+                        }
+                        else{
+
+                        }
+                    }
+                });
+
+            },
+
+            searchFunctionBasedonPaginate2_USER: function (pageind, search_record_owner, search_process, search_alter_info, search_updated_by, search_previous_data, search_new_data, search_start_date, search_end_date) {
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/AuditTrailTable",
+                    data: JSON.stringify({ pageind : pageind, search_record_owner : search_record_owner , search_process: search_process, search_alter_info : search_alter_info, search_updated_by: search_updated_by, search_previous_data: search_previous_data, search_new_data: search_new_data, search_start_date: search_start_date, search_end_date: search_end_date}),
+                    contentType: "application/json; charset=utf-8",
+                    headers: {
+                        'RequestVerificationToken': '@TokenHeaderValue()'
+                    },
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            viewModel.AuditTrailUserListing(msg.list.AuditTrailUserList);
+                            viewModel.countAllRow(msg.list.GetAuditTrailUserList_total.countAllRow);
+                            viewModel.totaleachpage(viewModel.AuditTrailUserListing().length);
+
+                            paginateCLICK(0, 1);
+
+                        }
+                        else{
+
+                        }
+                    }
+                });
+
+            },
+
+            searchFunctionBasedonPaginate_USERROLE: function (pageind ,search_record_owner, search_process, search_alter_info, search_updated_by, search_previous_data, search_new_data, search_start_date, search_end_date) {
+
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/AuditTrailUserRoleTable",
+                    data: JSON.stringify({ pageind : pageind, search_record_owner : search_record_owner , search_process: search_process, search_alter_info : search_alter_info, search_updated_by: search_updated_by, search_previous_data: search_previous_data, search_new_data: search_new_data, search_start_date: search_start_date, search_end_date: search_end_date }),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            viewModel.AuditTrailUserRoleListing(msg.list.AuditTrailUserRoleList);
+                            viewModel.countAllRow(msg.list.GetAuditTrailUserRoleList_total.countAllRow);
+                            viewModel.totaleachpage(viewModel.AuditTrailUserRoleListing().length);
+
+
+
+                        }
+                        else{
+
+                        }
+                    }
+                });
+
+            },
+
+            searchFunctionBasedonPaginate2_USERROLE: function (pageind,search_record_owner,search_process, search_alter_info,search_updated_by,search_previous_data, search_new_data, search_start_date, search_end_date) {
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/AuditTrailUserRoleTable",
+                    data: JSON.stringify({ pageind : pageind, search_record_owner : search_record_owner , search_process: search_process, search_alter_info : search_alter_info, search_updated_by: search_updated_by, search_previous_data: search_previous_data, search_new_data: search_new_data, search_start_date: search_start_date, search_end_date: search_end_date}),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            viewModel.AuditTrailUserRoleListing(msg.list.AuditTrailUserRoleList);
+                            viewModel.countAllRow(msg.list.GetAuditTrailUserRoleList_total.countAllRow);
+                            viewModel.totaleachpage(viewModel.AuditTrailUserRoleListing().length);
+
+
+                            paginateCLICK(0, 1);
+
+                        }
+                        else{
+
+                        }
+                    }
+                });
+
+            },
+
+            searchFunctionBasedonPaginate_pwdcfig: function (pageind, search_record_owner, search_process, search_alter_info, search_updated_by, search_previous_data, search_new_data, search_start_date, search_end_date) {
+
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/AuditTrailPwdConfigTable",
+                    data: JSON.stringify({ pageind : pageind, search_record_owner : search_record_owner , search_process: search_process, search_alter_info : search_alter_info, search_updated_by: search_updated_by, search_previous_data: search_previous_data, search_new_data: search_new_data, search_start_date: search_start_date, search_end_date: search_end_date  }),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            viewModel.AuditTrailPwdConfigListing(msg.list.AuditTrailPwdConfigList);
+                            viewModel.countAllRow(msg.list.GetAuditTrailPwdConfigList_total.countAllRow);
+                            viewModel.totaleachpage(viewModel.AuditTrailPwdConfigListing().length);
+
+
+
+                        }
+                        else{
+
+                        }
+                    }
+                });
+
+            },
+
+            searchFunctionBasedonPaginate2_pwdcfig: function (pageind, search_record_owner, search_process, search_alter_info, search_updated_by, search_previous_data, search_new_data, search_start_date, search_end_date) {
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/AuditTrailPwdConfigTable",
+                    data: JSON.stringify({ pageind : pageind, search_record_owner : search_record_owner , search_process: search_process, search_alter_info : search_alter_info, search_updated_by: search_updated_by, search_previous_data: search_previous_data, search_new_data: search_new_data, search_start_date: search_start_date, search_end_date: search_end_date }),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            viewModel.AuditTrailPwdConfigListing(msg.list.AuditTrailPwdConfigList);
+                            viewModel.countAllRow(msg.list.GetAuditTrailPwdConfigList_total.countAllRow);
+                            viewModel.totaleachpage(viewModel.AuditTrailPwdConfigListing().length);
+
+
+                            paginateCLICK(0, 1);
+
+                        }
+                        else{
+
+                        }
+                    }
+                });
+
+            },
+
+            SearchListing: function () {
+                paginateCLICK2(0, 1, viewModel.tabnumber())
+            },
+
+
+
+        }
+
+        ko.applyBindings(viewModel);
+    });
+
+    function paginateCLICK(page, ind) {
+
+        var pageind = 0;
+        if(ind == 0)
+        {
+            pageind = (parseInt($("#pagenum").val()) + 10);
+        }
+        else if(ind == 2)
+        {
+            pageind = (parseInt($("#pagenum").val()) - 10);
+        }
+        else
+        {
+            pageind = page;
+        }
+
+        var search_record_owner = document.getElementById('search_record_owner').value;
+        var search_process = document.getElementById('search_process').value;
+        var search_alter_info = document.getElementById('search_alter_info').value;
+        var search_updated_by = document.getElementById('search_updated_by').value;
+        var search_previous_data = document.getElementById('search_previous_data').value;
+        var search_new_data = document.getElementById('search_new_data').value;
+        var search_start_date = document.getElementById('txtFromDate').value;
+        var search_end_date = document.getElementById('txtToDate').value;
+
+        viewModel.pageind(pageind);
+
+        if(viewModel.tabnumber() == 1){ //tab audittrailuserlist
+            viewModel.searchFunctionBasedonPaginate_USER(pageind,search_record_owner,search_process,search_alter_info,search_updated_by,search_previous_data, search_new_data,search_start_date, search_end_date);
+            paginatation(pageind);
+        }else if(viewModel.tabnumber() == 3){
+            viewModel.searchFunctionBasedonPaginate_USERROLE(pageind,search_record_owner,search_process,search_alter_info,search_updated_by,search_previous_data, search_new_data,search_start_date, search_end_date);
+            paginatation2(pageind);
+        }else{
+            viewModel.searchFunctionBasedonPaginate_pwdcfig(pageind,search_record_owner,search_process,search_alter_info,search_updated_by,search_previous_data, search_new_data,search_start_date, search_end_date);
+            paginatation3(pageind);
+        }
+
+       // viewModel.searchFunctionBasedonPaginate_USER(pageind);
+
+        //-----------------------------------------------------------------------------------------------------------------
+        //paginatation(pageind);
+        //-----------------------------------------------------------------------------------------------------------------
+
+
+    }
+
+    function paginateCLICK2(page, ind, tabnum){
+        var pageind = 0;
+        if(ind == 0)
+        {
+            pageind = (parseInt($("#pagenum").val()) + 10);
+        }
+        else
+        {
+            pageind = page;
+        }
+
+        var search_record_owner = document.getElementById('search_record_owner').value;
+        var search_process = document.getElementById('search_process').value;
+        var search_alter_info = document.getElementById('search_alter_info').value;
+        var search_updated_by = document.getElementById('search_updated_by').value;
+        var search_previous_data = document.getElementById('search_previous_data').value;
+        var search_new_data = document.getElementById('search_new_data').value;
+        var search_start_date = document.getElementById('txtFromDate').value;
+        var search_end_date = document.getElementById('txtToDate').value;
+
+        //var year = parseInt($("#year").val());
+        //var search_cve_id = document.getElementById('search_cve_id').value;
+        //var search_type = document.getElementById('search_type').value;
+        //var search_impact_lvl = document.getElementById('search_impact_lvl').value;
+        //var search_title = document.getElementById('search_title').value;
+        //var search_vendor = document.getElementById('search_vendor').value;
+
+        viewModel.pageind(pageind);
+
+        if(tabnum == 1){ //tab audittrailuserlist
+            viewModel.searchFunctionBasedonPaginate2_USER(pageind,search_record_owner,search_process, search_alter_info,search_updated_by,search_previous_data, search_new_data, search_start_date, search_end_date);
+        }else if(tabnum == 3){
+            viewModel.searchFunctionBasedonPaginate2_USERROLE(pageind,search_record_owner,search_process, search_alter_info,search_updated_by,search_previous_data, search_new_data, search_start_date, search_end_date);
+        }else{
+            viewModel.searchFunctionBasedonPaginate2_pwdcfig(pageind,search_record_owner,search_process, search_alter_info,search_updated_by,search_previous_data, search_new_data, search_start_date, search_end_date);
+        }
+
+    }
+
+    function reset(){
+        viewModel.search.search_record_owner('');
+        viewModel.search.search_process('');
+        viewModel.search.search_alter_info('');
+        viewModel.search.search_updated_by('');
+        viewModel.search.search_previous_data('');
+        viewModel.search.search_new_data('');
+        //viewModel.search.search_start_date('');
+        //viewModel.search.search_end_date('');
+
+        document.getElementById('txtFromDate').value = '';
+        document.getElementById('txtToDate').value = '';
+    }
+
+    function tabchange(tabnum) {
+        // ---- setiap kali tukar tab akan reset search data --------
+        viewModel.search.search_record_owner('');
+        viewModel.search.search_process('');
+        viewModel.search.search_alter_info('');
+        viewModel.search.search_updated_by('');
+        viewModel.search.search_previous_data('');
+        viewModel.search.search_new_data('');
+        document.getElementById('txtFromDate').value = '';
+        document.getElementById('txtToDate').value = '';
+        // -----------------------------------------------------------
+
+        viewModel.tabnumber(tabnum);
+        paginateCLICK2(0, 1, tabnum)
+    }
+
+    $(document).ready(function(){
+        paginateCLICK2(0, 1, 1)
+    });
+
+    function CheckdateEnd() {
+        if(document.getElementById('txtFromDate').value == ''){
+            document.getElementById('txtToDate').value = '';
+            ShowMessageWarning("Please choose start date");
+        }
+
+    }
+
+    //function CheckdateStart(){
+    //    alert('dsdsfsd');
+    //}
+</script>

@@ -1,0 +1,1493 @@
+﻿@using Newtonsoft.Json;
+@using myvdbsSQL;
+@using MyVDBSDemo.Models;
+@*@model IEnumerable<MyVDBSDemo.Models.tblVulManInput>*@
+@using MVCEncrypt;
+
+
+@{
+    ViewBag.Title = "Manual Input List";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+}
+
+<div class="col-lg-12" style="margin-top:70px">
+    <div class="panel panel-info">
+        <div class="panel-body">
+
+            <div class="panel-body">
+                <div id="filter-panel" class="collapse filter-panel">
+                    <div class="col-md-12">
+
+                        <div class="row" style="margin-bottom: 5px">
+
+                            <div class="col-md-12" style="margin-top: 20px">
+                                <div class="row">
+                                    <div class="col-md-1"></div>
+                                    <div class="col-md-5">
+                                        <div class="form-group">
+                                            <label for="cve_id" class="col-md-4 control-label">Vulnerability ID</label>
+
+                                            <div class="col-md-8">
+                                                <input id="search_cve_id" type="text" class="form-control" maxlength="50" name="search_cve_id" data-bind="value:search.search_cve_id" autofocus>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <div class="form-group">
+                                            <label for="type" class="col-md-4 control-label">Vulnerability Description</label>
+
+                                            <div class="col-md-8">
+                                                <input id="search_title" type="text" class="form-control" maxlength="50" name="search_title" data-bind="value:search.search_title" autofocus>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                </br>
+                                <div class="row">
+                                    <div class="col-md-1"></div>
+                                    <div class="col-md-5">
+                                        <div class="form-group">
+                                            <label for="type" class="col-md-4 control-label">Vulnerability Type</label>
+
+                                            <div class="col-md-8">
+                                                <input id="search_type" type="text" class="form-control" maxlength="200" name="search_type" data-bind="value:search.search_type" autofocus>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <div class="form-group">
+                                            <label for="impact_lvl" class="col-md-4 control-label">Severity</label>
+
+                                            <div class="col-md-8">
+                                                <input id="search_impact_lvl" type="text" class="form-control" maxlength="15" name="search_impact_lvl" data-bind="value:search.search_impact_lvl" autofocus>
+                                            </div>
+                                            @*<div class="col-md-8">
+                                                    <select id="search_impact_lvl" class="form-control" style="width: 60%;" data-bind="value:search.search_impact_lvl, valueUpdate:'afterkeydown'">
+                                                        <option value="0">--- Please Choose ---</option>
+                                                        <option value="1">Low</option>
+                                                        <option value="2">Medium</option>
+                                                        <option value="3">High</option>
+                                                        <option value="4">Critical</option>
+                                                    </select>
+                                                </div>*@
+
+                                        </div>
+                                    </div>
+                                </div>
+                                <br />
+                                <div class="row">
+                                    <div class="col-md-1"></div>
+                                    <div class="col-md-5">
+                                        <div class="form-group">
+                                            <label for="type" class="col-md-4 control-label">Start Registered  Date</label>
+                                            <div class="col-md-5">
+                                                <input id="txtFromDate" type="text" class="form-control" name="search_start_date" data-bind="value:search.search_start_date" autofocus readonly="readonly" style="cursor:pointer; background-color: #FFFFFF">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <div class="form-group">
+                                            <label for="impact_lvl" class="col-md-4 control-label">End Registered  Date</label>
+                                            <div class="col-md-5">
+                                                <input id="txtToDate" type="text" class="form-control" name="search_end_date" data-bind="value:search.search_end_date" autofocus onblur="CheckdateEnd()" readonly="readonly" style="cursor:pointer; background-color: #FFFFFF">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                </br>
+                                <div class="row">
+                                    <div class="col-md-1"></div>
+                                    <div class="col-md-5">
+                                        <div class="form-group">
+                                            <label for="type" class="col-md-4 control-label">Cvss Score</label>
+
+                                            <div class="col-md-2">
+                                                <input id="search_score_start" type="text" class="form-control allownumericwithoutdecimal" maxlength="2" name="search_type" data-bind="value:search.search_score_start" style="width:100%;text-align:center;" autofocus onchange="check_limit_min(this)">
+                                            </div>
+                                            <label for="type" class="col-md-1 control-label">To</label>
+                                            <div class="col-md-2">
+                                                <input id="search_score_to" type="text" class="form-control allownumericwithoutdecimal" maxlength="2" name="search_type" data-bind="value:search.search_score_to" style="width:100%;text-align:center;" autofocus onchange="check_limit_max(this)">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @*<div class="col-md-5">
+                                        <div class="form-group">
+                                            <label for="impact_lvl" class="col-md-4 control-label">Input Source</label>
+
+                                            <div class="col-md-8">
+                                                <input id="search_input_source" type="text" class="form-control" maxlength="100" name="search_input_source" data-bind="value:search.search_input_source" autofocus>
+                                            </div>
+                                        </div>
+                                    </div>*@
+                                    <div class="col-md-5">
+                                        <div class="form-group">
+                                            <label for="input_src" class="col-md-4 control-label">Input Source</label>
+
+                                            <div class="col-md-8">
+                                                <select id="search_input_source" class="form-control" style="width: 60%;" data-bind="options: InputSourceShortNm, optionsText: 'InputSourceShortNm', optionsValue: 'InputSourceShortNm', optionsCaption: '--- Please Choose ---', valueAllowUnset: true,value : search.search_input_source,valueUpdate: 'afterkeydown'"></select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-5" style="display:none;">
+                                        <div class="form-group">
+                                            <label for="status" class="col-md-4 control-label">status</label>
+
+                                            <div class="col-md-8">
+                                                <input type="checkbox" id="search_score_open" name="search_score_open" value="1">
+                                                <label>Open</label>
+
+                                                <input type="checkbox" id="search_score_close" name="search_score_close" value="0">
+                                                <label>Close</label>
+                                                @*<input id="search_impact_lvl" type="text" class="form-control" maxlength="15" name="search_impact_lvl" data-bind="value:search.search_impact_lvl" autofocus>*@
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+
+                        </div>
+                    </div>
+
+                    <div class="col-md-12" align="center" style="margin-top: 20px">
+                        <div class="row">
+                            <button type="search" class="btn btn-primary btn-sm m-t-10" id="proceed" data-bind="click:SearchListing">
+                                <span class="fa fa-search"></span> Proceed
+                            </button>
+                            <button id="resetUpdate" class="btn btn-warning btn-sm m-t-10" onclick='reset()'>
+                                <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Reset
+                            </button>
+
+                        </div>
+                    </div>
+                    <input type="hidden" name="fromSearch" value="1">
+
+                </div>
+                <div class="col-md-12">
+                    <p align="right">
+
+                        <a class="btn btn-primary" data-toggle="collapse" data-target="#filter-panel">
+                            <span class="glyphicon glyphicon-cog"></span> @MyVDBSDemo.Resources.LangText.Search
+                        </a>
+                    </p>
+                </div>
+                <div id="loadingDiv" style="display:none;">
+                    <div class="spinner">
+                        <div class="rect1"></div>
+                        <div class="rect2"></div>
+                        <div class="rect3"></div>
+                        <div class="rect4"></div>
+                        <div class="rect5"></div>
+                    </div>
+                </div>
+                <table class="table table-bordered table-striped display" border="0" id="" align="center" width="100%" style="height:150px;border-color:aliceblue; word-wrap:break-word;table-layout: fixed;">
+                    <thead style="background-color:moccasin">
+                        <tr>
+                            <th width="3%" class="">No.</th>
+                            <th width="11%" class="text-center">MyVDB ID</th>
+                            <th width="11%" class="text-center">CVE ID</th>
+                            <th width="21%" class="text-center">Vulnerability Description</th>
+                            <th width="10%" class="text-center">Vulnerability Type</th>
+                            <th width="7%" class="text-center">Severity</th>
+                            <th width="9%" class="text-center">Registered Date</th>
+                            <th width="7%" class="text-center">CVSS Score</th>
+                            <th width="7%" class="text-center">Status</th>
+                            <th width="12%" class="text-center"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="nodata">
+                        <tr class="odd">
+                            <td valign="top" colspan="9" class="dataTables_empty text-center"><center>No matching records found</center></td>
+                        </tr>
+                    </tbody>
+                    <tbody data-bind="foreach: ManualInputListing">
+
+                        <tr>
+                            <td width="3%" data-bind="text: $index() + 1 + viewModel.pageind()" style="text-align:center"></td>
+                            @*<td data-bind="html: CVEIdMyVDBID"></td>*@
+                            <td>
+                                <a href="#" data-bind="attr: { VulManInptId: VulManInptId,tblname: tblname }" onclick="urlLinkClick(this.getAttribute('VulManInptId'),this.getAttribute('tblname'))"><font style="color:blue;" data-bind="html: MyVDBID"></font></a>
+                            </td>
+                            <td data-bind="html: CVEId"></td>
+                            <td data-bind="html: VulNm"></td>
+                            <td data-bind="html: x.VulNm"></td>
+                            <td data-bind="html: ImpactLvl"></td>
+                            <td style="text-align:center" data-bind="text: CreatedDt"></td>
+                            @*<td data-bind="text: CVSSScore"></td>*@
+                            <td>
+                                <div data-bind="if: CVSSScore == 0">
+                                    N/A
+                                </div>
+                                <div data-bind="ifnot: CVSSScore == 0">
+                                    <div data-bind="text: CVSSScore"></div>
+                                </div>
+                            </td>
+                            <td data-bind="text: Status"></td>
+                            <td style="text-align:center">
+                                <button type="button" class="btn btn-success btn-xs edit" data-bind="attr: { VulManInptId: VulManInptId,MyVDBID: MyVDBID }" onclick="Update(this.getAttribute('VulManInptId'),this.getAttribute('MyVDBID'))"><span class="glyphicon glyphicon-pencil"></span> Update</button>
+                                <button type="button" class="btn btn-danger btn-xs delete" data-bind="attr: { VulManInptId: VulManInptId,MyVDBID: MyVDBID }" onclick="hapus(this.getAttribute('VulManInptId'),this.getAttribute('MyVDBID'))"><span class="glyphicon glyphicon-trash"></span> Delete</button>
+                            </td>
+                            @*<td data-bind="text: CreatedDt"></td>*@
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="col-sm-5" style="margin-top: 20px">
+                    <div class="dataTables_info" id="pageList_info" role="status" aria-live="polite"><font data-bind="text:'Showing ' + (viewModel.pageind() + 1) + ' to ' + (viewModel.pageind() + viewModel.totaleachpage()) + ' of ' + viewModel.countAllRow() + ' entries'"></font></div>
+                </div>
+                <div class="col-sm-7" align="right">
+                    @{
+                        <input type="hidden" id="pagenum" data-bind="value:pageind" />
+                        <div id="drawPaginate1"></div>
+                        <div id="drawSearchPaginate1"></div>
+                    }
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12" align="center">
+
+                    <button type="submit" class="btn btn-primary btn-sm m-t-10" onclick='submit()'><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add</button>
+                    <button type="submit" class="btn btn-primary btn-sm m-t-10" onclick='importExcell()'><span class="glyphicon glyphicon-import" aria-hidden="true"></span> Import From Excel</button>
+                    <button type="submit" class="btn btn-success btn-sm m-t-10" onclick='template()'><span class="far fa-file-excel" aria-hidden="true"></span> Template</button>
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<div id="ExelUpload" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+    <div class="modal-dialog" style="width:500px">
+        <div class="panel panel-info">
+            @*<div class="modal-header">
+                    <h4 align="center">Update DREAD Type </h4>
+                </div>*@
+            <div class="panel-heading">
+                <h3 class="panel-title">Upload Data From Excel</h3>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <form>
+                        <br />
+
+                        <div class="form-group">
+                            @*<fieldset style="width:400px; margin-left:240px; margin-top:90px;">
+                                    <legend>Example to Upload Multiple Files or images</legend>
+
+                                    <asp:FileUpload ID="FileUpload1" class="multi" />
+                                    <br />
+                                    <asp:Button ID="btnUpload" Text="Upload"
+                                                onclick="btnUpload_Click" />
+                                    <asp:Label ID="lblStatus" ></asp:Label>
+                                </fieldset>*@
+
+
+                            <label for="Description" class="col-form-label">Upload Excel</label>
+                            <input type="file" id="FileUpload1" name="upload_pict_path" class="validate[required] form-control" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" data-buttonText="<span class='glyphicon glyphicon-folder-open'></span>" data-size="sm" data-placeholder="No File Chosen">
+                        </div>
+
+
+                        <br />
+                    </form>
+
+                </div>
+            </div>
+
+
+
+
+            <div class="modal-footer">
+                <div align="center">
+
+                    <button id="btnUpload" class="btn btn-primary btn-sm m-t-10"><span class="glyphicon glyphicon-upload" aria-hidden="true"></span> Upload Excel</button>
+                    <button id="resetUpdate" class="btn btn-warning btn-sm m-t-10" onclick="reset($('#FileUpload1'))"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Reset</button>
+                    <button class="btn btn-info btn-sm m-t-10" onclick="cancelimportExcell(); return false;"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@Html.Partial("FindingListUpdateInfoModel")
+<script src="~/Scripts/Common/DateFormat.js"></script>
+<script src="~/Scripts/Common/Pagination.js"></script>
+<script src="~/Scripts/Common/Common.js"></script>
+<script>
+
+    var Rating = @Html.Raw(JsonConvert.SerializeObject(@Model, Formatting.None,
+                    new JsonSerializerSettings()
+    {
+                        ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+    }));
+
+</script>
+
+<script>
+
+    $(document).ready(function(){
+        $("#txtFromDate").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd/mm/yy',
+            // minDate: 0,
+            // maxDate: "+60D",
+            // numberOfMonths: 2,
+            onSelect: function(selected) {
+                $("#txtToDate").datepicker("option","minDate", selected)
+            }
+        });
+        $("#txtToDate").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd/mm/yy',
+            // minDate: 0,
+            // maxDate:"+60D",
+            // numberOfMonths: 2,
+            onSelect: function(selected) {
+                $("#txtFromDate").datepicker("option","maxDate", selected)
+            }
+        });
+
+        $(".allownumericwithdecimal").on("keypress keyup blur",function (event) {
+            //this.value = this.value.replace(/[^0-9\.]/g,'');
+            $(this).val($(this).val().replace(/[^0-9\.]/g,''));
+            if ((event.which != 46 || $(this).val().indexOf('.') != -1) && (event.which < 48 || event.which > 57)) {
+                event.preventDefault();
+            }
+        });
+
+        $(".allownumericwithoutdecimal").on("keypress keyup blur",function (event) {
+            $(this).val($(this).val().replace(/[^\d].+/, ""));
+            if ((event.which < 48 || event.which > 57)) {
+                event.preventDefault();
+            }
+        });
+    });
+
+
+    function importExcell() {
+
+        $('#ExelUpload').modal('show');
+
+    }
+
+    function cancelimportExcell() {
+
+        $('#ExelUpload').modal('hide');
+        location.reload();
+    }
+
+
+    function FindingListBack() {
+        $('#FindingListUpdateInfoModel').modal('hide');
+    }
+
+    function cancelFindingListInfo(){
+        document.getElementById("splitRight").style.display = "none";
+        $('#FindingListUpdateInfoModel').modal('hide');
+        $('#VulListInfo2').modal('hide');
+    }
+
+    //window.reset = function (e) {
+    //    e.wrap('<form>').closest('form').get(0).reset();
+    //    e.unwrap();
+    //}
+    //function resetimportExcell() {
+    //    window.reset = function (e) {
+    //        e.wrap('<form>').closest('form').get(0).reset();
+    //        e.unwrap();
+    //    }
+    //}
+
+    var dtInstance = $("#pageList").DataTable({
+        "scrollCollapse": false,
+        "paging": true,
+        "columnDefs": [{
+            "searchable": false,
+            "orderable": false,
+            "targets": 0
+        }],
+        "order": [[5, 'desc']]
+        //"ordering": false
+    });
+
+    dtInstance.on('order.dt search.dt', function () {
+        dtInstance.column(0, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
+            cell.innerHTML = i + 1;
+        });
+    }).draw();
+
+    var viewModel;
+    var UserIdLogin = '@User.Identity.Name';
+
+    $(document).ready(function () {
+
+        $('#btnUpload').click(function () {
+            if ($("#FileUpload1").val() != "") {
+                 //Checking whether FormData is available in browser
+
+                if (window.FormData !== undefined) {
+
+                    var fileUpload = $("#FileUpload1").get(0);
+                    var files = fileUpload.files;
+
+                    // Create FormData object
+                    var fileData = new FormData();
+
+                    // Looping over all files and add it to FormData object
+                    for (var i = 0; i < files.length; i++) {
+                        fileData.append(files[i].name, files[i]);
+                    }
+
+                    // Adding one more key to FormData object
+                    //fileData.append("acqID", selectedid);
+                    //fileData.append("AcqLocationCode", stringAcqLocation);
+                    // fileData.append("NoKawalan", viewModel.formatnokawalan())
+                    showLoading();
+                    $.ajax({
+                        url: server + '/Upload/UploadFilesFirstIntakeUpdateAndFinalSelectionInterview',
+                        type: "POST",
+                        contentType: false, // Not to set any content header
+                        processData: false, // Not to process data
+                        data: fileData,
+                        success: function (result) {
+                            //  alert(result);
+                            hideLoading();
+                            if (result.success == true)
+                            {
+                                $('#ExelUpload').modal('hide');
+                                ShowMessageSuccess(result.msg);
+                                //$(window).click(function() {
+                                    location.reload();
+                                //});
+                                //window.open(server + "/Upload/GetExcelFileTemplate?id=" + result.path + "&name="+ result.oldFileName);
+
+                            }
+                            else
+                            {
+                                ShowMessage(result.msg);
+                            }
+
+                        },
+                        error: function (err) {
+                            //  alert(err.statusText);
+                            hideLoading();
+                            ShowMessage(err.msg);
+
+                        }
+                    });
+                } else {
+                    ShowMessage("FormData is not supported.");
+                }
+
+            }
+            else {
+                ShowMessage("Please choose a file to upload");
+            }
+
+        });
+    });
+
+    @functions{
+        public string TokenHeaderValue()
+        {
+            string cookieToken, formToken;
+            AntiForgery.GetTokens(null, out cookieToken, out formToken);
+            return cookieToken + ":" + formToken;                
+        }
+    }
+
+    $(function () {
+        viewModel = {
+            ManualList: ko.mapping.fromJS(Rating),
+            CVEProductList: ko.observable(""),
+            CVEProductListCveDetail: ko.observable(""),
+            InputSourceShortNm: ko.observableArray([]),
+            VulListInfo :
+               {
+                   Id: ko.observable(""),
+                   CVEId: ko.observable(""),
+                   MyVDBID: ko.observable(""),
+                   VulnerabilityType: ko.observable(""),
+                   Summary: ko.observable(""),
+                   ImprovementRmk: ko.observable(""),
+                   PublishDate: ko.observable(),
+                   Complexity: ko.observable(""),
+                   tblname: ko.observable(""),
+                   UrlLink: ko.observable(""),
+                   Score: ko.observable(""),
+                   IDData :  ko.observable(""),
+                   Reference :  ko.observable(""),
+                   CWEId :  ko.observable(""),
+                   CWENm :  ko.observable(""),
+                   CWEDefDesc :  ko.observable(""),
+                   CWEDefURL :  ko.observable(""),
+                   CVSSRatingNm :  ko.observable(""),
+
+               },
+            VulListInfoDetail :
+               {
+                   CVEId: ko.observable(""),
+                   MyVDBID: ko.observable(""),
+                   VulNm: ko.observable(""),
+                   VulCategoryNm: ko.observable(""),
+                   VulTypeNm: ko.observable(""),
+                   VulType: ko.observable(""),
+                   ObservationRmk: ko.observable(""),
+                   ImpactLvl: ko.observable(""),
+                   ImpactRmk: ko.observable(""),
+                   Status: ko.observable(""),
+                   CVSSScore: ko.observable(""),
+                   DreadScore: ko.observable(""),
+                   ImprovementRmk: ko.observable(""),
+                   VulManInputAffItemDetail: ko.observableArray(""),
+                   VulManInputScreenshotDetail: ko.observableArray(""),
+                   ValidCveID: ko.observable(""),
+                   VulnerabilityCSMCdCombine: ko.observable(""),
+                   VulSecComp: ko.observable(""),
+                   CWEId: ko.observable(""),
+                   CWENm: ko.observable(""),
+                   Description: ko.observable(""),
+                   UrlLink: ko.observable(""),
+                   VulManInputProductInfoDetail: ko.observableArray(""),
+                   Reference :  ko.observable(""),
+                   CVSSVector:  ko.observable(""),
+                   CVSSV2Score: ko.observable(""),
+                   CVSSV2Vector:  ko.observable(""),
+               },
+
+            VulListInfoCveDetail :
+            {
+                Id: ko.observable(""),
+                CVEId: ko.observable(""),
+                MyVDBID: ko.observable(""),
+                VulnerabilityType: ko.observable(""),
+                Summary: ko.observable(""),
+                ImprovementRmk: ko.observable(""),
+                PublishDate: ko.observable(),
+                Complexity: ko.observable(""),
+                tblname: ko.observable(""),
+                UrlLink: ko.observable(""),
+                Score: ko.observable(""),
+                IDData :  ko.observable(""),
+                Reference :  ko.observable(""),
+                CWEId :  ko.observable(""),
+                CWENm :  ko.observable(""),
+                CWEDefDesc :  ko.observable(""),
+                CWEDefURL :  ko.observable(""),
+                CVSSRatingNm :  ko.observable(""),
+                VulManInputProductInfoDetail: ko.observableArray(""),
+                CVSSV3Vector:  ko.observable(""),
+                CVSSV3Score: ko.observable(""),
+                CVSSV2Vector:  ko.observable(""),
+                NVDLoad:  ko.observable(""),
+                NVDUrlLink:  ko.observable(""),
+            },
+
+            search :
+            {
+                search_cve_id: ko.observable(""),
+                search_type: ko.observable(""),
+                search_impact_lvl: ko.observable(""),
+                search_title : ko.observable(""),
+                search_start_date : ko.observable(""),
+                search_end_date : ko.observable(""),
+                search_score_start : ko.observable(""),
+                search_score_to : ko.observable(""),
+                search_score_open : ko.observable(""),
+                search_score_close : ko.observable(""),
+                search_input_source : ko.observable(""),
+            },
+
+            ManualInputListing: ko.observable(""),
+            pageind: ko.observable(0),
+            countAllRow : ko.observable(""),
+            totaleachpage : ko.observable(""),
+            linkValidUrl: ko.observable(""),
+
+            searchFunctionBasedonPaginate: function (pageind,search_cve_id,search_type,search_impact_lvl,search_title,search_start_date,search_end_date,search_score_start, search_score_to,search_score_open,search_score_close,search_input_source) {
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/ManualInputListTable",
+                    data: JSON.stringify({pageind : pageind ,search_cve_id : search_cve_id, search_type : search_type, search_impact_lvl : search_impact_lvl,search_title : search_title, search_start_date: search_start_date,search_end_date: search_end_date, search_score_start: search_score_start,search_score_to: search_score_to, search_score_open: search_score_open,search_score_close:search_score_close,search_input_source:search_input_source}),
+                    contentType: "application/json; charset=utf-8",
+                    headers: {
+                        'RequestVerificationToken': '@TokenHeaderValue()'
+                    },
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            viewModel.ManualInputListing(msg.list.ManualInputList);
+                            viewModel.countAllRow(msg.list.GetTotalManualInputList.countAllRow);
+                            viewModel.totaleachpage(viewModel.ManualInputListing().length);
+
+
+                        }
+                        else{
+
+                        }
+                    }
+                });
+
+            },
+
+            searchFunctionBasedonPaginate2: function (pageind,search_cve_id,search_type,search_impact_lvl,search_title,search_start_date,search_end_date,search_score_start, search_score_to,search_score_open,search_score_close,search_input_source) {
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/ManualInputListTable",
+                    data: JSON.stringify({ pageind : pageind ,search_cve_id : search_cve_id, search_type : search_type, search_impact_lvl : search_impact_lvl,search_title : search_title, search_start_date: search_start_date,search_end_date: search_end_date, search_score_start: search_score_start,search_score_to: search_score_to, search_score_open: search_score_open,search_score_close:search_score_close, search_input_source:search_input_source}),
+                    contentType: "application/json; charset=utf-8",
+                    headers: {
+                        'RequestVerificationToken': '@TokenHeaderValue()'
+                    },
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            viewModel.ManualInputListing(msg.list.ManualInputList);
+                            viewModel.countAllRow(msg.list.GetTotalManualInputList.countAllRow);
+                            viewModel.totaleachpage(viewModel.ManualInputListing().length);
+
+                            paginateCLICK(0, 1);
+
+                        }
+                        else{
+
+                        }
+                    }
+                });
+
+            },
+
+            SearchListing: function () {
+                paginateCLICK2(0, 1)
+            },
+
+            save : function(){
+                $.ajax({
+                    type: 'POST',
+                    url: server + '/Admin/AddManualInputList',
+                    contentType: "application/json; charset=utf-8",
+                    //data: JSON.stringify({ VulProjectId: VulProjID }),
+                    success: function (msg) {
+                        if (msg.OK) {
+                            ShowMessageSuccess("Successfully add. Please Update Manual Input List Information");
+                            //$(window).click(function() {
+                                // $("#tabs").tabs({ active: 1 });
+
+                                location.href = msg.url;
+                                //location.href = "/Superadmin/VulnerabilityProjectList";
+
+                            //});
+
+                        }
+                        else {
+                            ShowMessage('Unsuccesfully add.');
+                        }
+
+                    },
+                    error: function (xhr) {
+                    }
+                });
+
+
+            },
+
+            remove: function(VulManInptId, MyVDBID) {
+                ShowDecisionMessage("Are you sure to delete this record ? ", function () {
+
+                    var btnOk = function () {
+
+                    }
+                    $.ajax({
+                        type: "POST",
+                        url: server + "/Vulnerability/DeleteVulManInpt",
+                        data: JSON.stringify({ VulManInptId: VulManInptId , MyVDBID: MyVDBID}),
+                        contentType: "application/json; charset=utf-8",
+                        error: function (xhr) { },
+                        success: function (msg) {
+                            if (msg.OK) {
+                                ShowMessageSuccess("Record successfully deleted.", btnOk);
+                                //$(window).click(function() {
+                                    location.reload();
+                                //});
+                            }
+                            else {
+                                ShowMessageDanger('Unsuccesfully deleted.');
+                            }
+                        }
+                    })
+
+                });
+            },
+
+            exporttoexcel: function () {
+                showLoading();
+                $.ajax({
+                    type: 'POST',
+                    url: server + '/Upload/GenerateExcelTemplateUpload',
+                    //data: JSON.stringify({  }),
+                    contentType: "application/json; charset=utf-8",
+                    success: function (result) {
+                        if (result.success) {
+                            window.open(server+"/Admin/GetExcelFileTemplate/" + result.path);
+                            //window.open(result.path2);
+                        }
+                        else {
+                            ShowMessage(result.path);
+                        }
+                        hideLoading();
+                    },
+                    error: function (xhr) {
+                    }
+                });
+            },
+
+            uploadTemplate: function () {
+                window.open(server+"/Upload/Download/");
+            },
+
+            clickUrlLink: function (id,name) {
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/FindingListUpdateInfo",
+                    data: JSON.stringify({ id: id, name:name }),
+                    contentType: "application/json; charset=utf-8",
+                    success: function (msg) {
+                        if (msg.OK) {
+                            viewModel.VulListInfoDetail.CVEId(msg.list.VulManInput.CVEId);
+                            viewModel.VulListInfoDetail.MyVDBID(msg.list.VulManInput.MyVDBID);
+                            viewModel.VulListInfoDetail.VulNm(msg.list.VulManInput.VulNm);
+                            viewModel.VulListInfoDetail.VulCategoryNm(msg.list.VulManInput.y.VulCategoryNm);
+                            viewModel.VulListInfoDetail.VulTypeNm(msg.list.VulManInput.x.VulNm);
+                            viewModel.VulListInfoDetail.VulType(msg.list.VulManInput.VulType);
+                            viewModel.VulListInfoDetail.ObservationRmk(msg.list.VulManInput.ObservationRmk);
+
+                            viewModel.VulListInfoDetail.ImpactLvl(msg.list.VulManInput.SeverityNm);
+
+                            viewModel.VulListInfoDetail.ImpactRmk(msg.list.VulManInput.ImpactRmk);
+                            viewModel.VulListInfoDetail.Status(msg.list.VulManInput.Status);
+                            viewModel.VulListInfoDetail.CVSSScore(msg.list.VulManInput.CVSSScore);
+                            viewModel.VulListInfoDetail.DreadScore(msg.list.VulManInput.DreadScore);
+                            viewModel.VulListInfoDetail.VulManInputAffItemDetail(msg.list.VulManInputAffItem);
+                            viewModel.VulListInfoDetail.VulManInputScreenshotDetail(msg.list.VulManInputScreenshot);
+                            viewModel.VulListInfoDetail.ImprovementRmk(msg.list.VulManInput.ImprovementRmk);
+                            viewModel.VulListInfoDetail.ValidCveID(msg.ValidCveID);
+
+                            viewModel.VulListInfoDetail.VulnerabilityCSMCdCombine(msg.list.VulManInput.VulnerabilityCSMCdCombine);
+                            viewModel.VulListInfoDetail.VulSecComp(msg.list.VulManInput.VulSecComp);
+                            viewModel.VulListInfoDetail.CWEId(msg.list.VulManInput.CWEId);
+                            viewModel.VulListInfoDetail.CWENm(msg.list.VulManInput.z.CWENm);
+                            viewModel.VulListInfoDetail.Description(msg.list.VulManInput.z.Description);
+                            viewModel.VulListInfoDetail.UrlLink(msg.list.VulManInput.z.UrlLink);
+                            viewModel.VulListInfoDetail.VulManInputProductInfoDetail(msg.list.VulManInputProductInfo);
+
+                            viewModel.VulListInfoDetail.CVSSVector(msg.list.VulManInput.CVSSVector);
+                            viewModel.VulListInfoDetail.CVSSV2Vector(msg.list.VulManInput.CVSS2Vector);
+                            viewModel.VulListInfoDetail.CVSSV2Score(msg.list.VulManInput.CVSS2Score);
+
+                            //hyperlink untuk vulnerability ID
+
+                            if(msg.list.VulManInput.CVEId !=  null){
+                                var data2 = msg.list.VulManInput.CVEId.split(',');
+                                tableCveID = "";
+
+                                for (i = 0; i < data2.length; i++) {
+                                    var path = data2[i];
+                                    viewModel.GetlinkInfo(path);
+                                    //alert(viewModel.linkValidUrl());
+                                    if(viewModel.linkValidUrl() != ""){
+                                        //tableCveID += "<a href='"+ viewModel.linkValidUrl() +"' target='_blank'><font color='blue'>" + path + "</font></a>";
+                                        tableCveID += "<a href='#' onclick='Click_CVEID(\""+path+"\","+id+",\""+name+"\")'><font color='blue'>" + path + "</font></a>";
+
+                                    }else{
+                                        tableCveID += path ;
+                                    }
+
+                                    if (i < data2.length - 1){ // untuk separete by ,
+                                        tableCveID += ",";
+                                    }
+                                }
+                            }
+                            else{
+                                tableCveID = "";
+                            }
+
+                            document.getElementById("LinkVulnerabilityID").innerHTML = tableCveID;
+                            //end hyperlink
+
+
+                            if (msg.list.VulManInput.Status == null){
+                                viewModel.VulListInfoDetail.Status("");
+                            }
+                            else if (msg.list.VulManInput.Status == 1){
+                                viewModel.VulListInfoDetail.Status("Open");
+                            }
+                            else if (msg.list.VulManInput.Status == 0){
+                                viewModel.VulListInfoDetail.Status("Close");
+                            }
+                            else{
+                                viewModel.VulListInfoDetail.Status("");
+                            }
+
+
+                            $("#FindingListUpdateInfoModel").modal({
+                                show: 'true',
+                                backdrop: 'true',
+                                keyboard: 'true'
+                            });
+
+                        }
+                    }
+                });
+            },
+
+            Edit: function(VulManInptId) {
+
+                    $.ajax({
+                        type: "POST",
+                        url: server + "/Admin/ManInpListUpdate",
+                        data: JSON.stringify({ VulManInptId: VulManInptId }),
+                        contentType: "application/json; charset=utf-8",
+                        error: function (xhr) { },
+                        success: function (msg) {
+                            if (msg.ok) {
+
+                                location.href = msg.url;
+
+                            }
+                            else{
+                                //ShowMessageDanger('Unsuccesfully Back.');
+                            }
+                        }
+                    });
+
+
+            },
+
+            GetlinkInfo : function(CVEID){
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetCheckValidCveID",
+                    async: false,
+                    data: JSON.stringify({ CVEID: CVEID }),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+                            //window.open(msg.list, '_blank');
+                            viewModel.linkValidUrl(msg.list);
+
+                        }
+                        else {
+                            ShowMessageDanger('Error.');
+                        }
+                    }
+                });
+
+            },
+
+            clickUrlLinkUsePath: function (path,id,name) {
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/VulnerabilityListInfoPathManualInput",
+                    data: JSON.stringify({path:path, id: id, name:name }),
+                    contentType: "application/json; charset=utf-8",
+                    success: function (msg) {
+                        if (msg.OK) {
+                            viewModel.VulListInfoDetail.CVEId(msg.list.VulManInput.CVEId);
+                            viewModel.VulListInfoDetail.MyVDBID(msg.list.VulManInput.MyVDBID);
+                            viewModel.VulListInfoDetail.VulNm(msg.list.VulManInput.VulNm);
+                            viewModel.VulListInfoDetail.VulCategoryNm(msg.list.VulManInput.y.VulCategoryNm);
+                            viewModel.VulListInfoDetail.VulTypeNm(msg.list.VulManInput.x.VulNm);
+                            viewModel.VulListInfoDetail.VulType(msg.list.VulManInput.VulType);
+                            viewModel.VulListInfoDetail.ObservationRmk(msg.list.VulManInput.ObservationRmk);
+                            viewModel.VulListInfoDetail.ImpactLvl(msg.list.VulManInput.SeverityNm);
+                            viewModel.VulListInfoDetail.ImpactRmk(msg.list.VulManInput.ImpactRmk);
+                            viewModel.VulListInfoDetail.Status(msg.list.VulManInput.Status);
+                            viewModel.VulListInfoDetail.CVSSScore(msg.list.VulManInput.CVSSScore);
+                            viewModel.VulListInfoDetail.DreadScore(msg.list.VulManInput.DreadScore);
+                            viewModel.VulListInfoDetail.VulManInputAffItemDetail(msg.list.VulManInputAffItem);
+                            viewModel.VulListInfoDetail.VulManInputScreenshotDetail(msg.list.VulManInputScreenshot);
+                            viewModel.VulListInfoDetail.ImprovementRmk(msg.list.VulManInput.ImprovementRmk);
+                            viewModel.VulListInfoDetail.ValidCveID(msg.ValidCveID);
+                            viewModel.VulListInfoDetail.VulnerabilityCSMCdCombine(msg.list.VulManInput.VulnerabilityCSMCdCombine);
+                            viewModel.VulListInfoDetail.VulSecComp(msg.list.VulManInput.VulSecComp);
+                            viewModel.VulListInfoDetail.CWEId(msg.list.VulManInput.CWEId);
+                            viewModel.VulListInfoDetail.CWENm(msg.list.VulManInput.z.CWENm);
+                            viewModel.VulListInfoDetail.Description(msg.list.VulManInput.z.Description);
+                            viewModel.VulListInfoDetail.UrlLink(msg.list.VulManInput.z.UrlLink);
+                            viewModel.VulListInfoDetail.VulManInputProductInfoDetail(msg.list.VulManInputProductInfo);
+                            viewModel.VulListInfoDetail.Reference(msg.list.VulManInput.Reference);
+
+                            var bil = $('#bilangan_score2').val();
+                            var element = document.getElementById('scoreColour2');
+                            if(bil == 0.00){
+                                //alert(1);
+                                element.className = '';
+                                element.classList.add("scoreRating","none");
+                            }else if ( bil >= 0.1 && bil <= 3.9){
+                                //alert(2);
+                                element.className = '';
+                                element.classList.add("scoreRating","low");
+                            }else if (bil >= 4.0 && bil <= 6.9){
+                                //alert(3);
+                                element.className = '';
+                                element.classList.add("scoreRating","medium");
+                            }
+                            else if (bil >= 7.0 && bil <= 8.9){
+                                //alert(4);
+                                element.className = '';
+                                element.classList.add("scoreRating","high");
+                            }
+                            else if (bil >= 9.0){
+                                //alert(5);
+                                element.className = '';
+                                element.classList.add("scoreRating","critical");
+                            }
+
+                            var text, parser, xmlDoc;
+
+                            //add baca xml data dan list dalam ui
+                            var xmldata = viewModel.VulListInfoDetail.Reference();
+
+                            parser = new DOMParser();
+                            xmlDoc = parser.parseFromString(xmldata,"text/xml");
+
+                            var x,xmlhttp,xmlDoc
+
+                            x = xmlDoc.getElementsByTagName("Reference");
+                            //alert(x.length);
+                            table="";
+                            for (i = 0; i <x.length; i++) {
+                                var path = (x[i].getElementsByTagName("Url")[0].childNodes[0].nodeValue);
+                                table += "<tr><td style='color:blue;'><a href='"+ path +"' target='_blank' rel='noopener noreferrer'><font color='blue'>" + path + "</font></a>";
+                                //table +=  x[i].getElementsByTagName("Url")[0].childNodes[0].nodeValue.link(path);
+                                table += "</td></br></tr>";
+
+                            }
+
+                            //if(x.length == 0){
+                            //    document.getElementById("demo2").innerHTML = "-";
+                            //}else{
+                            //    document.getElementById("demo2").innerHTML = table;
+                            //}
+
+                            //end add
+
+                            //hyperlink untuk vulnerability ID
+
+                            if(msg.list.VulManInput.CVEId !=  null){
+                                var data2 = msg.list.VulManInput.CVEId.split(',');
+                                tableCveID = "";
+
+
+                                for (i = 0; i < data2.length; i++) {
+                                    var path = data2[i];
+                                    viewModel.GetlinkInfo(path);
+                                    //alert(viewModel.linkValidUrl());
+                                    if(viewModel.linkValidUrl() != ""){
+                                      //  tableCveID += "<a href='"+ viewModel.linkValidUrl() +"' target='_blank'><font color='blue'>" + path + "</font></a>";
+                                        tableCveID += "<a href='#' onclick='Click_CVEID(\""+path+"\","+id+",\""+name+"\")'><font color='blue'>" + path + "</font></a>";
+
+                                    }else{
+                                        tableCveID += path ;
+
+                                    }
+
+                                    if (i < data2.length - 1){ // untuk separete by ,
+                                        tableCveID += ",";
+
+                                    }
+                                }
+                            }
+                            else{
+                                tableCveID = "";
+
+                            }
+
+                            //document.getElementById("LinkVulnerabilityID").innerHTML = tableCveID;
+                                 document.getElementById("LinkVulnerabilityID3").innerHTML = tableCveID;
+                            //end hyperlink
+
+
+                            if (msg.list.VulManInput.Status == null){
+                                viewModel.VulListInfoDetail.Status("");
+                            }
+                            else if (msg.list.VulManInput.Status == 1){
+                                viewModel.VulListInfoDetail.Status("Open");
+                            }
+                            else if (msg.list.VulManInput.Status == 0){
+                                viewModel.VulListInfoDetail.Status("Close");
+                            }
+                            else{
+                                viewModel.VulListInfoDetail.Status("");
+                            }
+
+
+                            //-------------------------------------------
+                            viewModel.VulListInfoCveDetail.Id(msg.list.VulnerabilityListInformationCveDetail.Id);
+                            viewModel.VulListInfoCveDetail.CVEId(msg.list.VulnerabilityListInformationCveDetail.CVEId);
+                            viewModel.VulListInfoCveDetail.MyVDBID(msg.list.VulnerabilityListInformationCveDetail.MyVDBID);
+                            viewModel.VulListInfoCveDetail.VulnerabilityType(msg.list.VulnerabilityListInformationCveDetail.VulnerabilityType);
+                            viewModel.VulListInfoCveDetail.Summary(msg.list.VulnerabilityListInformationCveDetail.Summary);
+                            viewModel.VulListInfoCveDetail.ImprovementRmk(msg.list.VulnerabilityListInformationCveDetail.ImprovementRmk);
+
+                            viewModel.VulListInfoCveDetail.PublishDate(msg.list.VulnerabilityListInformationCveDetail.PublishDate);
+                            var date = msg.list.VulnerabilityListInformationCveDetail.PublishDate;
+                            var nowDate = new Date(parseInt(date.substr(6)));
+                            var result = "";
+                            result += nowDate.format("dd/mm/yyyy");
+                            viewModel.VulListInfoCveDetail.PublishDate(result);
+
+                            viewModel.VulListInfoCveDetail.Complexity(msg.list.VulnerabilityListInformationCveDetail.Complexity);
+                            viewModel.VulListInfoCveDetail.tblname(msg.list.VulnerabilityListInformationCveDetail.tblname);
+                            if(msg.list.VulnerabilityListInformationCveDetail.tblname == 'CVEDetail'){
+                                viewModel.VulListInfoCveDetail.NVDLoad('yes');
+                                viewModel.VulListInfoCveDetail.NVDUrlLink('https://nvd.nist.gov/vuln/detail/' + msg.list.VulnerabilityListInformationCveDetail.CVEId)
+
+                            }
+                            else{
+                                viewModel.VulListInfoCveDetail.NVDLoad('');
+                                viewModel.VulListInfoCveDetail.NVDUrlLink('')
+                            }
+                            viewModel.VulListInfoCveDetail.UrlLink(msg.list.VulnerabilityListInformationCveDetail.UrlLink);
+                            viewModel.VulListInfoCveDetail.Score(msg.list.VulnerabilityListInformationCveDetail.Score);
+
+                            if(msg.list.VulnerabilityListInformationCveDetail.Score == null)
+                            {
+                                viewModel.VulListInfoCveDetail.Score(0);
+                            }
+                            viewModel.VulListInfoCveDetail.CVSSV3Score(msg.list.VulnerabilityListInformationCveDetail.CVSSScoreV3);  //cvssscore V3 
+                            if(msg.list.VulnerabilityListInformationCveDetail.CVSSScoreV3 == null)
+                            {
+                                viewModel.VulListInfoCveDetail.CVSSV3Score(0);
+                            }
+
+                            viewModel.VulListInfoCveDetail.CVSSRatingNm(msg.list.VulnerabilityListInformationCveDetail.CVSSRatingNm);
+
+                            if ((msg.list.VulnerabilityListInformationCveDetail.CVEId == null || msg.list.VulnerabilityListInformationCveDetail.CVEId == "") && (msg.list.VulnerabilityListInformationCveDetail.MyVDBID != null || msg.list.VulnerabilityListInformationCveDetail.MyVDBID != "")  ){
+                                viewModel.VulListInfoCveDetail.IDData(msg.list.VulnerabilityListInformationCveDetail.MyVDBID);
+                            }
+                            else if ((msg.list.VulnerabilityListInformationCveDetail.CVEId != null || msg.list.VulnerabilityListInformationCveDetail.CVEId != "") && (msg.list.VulnerabilityListInformationCveDetail.MyVDBID == null || msg.list.VulnerabilityListInformationCveDetail.MyVDBID == "")  ){
+                                viewModel.VulListInfoCveDetail.IDData(msg.list.VulnerabilityListInformationCveDetail.CVEId);
+                            }
+                            else if ((msg.list.VulnerabilityListInformationCveDetail.CVEId != null || msg.list.VulnerabilityListInformationCveDetail.CVEId != "") && (msg.list.VulnerabilityListInformationCveDetail.MyVDBID != null || msg.list.VulnerabilityListInformationCveDetail.MyVDBID != "")  ){
+                                viewModel.VulListInfoCveDetail.IDData(msg.list.VulnerabilityListInformationCveDetail.CVEId + " / " + msg.list.VulnerabilityListInformationCveDetail.MyVDBID);
+                            }
+                            else{
+                                viewModel.VulListInfoCveDetail.IDData("-");
+                            }
+
+
+                            var countCveIDCve = 0;
+                            var data1Cve = viewModel.VulListInfoCveDetail.IDData().split('/');
+                            var DatacveIDCve = data1Cve[0];
+                            var DataMyVDBIDCve = data1Cve[1];
+                            var data2Cve = DatacveIDCve.split(',');
+                            tableCveIDCve = "";
+
+                            if(DataMyVDBIDCve != undefined){
+                                for (i = 0; i < data2Cve.length; i++) {
+                                    var pathCve = data2Cve[i];
+                                    viewModel.GetlinkInfo(pathCve);
+                                    if(viewModel.linkValidUrl() != ""){
+                                        //tableCveIDCve += "<a href='"+ viewModel.linkValidUrl() +"' target='_blank'><font color='blue'>" + pathCve + "</font></a>";
+                                        tableCveIDCve += "<a href='#' onclick='Click_CVEID(\""+pathCve+"\")'><font color='blue'>" + pathCve + "</font></a>";
+                                    }else{
+                                        tableCveIDCve += pathCve ;
+                                    }
+
+                                    if (i < data2Cve.length - 1){ // untuk separete by ,
+                                        tableCveIDCve += ",";
+                                    }else{
+                                        tableCveIDCve += "/";
+                                        tableCveIDCve += DataMyVDBIDCve;
+                                    }
+                                }
+                            }
+                            else{
+                                tableCveIDCve = DatacveIDCve;
+                            }
+
+
+                            document.getElementById("LinkVulnerabilityID4").innerHTML = tableCveIDCve;
+
+                            if (msg.list.VulnerabilityListInformationCveDetail.Summary == null){
+                                viewModel.VulListInfoCveDetail.Summary("-");
+                            }
+                            else{
+                                viewModel.VulListInfoCveDetail.ImprovementRmk(msg.list.VulnerabilityListInformationCveDetail.Summary);
+                            }
+
+                            if (msg.list.VulnerabilityListInformationCveDetail.ImprovementRmk == null){
+                                viewModel.VulListInfoCveDetail.ImprovementRmk("-");
+                            }
+                            else{
+                                viewModel.VulListInfoCveDetail.ImprovementRmk(msg.list.VulnerabilityListInformationCveDetail.ImprovementRmk);
+                            }
+
+                            if (msg.list.VulnerabilityListInformationCveDetail.Complexity == 1){
+                                viewModel.VulListInfoCveDetail.Complexity("Low");
+                            }
+                            else if (msg.list.VulnerabilityListInformationCveDetail.Complexity == 2){
+                                viewModel.VulListInfoCveDetail.Complexity("Medium");
+                            }
+                            else if (msg.list.VulnerabilityListInformationCveDetail.Complexity == 3){
+                                viewModel.VulListInfoCveDetail.Complexity("High");
+                            }
+                            else if (msg.list.VulnerabilityListInformationCveDetail.Complexity == 4){
+                                viewModel.VulListInfoCveDetail.Complexity("Critical");
+                            }
+                            else if (msg.list.VulnerabilityListInformationCveDetail.Complexity == 0){
+                                viewModel.VulListInfoCveDetail.Complexity("No Impact Level");
+                            }
+                            else{
+                                viewModel.VulListInfoCveDetail.Complexity(msg.list.VulnerabilityListInformationCveDetail.Complexity);
+                            }
+
+                            viewModel.VulListInfoCveDetail.Reference(msg.list.VulnerabilityListInformationCveDetail.Reference);
+                            viewModel.VulListInfoCveDetail.CWEId(msg.list.VulnerabilityListInformationCveDetail.CWEId);
+                            viewModel.VulListInfoCveDetail.CWENm(msg.list.VulnerabilityListInformationCveDetail.x.CWENm);
+                            viewModel.VulListInfoCveDetail.CWEDefDesc(msg.list.VulnerabilityListInformationCveDetail.x.Description);
+                            viewModel.VulListInfoCveDetail.CWEDefURL(msg.list.VulnerabilityListInformationCveDetail.x.UrlLink);
+                            viewModel.VulListInfoCveDetail.VulManInputProductInfoDetail(msg.list.CVEProductListCveDetail);
+
+                            var bil = $('#bilangan_score3').val();
+                            var element = document.getElementById('scoreColour3');
+                            if(bil == 0.00){
+                                //alert(1);
+                                element.className = '';
+                                element.classList.add("scoreRating","none");
+                            }else if ( bil >= 0.1 && bil <= 3.9){
+                                //alert(2);
+                                element.className = '';
+                                element.classList.add("scoreRating","low");
+                            }else if (bil >= 4.0 && bil <= 6.9){
+                                //alert(3);
+                                element.className = '';
+                                element.classList.add("scoreRating","medium");
+                            }
+                            else if (bil >= 7.0 && bil <= 8.9){
+                                //alert(4);
+                                element.className = '';
+                                element.classList.add("scoreRating","high");
+                            }
+                            else if (bil >= 9.0){
+                                //alert(5);
+                                element.className = '';
+                                element.classList.add("scoreRating","critical");
+                            }
+
+                            var bilV2 = $('#bilangan_score3V2').val();
+                            var element2 = document.getElementById('scoreColour3V2');
+                            
+                            if(bilV2 == 0.00){
+                                //alert(1);
+                                element2.className = '';
+                                element2.classList.add("scoreRatingV2","none");
+                            }else if ( bilV2 >= 0.1 && bilV2 <= 3.9){
+                                //alert(2);
+                                element2.className = '';
+                                element2.classList.add("scoreRatingV2","low");
+                            }else if (bilV2 >= 4.0 && bilV2 <= 6.9){
+                                //alert(3);
+                                element2.className = '';
+                                element2.classList.add("scoreRatingV2","medium");
+                            }
+                            else if (bilV2 >= 7.0 && bilV2 <= 8.9){
+                                //alert(4);
+                                element2.className = '';
+                                element2.classList.add("scoreRatingV2","high");
+                            }
+                            else if (bilV2 >= 9.0){
+                                //alert(5);
+                                element2.className = '';
+                                element2.classList.add("scoreRatingV2","critical");
+                            }
+
+                            var text, parser, xmlDoc;
+
+                            //add baca xml data dan list dalam ui
+                            var xmldata = viewModel.VulListInfoCveDetail.Reference();
+
+                            parser = new DOMParser();
+                            xmlDoc = parser.parseFromString(xmldata,"text/xml");
+
+                            var x,xmlhttp,xmlDoc
+
+                            x = xmlDoc.getElementsByTagName("Reference");
+                            //alert(x.length);
+                            table="";
+                            for (i = 0; i <x.length; i++) {
+                                var path = (x[i].getElementsByTagName("Url")[0].childNodes[0].nodeValue);
+                                table += "<tr><td style='color:blue;'><a href='"+ path +"' target='_blank' rel='noopener noreferrer'><font color='blue'>" + path + "</font></a>";
+                                //table +=  x[i].getElementsByTagName("Url")[0].childNodes[0].nodeValue.link(path);
+                                table += "</td></br></tr>";
+
+                            }
+
+                            if(x.length == 0){
+                                document.getElementById("demo4").innerHTML = "-";
+                            }else{
+                                document.getElementById("demo4").innerHTML = table;
+                            }
+
+                            //end add
+                            //-------------------------------------------
+
+
+
+                            $('#VulListInfo2').modal({
+                                backdrop: false,
+                                show: true
+                            });
+
+
+                            $('#FindingListUpdateInfoModel').modal('hide');
+
+
+                            document.getElementById("splitRight").style.display = "block";
+
+                            //$('.modal-dialog').draggable({
+                            //    handle: ".panel-heading"
+                            //});
+
+                            //$("#FindingListUpdateInfoModel").modal({
+                            //    show: 'true',
+                            //    backdrop: 'false',
+                            //    keyboard: 'true'
+                            //});
+
+
+                            //$('#FindingListUpdateInfoModel .modal-dialog').draggable({
+                            //    handle: ".modal-header"
+                            //});
+
+                        }
+                    }
+                });
+            },
+
+        }
+
+        ko.applyBindings(viewModel);
+        loadInputSourceShortNm();
+    });
+
+    function hapus (VulManInptId, MyVDBID) {
+        //alert(VulManInptId);
+        //alert(MyVDBID);
+        viewModel.remove(VulManInptId, MyVDBID);
+    }
+
+    function Update (VulManInptId) {
+        sessionStorage.setItem("mypage", viewModel.pageind());
+        viewModel.Edit(VulManInptId);
+        //viewModel.remove(VulManInptId, MyVDBID);
+    }
+
+
+    function template () {
+
+        viewModel.uploadTemplate();
+    }
+
+    function submit() {
+        ShowDecisionMessage("Are you sure to add new?", function () {
+            viewModel.save();
+        });
+    }
+
+    function urlLinkClick(id,name) {
+        viewModel.clickUrlLink(id,name);
+    }
+
+    function paginateCLICK(page, ind) {
+
+        if(sessionStorage["mypage"] != undefined)
+        {
+            page = parseInt(sessionStorage["mypage"]);
+            sessionStorage.removeItem("mypage");          
+        }
+
+
+        var pageind = 0;
+        if(ind == 0)
+        {
+            pageind = (parseInt($("#pagenum").val()) + 10);
+        }
+        else if(ind == 2)
+        {
+            pageind = (parseInt($("#pagenum").val()) - 10);
+        }
+        else
+        {
+            pageind = page;
+        }
+
+        var search_cve_id = document.getElementById('search_cve_id').value;
+        var search_type = document.getElementById('search_type').value;
+        var search_impact_lvl = document.getElementById('search_impact_lvl').value;
+        var search_title = document.getElementById('search_title').value;
+        var search_start_date = document.getElementById('txtFromDate').value;
+        var search_end_date = document.getElementById('txtToDate').value;
+        var search_score_start = document.getElementById('search_score_start').value;
+        var search_score_to = document.getElementById('search_score_to').value;
+        var search_input_source = document.getElementById('search_input_source').value;
+
+        var search_score_openIsChecked = $('input[name="search_score_open"]:checked').length > 0;
+        var search_score_closeIsChecked = $('input[name="search_score_close"]:checked').length > 0;
+
+        if (search_score_openIsChecked == true){
+            var search_score_open = document.getElementById('search_score_open').value;
+        }else{
+            var search_score_open = "";
+        }
+
+        if (search_score_closeIsChecked == true){
+            var search_score_close = document.getElementById('search_score_close').value;
+        }else{
+            var search_score_close = "";
+        }
+
+
+        viewModel.pageind(pageind);
+
+        viewModel.searchFunctionBasedonPaginate(pageind,search_cve_id,search_type,search_impact_lvl,search_title, search_start_date, search_end_date,search_score_start, search_score_to,search_score_open,search_score_close,search_input_source);
+
+        //-----------------------------------------------------------------------------------------------------------------
+        paginatation(pageind);
+        //-----------------------------------------------------------------------------------------------------------------
+
+
+    }
+
+    function paginateCLICK2(page, ind){
+        var pageind = 0;
+        if(ind == 0)
+        {
+            pageind = (parseInt($("#pagenum").val()) + 10);
+        }
+        else
+        {
+            pageind = page;
+        }
+
+        var search_cve_id = document.getElementById('search_cve_id').value;
+        var search_type = document.getElementById('search_type').value;
+        var search_impact_lvl = document.getElementById('search_impact_lvl').value;
+        var search_title = document.getElementById('search_title').value;
+        var search_start_date = document.getElementById('txtFromDate').value;
+        var search_end_date = document.getElementById('txtToDate').value;
+        var search_score_start = document.getElementById('search_score_start').value;
+        var search_score_to = document.getElementById('search_score_to').value;
+        var search_input_source = document.getElementById('search_input_source').value;
+
+        var search_score_openIsChecked = $('input[name="search_score_open"]:checked').length > 0;
+        var search_score_closeIsChecked = $('input[name="search_score_close"]:checked').length > 0;
+
+        if (search_score_openIsChecked == true){
+            var search_score_open = document.getElementById('search_score_open').value;
+        }else{
+            var search_score_open = "";
+        }
+
+        if (search_score_closeIsChecked == true){
+            var search_score_close = document.getElementById('search_score_close').value;
+        }else{
+            var search_score_close = "";
+        }
+
+        viewModel.pageind(pageind);
+        viewModel.searchFunctionBasedonPaginate2(pageind,search_cve_id,search_type,search_impact_lvl,search_title, search_start_date, search_end_date,search_score_start, search_score_to,search_score_open,search_score_close,search_input_source);
+
+    }
+
+    function reset(){
+
+        viewModel.search.search_cve_id('');
+        viewModel.search.search_type('');
+        viewModel.search.search_impact_lvl('');
+        viewModel.search.search_title('');
+        viewModel.search.search_score_start('');
+        viewModel.search.search_score_to('');
+        viewModel.search.search_input_source('');
+
+        $('input[type=checkbox]').prop('checked', false);
+
+        document.getElementById('txtFromDate').value = '';
+        document.getElementById('txtToDate').value = '';
+
+        document.getElementById("FileUpload1").value = "";
+    }
+
+    function CheckdateEnd() {
+        if(document.getElementById('txtFromDate').value == ''){
+            document.getElementById('txtToDate').value = '';
+            ShowMessageWarning("Please choose start date");
+        }
+
+    }
+
+    function check_limit_min(a) {
+
+        var min = parseFloat(a.value);
+        var max = parseFloat($('#search_score_to').val());
+        if(min > 10){
+            a.value = "";
+        }
+        if(min > max){
+            //ShowMessageWarning("Password minimum length cannot be larger than Password maximum length.");
+            a.value = "0";
+        }
+    }
+
+    function check_limit_max(a) {
+
+        var max = parseFloat(a.value);
+        var min = parseFloat($('#search_score_start').val());
+
+        if(a.value > 10){
+            a.value = "10";
+        }
+        if(max < min){
+            //ShowMessageWarning("Password maximum length cannot be smaller than Password minimum length.");
+            a.value = "10";
+        }
+        if(max == 0 && min == 0){
+            //ShowMessageWarning("Password maximum length cannot be smaller than Password minimum length.");
+            a.value = "0";
+        }
+    }
+
+    $(document).ready(function(){
+        $('#proceed').click();
+    });
+
+    function Click_CVEID(path,Id,tblname){
+        //alert(path);
+        //alert(Id);
+        //alert(tblname);
+        viewModel.clickUrlLinkUsePath(path,Id,tblname);
+
+       // viewModel.clickUrlLink(Id,tblname);
+    }
+
+    function cancelVulListInfo3Right(){
+        document.getElementById("splitRight").style.display = "none";
+    }
+
+</script>

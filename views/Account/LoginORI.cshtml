@@ -1,0 +1,117 @@
+﻿@using MyVDBSDemo.Models
+@model LoginViewModel
+@{
+    ViewBag.Title = "MyVDBS - Log in";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="~/Content/bootstrap4.0.0/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/bootstrap4.0.0/js/bootstrap.min.js" rel="stylesheet" />
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/cssLogin/login.css" rel="stylesheet" />
+    <link href="~/images/favicon.ico" rel="icon" type="image/x-icon" />
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    <script src="@Url.Content("~/Scripts/Main/commondialog.js")"></script>
+    <script language="javascript" src="~/Scripts/Common/Common.js" type="text/javascript"></script>
+    <script src="~/Scripts/Core/civem-0.0.7.min.js"></script>
+    <script language="javascript" src="~/Scripts/Common/ConfirmationScript.js" type="text/javascript"></script>
+
+    <title>@ViewBag.Title</title>
+</head>
+<body>
+    <div class="bg">
+
+        <div class="container-fluid">
+            <div class="row-fluid">
+
+                <div class="row justify-content-center">
+
+                    <div class="col-4" style="text-align:right"><br><br><br><br><br><br><br>
+                        <img src="~/images/logo01_s.png" height="90"><br>
+
+                        @using (Html.BeginForm("Login", "Account", FormMethod.Post))
+                        {
+                            @Html.AntiForgeryToken()
+
+                            <div class="input-group mb-3"></div>
+
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
+                                <input type="text" class="form-control" placeholder="user@myvdbs.com" id="LoginID" name="LoginID" required=required data-errormessage-value-missing="Please enter your Login ID" />
+                            </div>
+                            @Html.ValidationMessageFor(a => a.LoginID, "", new { @class = "text-danger" })<br>
+
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
+                                <input type="password" class="form-control" placeholder="password" id="Password" name="Password" required=required data-errormessage-value-missing="Please enter your Password" />
+                            </div>
+                            @Html.ValidationMessageFor(a => a.Password, "", new { @class = "text-danger" })<br>
+
+                            <p style="font-family: Arial, serif; font-size:8pt; font-style:italic;color:gold">
+                                <a href="/Account/Register">REGISTER</a> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <a href="/Account/ForgotPassword">FORGOT PASSWORD</a>
+                            </p>
+
+                            <button type="submit" class="btn btn-primary btn-sm" style="background-color:#ff9900" >&nbsp;&nbsp;LOGIN&nbsp;&nbsp;</button><br><br>
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                        }
+                    </div>
+
+                    <div class="col-4" style="text-align:left">
+                        <div class="col" style="opacity:0.3">
+                            <div class="scroll-up">
+                                <p>&nbsp;&nbsp;Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore.</p><br><br> 
+                                <p>&nbsp;&nbsp;Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p><br><br> 
+                                <p>&nbsp;&nbsp;Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p><br><br>
+                                <p>&nbsp;&nbsp;Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p><br><br><br><br>
+                                <p>&nbsp;&nbsp;Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore.</p><br><br>
+                                <p>&nbsp;&nbsp;Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p><br><br>
+                                <p>&nbsp;&nbsp;Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p><br><br>
+                                <p>&nbsp;&nbsp;Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p><br><br><br><br>
+                                <p>&nbsp;&nbsp;Link ke  <a href="http://www.cybersecurity.my">CSM</a></p>
+                            </div>
+                        </div>
+                        <img src="~/images/annouces.png" height="50">
+                    </div>
+
+                </div>
+
+                @*<div class="row justify-content-center">
+                    <footer>
+                        <p style="color:black">&copy; @DateTime.Now.Year - MyVDBS</p>
+                    </footer>
+                </div>*@
+
+            </div>
+        </div>
+
+    </div>
+
+    @Html.Partial("_CommonDialog")
+</body>
+</html>
+
+@* no danger/failed *@
+@if (TempData["Message_danger"] != null)
+{
+    <script type="text/javascript">
+        $(function () {
+            ShowMessageDanger('@TempData["Message_danger"]');
+        });
+    </script>
+}
+@* no warning *@
+@if (TempData["Message_warning"] != null)
+{
+    <script type="text/javascript">
+    $(function () {
+        ShowMessageWarning('@TempData["Message_warning"]');
+    });
+    </script>
+}

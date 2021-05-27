@@ -1,0 +1,318 @@
+﻿@using Newtonsoft.Json;
+@using myvdbsSQL;
+@model MyVDBSDemo.Models.tblComp
+
+@{
+    ViewBag.Title = "Role and Access Right";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+
+}
+
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "__AjaxAntiForgeryForm" }))
+{
+    @Html.AntiForgeryToken()
+}
+<style>
+    hr {
+        border: none;
+        height: 1px;
+    }
+</style>
+
+<div class="col-lg-8 col-md-offset-2" style="margin-top:80px;">
+    <div class="panel panel-info">
+        <div class="panel-heading">
+            <h3 class="panel-title">Add New User</h3>
+        </div>
+        <div class="panel-body">
+            <form id="myForm">
+                <div style="text-align:right">
+                    <div class="form-group row">
+                        <label for="userID" class="col-md-4 col-form-label col-form-label-sm required" style="vertical-align:bottom;">Login ID</label>
+                        <div class="col-md-6">
+                            <input type="text" class="validate[required] form-control" id="LoginID" name="LoginID" placeholder="" onchange="CheckID()" required=required data-errormessage-value-missing="Please enter User ID" data-bind="value:Register.DataID,valueUpdate: 'afterkeydown'" autocomplete="off">
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label for="name" class="col-md-4 col-form-label col-form-label-sm required">Name</label>
+                        <div class="col-md-6">
+                            <input type="text" class="validate[required] form-control" id="UserFullNm" name="UserFullNm" placeholder="" required=required data-errormessage-value-missing="Please enter your Name" data-bind="value:Register.CompFullNm,valueUpdate: 'afterkeydown'" style="text-transform:uppercase;" autocomplete="off">
+                        </div>
+                    </div>
+
+                    @*bakal dropdown in future*@
+                    <div class="form-group row">
+                        <label for="position" class="col-md-4 col-form-label col-form-label-sm required">Designation</label>
+                        <div class="col-md-6">
+                            <input type="text" class="validate[required] form-control" id="Designation" name="Designation" placeholder="" required=required data-errormessage-value-missing="Please enter your Designation" data-bind="value:Register.Task,valueUpdate: 'afterkeydown'" style="text-transform:uppercase;" autocomplete="off">
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label for="phoneNo" class="col-md-4 col-form-label col-form-label-sm">Tel. No</label>
+                        <div class="col-md-6">
+                            <div class="col-md-5" style="padding:0px 15px 0px 0px">
+                                <select id="country" class="validate[required] form-control" data-bind="options: country, optionsText: 'CountryName', optionsValue: 'CountryTelCd', valueAllowUnset: true, value : '+60', valueUpdate: 'afterkeydown'"></select>
+                            </div>
+                            <div class="col-md-7" style="padding:0px;">
+                                <input type="text" class="validate[required] form-control" id="ContactNum" name="ContactNum" placeholder="" required=required data-errormessage-value-missing="Please enter your Tel. No" data-bind="value:Register.CompNum,valueUpdate: 'afterkeydown'" autocomplete="off" onkeypress="return isNumber(event)">
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label for="email" class="col-md-4 col-form-label col-form-label-sm required">Email</label>
+                        <div class="col-md-6">
+                            <input type="text" class="validate[required] form-control" id="Email" name="Email" placeholder="" onkeyup="CheckEmail()" required=required data-errormessage-value-missing="Please enter your Email" data-bind="value:Register.Reference,valueUpdate: 'afterkeydown'" autocomplete="off">
+                        </div>
+                    </div><hr>
+
+                    @*<div class="form-group row">
+                            <label for="agencyName" class="col-md-4 col-form-label col-form-label-sm">Agency Name</label>
+                            <div class="col-md-6">
+                                <select id="agency_id" class="validate[required] form-control" data-bind="options: agcy, optionsText: 'AgcyNm', optionsValue: 'AgcyID', optionsCaption: '--- Please Choose ---', valueAllowUnset: true,value: Register.AgcyID,valueUpdate: 'afterkeydown'"></select>
+                            </div>
+                        </div>*@
+
+                    <br />
+                    <div align="center" class="form-group col-md-12">
+                        <button type="submit" class="btn btn-success btn-sm m-t-10" data-bind="click:save"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> Save</button>
+                        <button class="btn btn-warning btn-sm m-t-10" type="button" onclick="reset();"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Reset </button>
+                        <button class="btn btn-info btn-sm m-t-10" type="button" onclick="cancel();"><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> Back </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="col-md-2"></div>
+<div class="modal fade" id="modal_decision" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" align="center">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">MyVDBS</h4>
+            </div>
+            <div class="modal-body" align="center">
+                <img src='/images/sureto.png' height='40'>&nbsp;&nbsp;Are you sure to save this record?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default btn-ok" data-dismiss="modal" data-bind="click:save_user">Yes</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">No</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+
+    var Users = @Html.Raw(JsonConvert.SerializeObject(@Model, Formatting.None,
+                    new JsonSerializerSettings()
+    {
+                        ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+    }));
+
+    @functions{
+        public string TokenHeaderValue()
+        {
+            string cookieToken, formToken;
+            AntiForgery.GetTokens(null, out cookieToken, out formToken);
+            return cookieToken + ":" + formToken;
+        }
+    }
+    var formCsrf = $('#__AjaxAntiForgeryForm');
+    var tokenCsrf = $('input[name="__RequestVerificationToken"]', formCsrf).val();
+</script>
+<script src="~/Scripts/Common/Common.js"></script>
+<script>
+
+    var viewModel;
+
+    $(function () {
+        var btnBack =  function () {
+            location.href = "/Admin/UserRoleList";
+        }
+
+        viewModel = {
+            Register: ko.mapping.fromJS(Users),
+            agcy: ko.observableArray([]),
+            agcyid: ko.observable(""),
+            country: ko.observableArray([]),
+
+            save : function(){
+                viewModel.Register.CountryTelCd($("#country").val());
+                var value = $("#myForm").validationEngine('validate');
+
+                if (value == true)
+                {
+                    $('#modal_decision').modal('show');
+                }
+                else
+                {
+                    $("#myForm").validationEngine();
+                }
+
+            },
+            save_user : function(){
+                $.ajax({
+                    type: 'POST',
+                    url: server + '/Admin/AddNewUser',
+                    contentType: "application/json; charset=utf-8",
+                    data: JSON.stringify({ modelss: ko.mapping.toJS(viewModel.Register) }),
+                    headers: {
+                        '__RequestVerificationToken': tokenCsrf
+                    },
+                    success: function (msg) {
+                        if (msg.OK) {
+                            ShowMessageSuccess("User successfully add.",btnBack);
+                            //$(window).click(function() {
+                            //    location.href = "/Admin/UserRoleList";
+                            //});
+
+                        }
+                        else if (msg.Exist){
+                            ShowMessageDanger('Email Already Exist. Please try another email.');
+                        }
+                        else if (msg.notDelivery){
+                            ShowMessageDanger('Email delivery does not work. Please try again.');
+                        }
+                        else {
+                            ShowMessageDanger('Unsuccesfully add.');
+                        }
+
+                    },
+                    error: function (xhr) {
+                    }
+                });
+            }
+
+        }
+
+
+        ko.applyBindings(viewModel);
+        //loadAgency();
+        loadCountryNew('@TokenHeaderValue()');
+    });
+
+    function cancel() {
+        //ShowDecisionMessage("Are you sure?", function () {
+
+        location.href = "/Admin/UserRoleList";
+        //});
+    }
+
+
+    function reset() {
+        viewModel.Register.removeAll();
+    }
+
+
+    function loadAgency() {
+        viewModel.agcy.removeAll();
+        $.ajax({
+            type: "POST",
+            url: "/User/GetAgency",
+            contentType: "application/json; charset=utf-8",
+            datatype: "json",
+            headers: {
+                'RequestVerificationToken': '@TokenHeaderValue()'
+            },
+            //   error: function (xhr) { ShowErrorMessage("Error : " + xhr.statusText); },
+            success: function (msg) {
+                if (msg) {
+                    //ShowMessage(msg.message);
+                    var list = ko.mapping.toJS(ko.mapping.fromJSON(msg.list));
+                    $.each(list, function (i, v) {
+                        viewModel.agcy.push(v);
+                    });
+                }
+            }
+        });
+    }
+
+    function CheckID() {
+
+        //alert(document.getElementById("LoginID").value);
+        $.ajax({
+            type: "POST",
+            url: "/Account/CheckID",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({ LoginID: document.getElementById("LoginID").value }),
+            datatype: "json",
+            success: function (msg) {
+                if (msg.OK) {
+                    if (msg.list.DataID != null) {
+                        {
+                            ShowMessageWarning("Login ID already exist");
+                            viewModel.Register.DataID(null);
+                        }
+                    }
+                }
+            }
+
+        })
+
+    }
+
+    function CheckEmail() {
+
+        //alert(document.getElementById("Email").value);
+        $.ajax({
+            type: "POST",
+            url: "/Account/CheckEmail",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({ Email: document.getElementById("Email").value }),
+            datatype: "json",
+            success: function (msg) {
+                if (msg.OK) {
+                    if (msg.list.Reference != null) {
+                        {
+                            ShowMessageWarning("Email already exist");
+                            viewModel.Register.Reference(null);
+                        }
+                    }
+                }
+            }
+
+        })
+
+    }
+
+    function isNumber(evt){
+        var charCode = (evt.which) ? evt.which : event.keyCode
+        if (charCode > 31 && (charCode < 48 || charCode > 57))
+            return false;
+
+        return true;
+    }
+
+    $(document).ready(function() {
+
+        $('#ContactNum').bind('copy paste cut',function(e) {
+            e.preventDefault(); //disable cut,copy,paste
+        });
+
+    });
+
+    function validateEmail(email) {
+        var re = /^(([^<>()[\]\\.,;:\s@@\"]+(\.[^<>()[\]\\.,;:\s@@\"]+)*)|(\".+\"))@@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        return re.test(email);
+    }
+
+    function validate() {
+        var $result = $("#result");
+        var email = $("#Email").val();
+        $result.text("");
+
+        if (validateEmail(email)) {
+        } else {
+            ShowMessageWarning("Invalid Email.");
+            $("#Email").val("");
+        }
+        return false;
+    }
+
+    $("#Email").bind("change", validate);
+</script>

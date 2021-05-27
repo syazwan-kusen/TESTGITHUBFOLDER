@@ -1,0 +1,188 @@
+﻿
+<style>
+    hr {
+        border: none;
+        height: 1px;
+    }
+</style>
+
+<div class="panel panel-info">
+     <div class="panel-body">
+        <div class="col-md-2"></div>
+        
+        <form id="myForm" class="form-group col-md-8">
+                <div class="form-row">
+                    <div class="form-group col-md-12">
+                        <label class="required" for="inputAddress">Project Name</label>
+                       @* <input id="project_nm" type="text" name="project_nm" class="validate[required] form-control"  placeholder="e.g. Project Name" autofocus data-bind="value:Vulnerability.VulProj.VulProjectName, valueUpdate:'afterkeydown'" autocomplete="off">*@
+                        <textarea id="project_nm" type="text" maxlength="100" class="validate[required] form-control textarearesize" name="project_nm" placeholder="e.g. Project Name" autofocus rows="1" data-bind="html:Vulnerability.VulProj.VulProjectName, valueUpdate:'afterkeydown'" onkeypress="return runScript(event)"></textarea>
+                     </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-12">
+                        <label class="required" for="inputAddress">Customer Name</label>
+                        <textarea id="customer_nm" type="text" maxlength="100" class="validate[required] form-control textarearesize" name="customer_nm" placeholder="e.g. Customer Name" autofocus rows="1" data-bind="html:Vulnerability.VulProjClient.VulProjClientName, valueUpdate:'afterkeydown'" onkeypress="return runScript(event)"></textarea>
+                    </div>
+                </div>               
+                <div class="form-row">
+                    <div class="form-group col-md-12">
+                        <label class="required" for="inputAddress">Organization/Team</label>
+                        <textarea id="organization_nm" type="text"  maxlength="100" class="validate[required] form-control textarearesize" name="organization_nm" placeholder="e.g. Majlis Bandaraya Shah Alam" autofocus rows="1" data-bind="html:Vulnerability.VulProjClient.Organization, valueUpdate:'afterkeydown'" onkeypress="return runScript(event)"></textarea>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label class="required" for="inputAddress">Contact Person</label>
+                        <textarea id="contact_person" type="text"  maxlength="50" class="validate[required] form-control textarearesize" name="contact_person" placeholder="e.g. Contact Person" autofocus rows="1" data-bind="html:Vulnerability.VulProjClient.ContactPerson, valueUpdate:'afterkeydown'" onkeypress="return runScript(event)"></textarea>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label class="required" for="agency_abbrv">Designation</label>
+                        <textarea id="designation" type="text" maxlength="50" class="validate[required] form-control textarearesize" name="designation" placeholder="e.g. Project Manager" autofocus rows="1" data-bind="html:Vulnerability.VulProjClient.Designation, valueUpdate:'afterkeydown'" onkeypress="return runScript(event)"></textarea>
+                     </div>
+                </div>  
+                <div class="form-row">
+                    @*<div class="form-group col-md-6">
+                        <label for="tel_no">Phone Number</label>
+                        <input id="tel_no" type="text" class="form-control" name="tel_no" maxlength="50"  placeholder="e.g. 0174567899" autofocus data-bind="value:Vulnerability.VulProjClient.PhoneNo, valueUpdate:'afterkeydown'" autocomplete="off" onkeypress="return isNumber(event)">
+                    </div>*@
+                    @*<div class="col-md-2">
+                        <label for="tel_no">Phone Number</label>
+                        <select class="form-control" id="country">
+                            <option>+60</option>
+                            <option>+65</option> 
+                            <option>+62</option> 
+                            <option>+66</option> 
+                            <option value="10">Others</option>
+                        </select>
+                    </div>*@
+                    <div class="col-md-6" >
+                        <label for="tel_no">Phone Number</label>
+                        <input id="tel_no" type="text" class="form-control"  name="tel_no" maxlength="50" placeholder="e.g. 1234567890" autofocus data-bind="value:Vulnerability.VulProjClient.PhoneNo, valueUpdate:'afterkeydown'" autocomplete="off" onkeypress="return isNumber(event)">
+                        @*<p style="color:black;text-align:left;margin-bottom: 0px;">Should not start with 0.</p>*@
+                        @*<span class="field-validation-valid" data-valmsg-for="TelNo" data-valmsg-replace="true"></span>*@
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="fax_num">Fax Number</label>
+                        <input id="fax_num" type="text" class="form-control" name="fax_num" maxlength="50"  placeholder="e.g. 034567899" autofocus data-bind="value:Vulnerability.VulProjClient.FaxNo, valueUpdate:'afterkeydown'" autocomplete="off" onkeypress="return isNumber(event)">
+                    </div>
+                </div>
+                <div class="form-group col-md-12">
+                    <label for="addr1">Address</label>
+                    <textarea id="addr1" type="text" maxlength="100" class="form-control textarearesize" name="addr1"  placeholder="e.g. No 13 Jalan Permaisuri 4" autofocus rows="1" data-bind="html:Vulnerability.VulProjClient.Addr1, valueUpdate:'afterkeydown'" onkeypress="return runScript(event)"></textarea>
+                </div>
+                <div class="form-group col-md-12">
+                    <textarea id="addr2" type="text" maxlength="100" class="form-control textarearesize" name="addr2" placeholder="e.g. Taman Sejahtera Permai" autofocus rows="1" data-bind="html:Vulnerability.VulProjClient.Addr2, valueUpdate:'afterkeydown'" onkeypress="return runScript(event)"></textarea>
+                </div>
+                <div class="form-group col-md-12">
+                    <textarea id="addr3" type="text" maxlength="100" class="form-control textarearesize" name="addr3" placeholder="" autofocus rows="1" data-bind="html:Vulnerability.VulProjClient.Addr3, valueUpdate:'afterkeydown'" onkeypress="return runScript(event)"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-3">
+                        <label for="postcode">Postcode</label>
+                        <input id="postcode" type="text" class="form-control" name="postcode" maxlength="5" placeholder="e.g 40000" autofocus data-bind="value:Vulnerability.VulProjClient.PostCode, valueUpdate:'afterkeydown'" autocomplete="off" onkeypress="return isNumber(event)">
+                    </div>
+                    <div class="form-group col-md-4">
+                        <label for="state">State</label>
+                        <select id="state" class="form-control" data-bind="options: state, optionsText: 'StateNm', optionsValue: 'StateCd', optionsCaption: '--- Please Choose ---', valueAllowUnset: true,value : Vulnerability.VulProjClient.StateCd,valueUpdate: 'afterkeydown'"></select>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <label for="city">City</label>
+                        <select id="city" class="form-control" data-bind="options: city, optionsText: 'CityNm', optionsValue: 'CityCd', optionsCaption: '--- Please Choose ---', valueAllowUnset: true,value : Vulnerability.VulProjClient.CityCd,valueUpdate: 'afterkeydown'"></select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-5">
+                        <label for="email">Email</label>
+                        <textarea id="email" type="email" class="form-control textarearesize"  placeholder="e.g. mbsa[at]​mbsa[dot]gov[dot]my​" autofocus rows="1" data-bind="html:Vulnerability.VulProjClient.Email, valueUpdate:'afterkeydown'" onkeypress="return runScript(event)"></textarea>
+                    </div>
+                </div>
+          
+            </form>
+            <div align="center" class="form-group col-md-12">
+                <button type="submit" class="btn btn-success btn-sm m-t-10" data-bind="click:updateClientInfo"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> Save</button>
+                <button id="resetUpdate" class="btn btn-warning btn-sm m-t-10" onclick='reset()'><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Reset </button>
+                <button id="cancel" class="btn btn-info btn-sm m-t-10" onclick='cancel()'><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> Back </button>
+
+                @*<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+                <input type="button" value="cancel" class="btn btn-info btn-sm m-t-10" onclick='cancel()' />*@
+
+            </div>
+    </div>
+</div>
+
+<script>
+
+    var viewModel;
+
+
+    function cancel() {
+       // ShowDecisionMessage("Are you Sure ?", function () {
+
+            location.href = "/Admin/VulnerabilityProjectList";
+
+        // });
+    }
+
+    function reset() {
+        // ShowDecisionMessage("Are you Sure ?", function () {
+
+        location.reload();
+
+        // });
+    }
+
+
+    $('#myForm').submit(function () {
+        $('input[type=submit]', this).attr('disabled', 'disabled');
+    });
+
+    function isNumber(evt) {
+        var charCode = (evt.which) ? evt.which : event.keyCode
+        if (charCode > 31 && (charCode < 48 || charCode > 57))
+            return false;
+
+        return true;
+    }
+
+    $('#tel_no').bind('copy paste cut', function (e) {
+        e.preventDefault(); //disable cut,copy,paste
+    });
+
+    $('#fax_num').bind('copy paste cut', function (e) {
+        e.preventDefault(); //disable cut,copy,paste
+    });
+
+    $("#tel_no").keyup(function () {
+        var dInput = this.value;
+        if (dInput.slice(0, 1) == 0) {
+            ShowMessageWarning("Should not start with 0.");
+            $("#tel_no").val("+");
+        }
+    });
+
+    //$('#country').on('change', function () {
+    //    if (this.value == 10) {
+    //        $('#tel_no').val("+");
+    //    } else {
+    //        $('#tel_no').val("");
+    //    }
+    //});
+
+
+
+</script>
+
+@if (TempData["Message"] != null)
+{
+    <script type="text/javascript">
+                    $(function () {
+                        ShowMessage('@TempData["Message"]');
+                        $('input[type="submit"]').attr('disabled' , false);
+                    });
+
+
+
+    </script>
+}
+
+

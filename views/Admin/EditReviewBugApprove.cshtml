@@ -1,0 +1,355 @@
+﻿
+@using Newtonsoft.Json;
+@using myvdbsSQL;
+@using MyVDBSDemo.Models;
+@model MyVDBSDemo.Models.BugResearchProjectData
+@*@model IList<MyVDBSDemo.Models.tblREFCVSSSeverity>*@
+
+@{
+    ViewBag.Title = "Bug Research Forum";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+<style>
+    .quoted {
+        border-left: 3px solid rgba(0,0,0,0.2);
+        margin-left: 15px;
+    }
+
+    .line {
+        border-top: 1px solid rgba(0,0,0,0.2);
+        display: inline-block;
+        width: 60%;
+        vertical-align: middle;
+    }
+
+    .white {
+        background-color: white;
+        margin: 2px;
+        padding-top: 15px;
+        padding-bottom: 15px;
+        border-radius: 10px;
+        margin: 15px;
+    }
+
+    .avatar {
+        background-color: #fff;
+        /*border: 1px solid #c5c5c5;
+        border-radius: 10%;*/
+        text-align: center;
+    }
+
+    .subject {
+        color: #828282;
+    }
+
+    .li {
+        display: list-item;
+        list-style-type: disc;
+        list-style-position: inside;
+    }
+</style>
+
+
+<body>
+    <div class="col-lg-12" style="margin-top:80px;">
+        <div class="panel panel-info">
+
+            <div class="panel-body">
+                <div class="col-lg-1"><h3><span class="label label-default">#<span data-bind="text: Bug.GetBugResearchProj.BugResearchProjId"></span></span></h3></div>
+                <div class="col-lg-11"><h3 data-bind="text: Bug.GetBugResearchProj.ProjTitle"></h3> </div>
+
+                <div class="form-group row">
+                    <label for="title" class="col-sm-2 col-form-label" style="text-align:right;">Status</label>
+                    <div class="col-sm-4" data-bind="text: Bug.GetBugResearchProj.y.BugResearchStatusTitle">
+
+                    </div>
+                    <label for="title" class="col-sm-1 col-form-label" style="text-align:right;">Severity</label>
+                    <div class="col-sm-5" data-bind="text: Bug.GetBugResearchProj.z.SeverityNm">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="title" class="col-sm-2 col-form-label" style="text-align:right;">Disclosed Date</label>
+                    <div class="col-sm-4" data-bind="text: Bug.GetBugResearchProj.DisclosedDt">
+                    </div>
+                    <label for="cat" class="col-sm-1 col-form-label" style="text-align:right;">Category</label>
+                    <div class="col-sm-5" data-bind="text: Bug.GetBugResearchProj.u.VulCategoryNm">
+
+                    </div>
+                    <input type="hidden" data-bind="value:Bug.GetResearcherId.BugResearcherId" />
+                </div>
+                <div class="form-group row">
+                    <label for="title" class="col-sm-2 col-form-label" style="text-align:right;">Created By</label>
+                    <div class="col-sm-4" data-bind="text: Bug.GetBugResearchProj.x.CompFullNm">
+                    </div>
+                    <label for="title" class="col-sm-1 col-form-label" style="text-align:right;">Participants</label>
+                    <div class="col-sm-5">
+
+                        @if (Model.GetBugResearchProj.VisibilityInd == false)
+                        {
+                            <p>Public</p>
+                        }
+                        else
+                        {
+                            foreach (var participant in Model.GetReseacher)
+                            {
+                                //if (File.Exists(Server.MapPath(@participant.x.CrossPath)))
+                                if (@participant.x.CompPath != null && @participant.x.CompPath  != "")
+                                {
+                                    <img id="previewImg" src="@participant.x.CompPath" style="border-radius:50%;height:26px" title="@participant.x.CompFullNm"><span>&nbsp; &nbsp;</span>
+                                }
+
+                                else
+                                {
+                                    <img id="previewImg" src="/images/user_bug.png" style="height:26px" title="@participant.x.CompFullNm"><span>&nbsp; &nbsp;</span>
+                                }
+                            }
+                        }
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="title" class="col-sm-2 col-form-label" style="text-align:right;">Project Details</label>
+                    <div class="col-sm-10" data-bind="text: Bug.GetBugResearchProj.ProjDetail">
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="col-lg-12" align="center">
+                <button id="comment" style="background-color:#cc9900; color: #ffffff;" class="btn btn-sm m-t-10"><span class="glyphicon glyphicon-comment" aria-hidden="true"></span> Comment </button>
+                <button id="report" style="background-color:#999966; color: #ffffff;" class="btn btn-sm m-t-10"><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Bug Report </button>
+                <button id="cancel" class="btn btn-info btn-sm m-t-10" data-bind="click:cancel"><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> Back </button>
+            </div>
+            <br /><br />
+            <div class="form-group row white" id="comment_panel" style="display: none;">
+                <table class="col-sm-12">
+                    @{
+                        var count = 0;
+                        foreach (var comment in Model.GetResearchComment)
+                        {
+                            count = count + 1;
+                            <tr>
+                                <td class="col-sm-1" align="center" rowspan="3">
+                                    @*@if (File.Exists(Server.MapPath(@comment.ParentCrossPath)))*@
+                                    if (@comment.ParentCrossPath != null && @comment.ParentCrossPath  != "")
+                                    {
+                                        <img id="previewImg" src="@comment.ParentCrossPath" style="border-radius:50%;height:26px">
+                                    }
+
+                                    else
+                                    {
+                                        <img id="previewImg" src="/images/user_bug.png" style="height:26px;" class="avatar">
+                                    }
+                                </td>
+                                <td class="col-sm-10" style="padding-top: 10px;"><span style="color:cornflowerblue;">@comment.ParentCompFullNm</span><span class="subject"> posted a comment on @comment.ParentCreatedDt.</span></td>
+
+                            </tr>
+                            <tr>
+                                <td class="col-sm-11" colspan="2">@comment.ParentCommentDesc</td>
+                            </tr>
+                            <tr>
+                                <td class="col-sm-11" colspan="2">
+                                    @{
+                                        foreach (var reply in Model.GetResearchComment)
+                                        {
+                                            if (@reply.ParentCommentId == @comment.ParentCommentId)
+                                            {
+                                                <div id="display_@reply.BRCommentId" class="quoted @(@reply.CommentDesc != null ? "show" : "hide")">
+                                                    &nbsp; &nbsp;<span id="remark_@reply.BRCommentId">@reply.CommentDesc</span>
+                                                </div>
+                                            }
+                                        }
+                                    }
+                                    
+                                </td>
+                            </tr>
+                        }
+                    }
+                    @if (Model.GetResearchComment.Count() == 0)
+                    {
+                        <tfoot>
+                            <tr>
+                                <td><i>&nbsp;&nbsp;No record found.</i></td>
+                            </tr>
+                        </tfoot>
+                    }
+                </table>
+            </div>
+
+            <div class="form-group row white" id="report_panel" style="display: none;">
+
+                <table class="col-sm-12">
+                    @{
+                        var count_on_me = 0;
+                        foreach (var report in Model.GetResearchReport)
+                        {
+                            count_on_me = count_on_me + 1;
+                            <tr>
+
+                                @*@if (File.Exists(Server.MapPath(@report.y.CrossPath)))*@
+                                @(@report.y.CompPath != null & @report.y.CompPath != "")
+                                {
+                                    <td class="col-sm-1" align="center"><img id="previewImg" src="@report.y.CompPath" style="border-radius:50%;height:26px" class="avatar"></td>
+                                }
+
+                                else
+                                {
+                                    <td class="col-sm-1" align="center"><img id="previewImg" src="/images/user_bug.png" style="height:26px;" class="avatar"></td>
+                                }
+                                <td class="col-sm-10"><span style="color:cornflowerblue;">@report.y.DataID</span><span class="subject"> submitted a report on @report.BRRptSubmittedDt</span><span class="line"></span></td>
+                            </tr>
+                                <tr>
+                                    @*<td align="center" rowspan="10"><p class="quoted">&nbsp;</p></td>*@
+                                    <td align="center"></td>
+                                    <td class="col-sm-11" colspan="2"><strong>Title:</strong></td>
+                                </tr>
+                                <tr>
+                                    <td align="center"></td>
+                                    <td class="col-sm-11" colspan="2">@report.BRRptTitle</td>
+                                </tr>
+                                <tr style="display:@(report.BRRptImpact == null ? "none" : "")">
+                                    <td align="center"></td>
+                                    <td class="col-sm-11" colspan="2"><strong>Summary:</strong></td>
+                                </tr>
+                                <tr style="display:@(report.BRRptImpact == null ? "none" : "")">
+                                    <td align="center"></td>
+                                    <td class="col-sm-11" colspan="2">@report.BRRptSummary</td>
+                                </tr>
+                                <tr style="display:@(report.BRRptImpact == null ? "none" : "")">
+                                    <td align="center"></td>
+                                    <td class="col-sm-11" colspan="2"><strong>Description:</strong></td>
+                                </tr>
+                                <tr style="display:@(report.BRRptImpact == null ? "none" : "")">
+                                    <td align="center"></td>
+                                    <td class="col-sm-11" colspan="2">@report.BRRptDesc</td>
+                                </tr>
+                                <tr style="display:@(report.BRRptImpact == null ? "none" : "")">
+                                    <td align="center"></td>
+                                    <td class="col-sm-11" colspan="2"><strong>Steps To Reproduce:</strong></td>
+                                </tr>
+                                <tr style="display:@(report.BRRptImpact == null ? "none" : "")">
+                                    <td align="center"></td>
+                                    <td class="col-sm-11" colspan="2">@report.BRRptStepReproduce</td>
+                                </tr>
+                                <tr style="display:@(report.Platforms == null ? "none" : "")">
+                                    <td align="center"></td>
+                                    <td class="col-sm-11" colspan="2"><strong>Platform:</strong></td>
+                                </tr>
+                                <tr>
+                                    <td align="center"></td>
+                                    <td class="col-sm-11" colspan="2">
+                                        @{
+                                            foreach (var platform in Model.GetPlatform)
+                                            {
+                                                if (report.BugResearchRptId == platform.BugResearchRptId)
+                                                {
+                                                    <span class="li">@platform.PlatformName</span>
+                                                }
+                                            }
+                                        }
+                                    </td>
+                                </tr>
+                                <tr style="display:@(report.Refs == null ? "none" : "")">
+                                    <td align="center"></td>
+                                    <td class="col-sm-11" colspan="2"><strong>Reference:</strong></td>
+                                </tr>
+                                <tr>
+                                    <td align="center"></td>
+                                    <td class="col-sm-11" colspan="2">
+                                        @{
+                                            foreach (var reff in Model.GetRef)
+                                            {
+                                                if (report.BugResearchRptId == reff.BugResearchRptId)
+                                                {
+                                                    <span class="li">@reff.RefNm</span>
+                                                }
+                                            }
+                                        }
+                                    </td>
+                                </tr>
+                                <tr style="display:@(report.Attchmts == null ? "none" : "")">
+                                    <td align="center"></td>
+                                    <td class="col-sm-11" colspan="2"><strong>Attachment:</strong></td>
+                                </tr>
+                                <tr>
+                                    <td align="center"></td>
+                                    <td class="col-sm-11" colspan="2">
+                                        @{
+                                            foreach (var attchmt in Model.GetAttchmt)
+                                            {
+                                                if (report.BugResearchRptId == attchmt.BugResearchRptId)
+                                                {
+                                                    <span class="li"><a href="@attchmt.AttchmtPath" download style="color: rgb(0, 0, 255);">@attchmt.AttchmtPath</a></span>
+                                                }
+                                            }
+                                        }
+                                    </td>
+                                </tr>
+                                            }
+                    }
+                    @if (Model.GetResearchReport.Count() == 0)
+                    {
+                        <tfoot>
+                            <tr>
+                                <td><i>&nbsp;&nbsp;No record found.</i></td>
+                            </tr>
+                        </tfoot>
+                    }
+
+                </table>
+            </div>
+        </div>
+    </div>
+
+    @Html.Partial("_CommonDialog")
+
+</body>
+<script src="~/Scripts/Common/Common.js"></script>
+<script>
+
+    var Bug = @Html.Raw(JsonConvert.SerializeObject(@Model, Formatting.None,
+    new JsonSerializerSettings()
+    {
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+    }));
+
+</script>
+
+<script>
+    $(function () {
+
+        viewModel = {
+            Bug: ko.mapping.fromJS(Bug),
+            reset: function(){
+                location.reload();
+            },
+            review :
+            {
+                BugResearchProjId: ko.observable(""),
+                Remarks: ko.observable(""),
+                BugResearchStatusCd: ko.observable(""),
+                BugResearchStatusId: ko.observable("")
+            },
+        }
+
+        ko.applyBindings(viewModel);
+    });
+    function cancel(cd) {
+        sessionStorage.setItem("tab", 2);
+
+        location.href = "/Admin/ReviewBugResearchProject";
+    }
+    $(document).ready(function() {
+        $("#comment").click(function() {
+            $("#comment_panel").show(1000);
+            $("#report_panel").hide(1000);
+        });
+    });
+
+    $(document).ready(function() {
+        $("#report").click(function() {
+            $("#report_panel").show(1000);
+            $("#comment_panel").hide(1000);
+        });
+
+    });
+</script>

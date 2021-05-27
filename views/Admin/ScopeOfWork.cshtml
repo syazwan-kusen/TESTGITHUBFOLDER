@@ -1,0 +1,297 @@
+﻿<div class="panel panel-info">
+    <div class="panel-body">
+        <div class="col-md-2"></div>
+
+        <form id="myFormScope" class="form-group col-md-12">
+            <div class="form-group col-md-12">
+                <label for="inputAddress"><u>Location Of Assessment</u></label>
+                @*<input id="loc_ass" type="text" name="loc_ass" class="validate[required] form-control" placeholder="e.g. Majlis Bandaraya Shah Alam" autofocus data-bind="value:Vulnerability.VulProjScope.Location, valueUpdate:'afterkeydown'">*@
+                <textarea id="loc_ass" type="text" maxlength="100" class="validate[required] form-control textarearesize" name="loc_ass" placeholder="e.g. Majlis Bandaraya Shah Alam" autofocus rows="1" data-bind="html:Vulnerability.VulProjScope.Location, valueUpdate:'afterkeydown'" onkeypress="return runScript(event)"></textarea>
+            </div>
+
+            @*<div class="panel-body col-md-12"  style="border-style:ridge;">*@
+
+                @Html.Partial("ListOfServer")
+
+                @Html.Partial("ListOfNetworkDevice")
+            @*</div>*@
+         
+           @* <div class="panel-body col-md-12"  style="border-style:ridge;">*@
+                @Html.Partial("ListOfWebApplication")
+
+                @Html.Partial("ListOfWireless")
+            @*</div>*@
+         
+           @* <div class="panel-body col-md-12"  style="border-style:ridge;">*@
+                @Html.Partial("ListOfDatabase")
+            @*</div>*@
+
+            <div align="center" class="form-group col-md-12">
+                <button type="submit" class="btn btn-success btn-sm m-t-10" data-bind="click:updateScopeOfWork"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> Save</button>
+                <button type="reset" id="resetUpdate" class="btn btn-warning btn-sm m-t-10" onclick='resetscope()'><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Reset </button>
+                <button type="button" class="btn btn-info btn-sm m-t-10" onclick='backtoclientinfo()'><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> Back </button>
+            </div>
+        </form>
+</div>
+</div>
+<div id="listofserver" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+    <div class="modal-dialog" style="width:500px">
+        <div class="panel panel-info">
+            @*<div class="modal-header">
+                    <h4 align="center">Update DREAD Type </h4>
+                </div>*@
+            <div class="panel-heading">
+                <h3 class="panel-title">Add List of Server</h3>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <form id="editFormlistofserver">
+                        <br />
+                        <div class="form-group">
+                            <label for="Hostname" class="col-form-label">Hostname</label>
+                            <input type="text" class="validate[required] form-control" data-bind="value:listofserver.Hostname" id="HostnameLOS" placeholder="e.g. Hostname" autocomplete="off">
+                       </div>
+                        <br />
+                        <div class="form-group">
+                            <label for="IPAddress" class="col-form-label">IP Address</label>
+                            <input type="text" class="validate[required] form-control" data-bind="value:listofserver.IPAddr" id="IPAddress" placeholder="e.g. 115.42.150.37" autocomplete="off">
+                        </div>
+                        <br />
+                        <div class="form-group">
+                            <label for="OS" class="col-form-label">OS</label>
+                            <input type="text" class="validate[required] form-control" data-bind="value:listofserver.OS" id="OS" placeholder="e.g. windows98" autocomplete="off">
+                        </div>
+                        @*<div class="form-group">
+                            <label for="DREADAbrvn" class="col-form-label">DREAD Type Abrvn:</label>
+                            <input type="text" maxlength="1" style="width:15%;" class="validate[required] form-control" data-bind="value:score3.DREADAbrvn" id="DREADAbrvn" placeholder="e.g. Base Score">
+                        </div>*@
+                    </form>
+
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <div align="center">
+                    <button id="saveUpdate" class="btn btn-success btn-sm m-t-10" data-bind="click:saveUpdatelistofserver"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> Save </button>
+                    <button id="resetUpdate" class="btn btn-warning btn-sm m-t-10" data-bind="click:resetDialoglistofserver"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Reset </button>
+                    <button class="btn btn-info btn-sm m-t-10" onclick="cancellistofserver(); return false;"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel</button>
+
+                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="ListOfNetworkDevice" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+    <div class="modal-dialog" style="width:500px">
+        <div class="panel panel-info">
+            @*<div class="modal-header">
+                    <h4 align="center">Update DREAD Type </h4>
+                </div>*@
+            <div class="panel-heading">
+                <h3 class="panel-title">Add List of Network Device</h3>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <form id="editFormListOfNetworkDevice">
+                        <br />
+                        <div class="form-group">
+                            <label for="NetworkDevice" class="col-form-label">Network Device</label>
+                            <input type="text" class="validate[required] form-control" data-bind="value:ListOfNetworkDevice.NetDevice" id="NetworkDevice" placeholder="e.g. Network Device" autocomplete="off">
+                        </div>
+                        <br />
+                        <div class="form-group">
+                            <label for="IPAddress" class="col-form-label">IP Address</label>
+                            <input type="text" class="validate[required] form-control" data-bind="value:ListOfNetworkDevice.IPAddr" id="IPAddressND" placeholder="e.g. 115.42.150.37" autocomplete="off">
+                        </div>
+                        <br />
+                        <div class="form-group">
+                            <label for="Model" class="col-form-label">Model</label>
+                            <input type="text" class="validate[required] form-control" data-bind="value:ListOfNetworkDevice.Model" id="Model" placeholder="e.g. Model" autocomplete="off">
+                        </div>
+                        @*<div class="form-group">
+                                <label for="DREADAbrvn" class="col-form-label">DREAD Type Abrvn:</label>
+                                <input type="text" maxlength="1" style="width:15%;" class="validate[required] form-control" data-bind="value:score3.DREADAbrvn" id="DREADAbrvn" placeholder="e.g. Base Score">
+                            </div>*@
+                    </form>
+
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <div align="center">
+                    <button id="saveUpdate" class="btn btn-success btn-sm m-t-10" data-bind="click:saveUpdateListOfNetworkDevice"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> Save </button>
+                    <button id="resetUpdate" class="btn btn-warning btn-sm m-t-10" data-bind="click:resetDialogListOfNetworkDevice"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Reset </button>
+                    <button class="btn btn-info btn-sm m-t-10" onclick="cancelListOfNetworkDevice(); return false;"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel</button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="ListOfWebApplication" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+    <div class="modal-dialog" style="width:500px">
+        <div class="panel panel-info">
+            @*<div class="modal-header">
+                    <h4 align="center">Update DREAD Type </h4>
+                </div>*@
+            <div class="panel-heading">
+                <h3 class="panel-title">Add List of Web Application</h3>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <form id="editFormListOfWebApplication">
+                        <br />
+                        <div class="form-group">
+                            <label for="ApplicationName" class="col-form-label">Application Name</label>
+                            <input type="text" class="validate[required] form-control" data-bind="value:ListOfWebApplication.AppNm" id="ApplicationName" placeholder="e.g. Application Name" autocomplete="off">
+                        </div>
+                        <br />
+                        <div class="form-group">
+                            <label for="ApplicationURL" class="col-form-label">Application URL</label>
+                            <input type="text" class="validate[required] form-control" data-bind="value:ListOfWebApplication.AppURL" id="ApplicationURL" placeholder="e.g. Application URL" autocomplete="off">
+                        </div>
+                        <br />
+                    </form>
+
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <div align="center">
+                    <button id="saveUpdate" class="btn btn-success btn-sm m-t-10" data-bind="click:saveUpdateListOfWebApplication"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> Save </button>
+                    <button id="resetUpdate" class="btn btn-warning btn-sm m-t-10" data-bind="click:resetUpdateListOfWebApplication"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Reset </button>
+                    <button class="btn btn-info btn-sm m-t-10" onclick="cancelListOfWebApplication(); return false;"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel</button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="ListOfWireless" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+    <div class="modal-dialog" style="width:500px">
+        <div class="panel panel-info">
+            @*<div class="modal-header">
+                    <h4 align="center">Update DREAD Type </h4>
+                </div>*@
+            <div class="panel-heading">
+                <h3 class="panel-title">Add List of Wireless</h3>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <form id="editFormListOfWireless">
+                        <br />
+                        <div class="form-group">
+                            <label for="SSIDDevice" class="col-form-label">List of SSID Device</label>
+                            <input type="text" class="validate[required] form-control" data-bind="value:ListOfWireless.SSID" id="SSIDDevice" placeholder="e.g. Application" autocomplete="off">
+                        </div>
+                        <br />
+                    </form>
+
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <div align="center">
+                    <button id="saveUpdate" class="btn btn-success btn-sm m-t-10" data-bind="click:saveUpdateListOfWireless"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> Save </button>
+                    <button id="resetUpdate" class="btn btn-warning btn-sm m-t-10" data-bind="click:resetUpdateListOfWireless"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Reset </button>
+                    <button class="btn btn-info btn-sm m-t-10" onclick="cancelListOfWireless(); return false;"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel</button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="ListOfDatabase" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+    <div class="modal-dialog" style="width:500px">
+        <div class="panel panel-info">
+            @*<div class="modal-header">
+                    <h4 align="center">Update DREAD Type </h4>
+                </div>*@
+            <div class="panel-heading">
+                <h3 class="panel-title">Add List of Database</h3>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <form id="editFormListOfDatabase">
+                        <br />
+                        <div class="form-group">
+                            <label for="Hostname" class="col-form-label">Hostname</label>
+                            <input type="text" class="validate[required] form-control" data-bind="value:ListOfDatabase.Hostname" id="HostnameLOD" placeholder="e.g. Application" autocomplete="off">
+                        </div>
+                        <br />
+                        <div class="form-group">
+                            <label for="IPAddress" class="col-form-label">IP Address</label>
+                            <input type="text" class="validate[required] form-control" data-bind="value:ListOfDatabase.IPAddr" id="IPAddressLOD" placeholder="e.g. 115.42.150.37" autocomplete="off">
+                        </div>
+                        <br />
+                        <div class="form-group">
+                            <label for="Model" class="col-form-label">Type</label>
+                            <input type="text" class="validate[required] form-control" data-bind="value:ListOfDatabase.Type" id="Type" placeholder="e.g. URL" autocomplete="off">
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <div align="center">
+                    <button id="saveUpdate" class="btn btn-success btn-sm m-t-10" data-bind="click:saveUpdateListOfDatabase"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> Save </button>
+                    <button id="resetUpdate" class="btn btn-warning btn-sm m-t-10" data-bind="click:resetUpdateListOfDatabase"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Reset </button>
+                    <button class="btn btn-info btn-sm m-t-10" onclick="cancelListOfDatabase(); return false;"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel</button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+
+    function backtoclientinfo() {
+
+        sessionStorage.setItem("activtab", 0);
+        location.reload();
+
+    }
+
+
+    function resetscope() {
+        // ShowDecisionMessage("Are you Sure ?", function () {
+        sessionStorage.setItem("activtab", 1);
+        location.reload();
+
+        // });
+    }
+
+
+    function cancellistofserver() {
+        $('#listofserver').modal('hide');
+    }
+
+    function cancelListOfNetworkDevice() {
+        $('#ListOfNetworkDevice').modal('hide');
+    }
+
+    function cancelListOfWebApplication() {
+        $('#ListOfWebApplication').modal('hide');
+    }
+
+    function cancelListOfWireless() {
+        $('#ListOfWireless').modal('hide');
+    }
+
+    function cancelListOfDatabase() {
+        $('#ListOfDatabase').modal('hide');
+    }
+</script>
+

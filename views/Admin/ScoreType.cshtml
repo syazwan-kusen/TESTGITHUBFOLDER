@@ -1,0 +1,452 @@
+﻿@using Newtonsoft.Json;
+@using myvdbsSQL;
+@using MyVDBSDemo.Models;
+@model IEnumerable<MyVDBSDemo.Models.tblREFScoreType>
+
+@{
+    ViewBag.Title = MyVDBSDemo.Resources.LangText.Score_Type;
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+
+}
+
+<div class="col-lg-12" style="margin-top:80px;">
+    <div class="panel panel-info">
+
+        <div class="panel-body">
+
+            <div class="col-lg-12" style="margin-top:20px">
+                <div class="panel panel-info">
+                    <div class="panel-body">
+                        <table class="table table-bordered table-striped display" id="pageList" align="center">
+                            <thead style="background-color:moccasin">
+                                <tr>
+                                    <th class="text-center">@MyVDBSDemo.Resources.LangText.No</th>
+                                    <th class="col-sm-2 text-center">@MyVDBSDemo.Resources.LangText.Score_Type_Code</th>
+                                    <th class="col-sm-4 text-center">@MyVDBSDemo.Resources.LangText.Score_Type_Name</th>
+                                    <th class="col-sm-4 text-center">@MyVDBSDemo.Resources.LangText.Score_Type_Desc</th>
+                                    <th class="col-sm-2 text-center"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{
+                                    var count = 0;
+                                    foreach (var item in Model)
+
+                                    {
+                                        count = count + 1;
+                                        <tr>
+                                            <td style="text-align:center">@count</td>
+                                            <td>@Html.Raw(item.scoreTypeCd)</td>
+                                            <td>@Html.Raw(item.scoreTypeNm)</td>
+                                            <td>@Html.Raw(item.scoreTypeDesc)</td>
+                                            <td style="text-align:center">
+                                                <button type="button" id="edit" class="btn btn-success btn-xs edit" onclick="edit('@item.scoreTypeCd')"><span class="glyphicon glyphicon-pencil"></span> @MyVDBSDemo.Resources.LangText.Update</button>
+                                                <button type="button" id="delete" class="btn btn-danger btn-xs delete" onclick="hapus('@item.scoreTypeCd')"><span class="glyphicon glyphicon-trash"></span> @MyVDBSDemo.Resources.LangText.Delete</button>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                        <div align="right">
+                            <div id="drawSearchPaginateDT"></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12" align="center">
+
+                                <button data-bind="click : add, visible :true, enable: true" class="btn btn-primary btn-sm m-t-10">
+                                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Add
+                                </button>
+
+                                @*<button data-bind="click : cancel, visible :true, enable: true" class="btn btn-info btn-sm m-t-10">
+                                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Cancel
+                                </button>*@
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="ScoreAdd" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+    <div class="modal-dialog" style="width:500px">
+        <div class="modal-content">
+            <div class="modal-header heady">
+
+                <h4 align="center">@MyVDBSDemo.Resources.LangText.Add_Score_Type </h4>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <form id="addForm">
+                        <div class="form-group">
+                            <label for="scoreTypeCd" class="col-form-label required">@MyVDBSDemo.Resources.LangText.Score_Type_Code:</label>
+                            <input type="text" class="validate[required] form-control" maxlength="2" data-bind="value:score2.scoreTypeCd" id="scoreTypeCd" placeholder="e.g. BS" onchange="checkExist(this)">
+                        </div>
+                        <br />
+                        <div class="form-group">
+                            <label for="scoreTypeNm" class="col-form-label required">@MyVDBSDemo.Resources.LangText.Score_Type_Name:</label>
+                            <input type="text" class="validate[required] form-control" data-bind="value:score2.scoreTypeNm" id="scoreTypeNm" placeholder="e.g. Base Score">
+                        </div>
+                        <br />
+                        <div class="form-group">
+                            <label for="scoreTypeDesc" class="col-form-label">Score Type Description:</label>
+                            <textarea name="scoreTypeDesc" class="form-control" data-bind="value:score2.scoreTypeDesc" rows="3" placeholder="e.g. This is Base Score description."></textarea>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <div align="center">
+                    <button id="saveDialog" class="btn btn-success btn-sm m-t-10" data-bind="click:saveDialog"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Save </button>
+                    <button id="resetDialog" class="btn btn-warning btn-sm m-t-10" data-bind="click:resetDialog"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Reset </button>
+                    <button id="cancelDialog" class="btn btn-info btn-sm m-t-10" data-bind="click:cancelDialog"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Cancel </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="ScoreEdit" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+    <div class="modal-dialog" style="width:500px">
+        <div class="modal-content">
+            <div class="modal-header heady">
+
+                <h4 align="center">@MyVDBSDemo.Resources.LangText.Update_Score_Type </h4>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <form id="editForm">
+                        <br />
+                        <div class="form-group">
+                            <label for="scoreTypeNm" class="col-form-label required">@MyVDBSDemo.Resources.LangText.Score_Type_Code:</label>
+                            <input type="text" class="validate[required] form-control" data-bind="value:score3.scoreTypeCd" id="scoreTypeCd" placeholder="e.g. BS" disabled>
+                        </div>
+                        <br />
+                        <div class="form-group">
+                            <label for="scoreTypeNm" class="col-form-label required">@MyVDBSDemo.Resources.LangText.Score_Type_Name:</label>
+                            @*<input type="text" class="validate[required] form-control" data-bind="value:score3.scoreTypeNm" id="scoreTypeNm" placeholder="e.g. Base Score">*@
+                            <textarea id="scoreTypeNm2" type="text" class="form-control textarearesize" name="scoreTypeNm2" placeholder="e.g. Base Score" autofocus rows="1" data-bind="html:score3.scoreTypeNm, valueUpdate:'afterkeydown'" onkeypress="return runScript(event)" autocomplete="off"></textarea>
+                            <input type="hidden" class="validate[required] form-control" data-bind="value:score3.scoreTypeCd" id="scoreTypeCd" placeholder="e.g. BS">
+                        </div>
+                        <br />
+                        <div class="form-group">
+                            <label for="scoreTypeDesc" class="col-form-label">@MyVDBSDemo.Resources.LangText.Score_Type_Desc:</label>
+                            <textarea id="scoreTypeDesc2" name="scoreTypeDesc2" class="form-control" data-bind="html:score3.scoreTypeDesc" rows="3" placeholder="e.g. This is Base Score description."></textarea>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <div align="center">
+                    <button id="saveUpdate" class="btn btn-success btn-sm m-t-10" data-bind="click:saveUpdate"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Save </button>
+                    <button id="resetUpdate" class="btn btn-warning btn-sm m-t-10" data-bind="click:resetUpdate"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Reset </button>
+                    <button id="cancelUpdate" class="btn btn-info btn-sm m-t-10" data-bind="click:cancelUpdate"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Cancel </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="~/Scripts/Common/CookieHelper.js"></script>
+<script>
+
+    var ScoreType = @Html.Raw(JsonConvert.SerializeObject(@Model, Formatting.None,
+        new JsonSerializerSettings()
+    {
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+    }));
+
+    @functions{
+        public string TokenHeaderValue()
+        {
+            string cookieToken, formToken;
+            AntiForgery.GetTokens(null, out cookieToken, out formToken);
+            return cookieToken + ":" + formToken;                
+        }
+    }
+</script>
+
+<script>
+    var dtInstance = $("#pageList").DataTable({
+        "scrollCollapse": false,
+        "paging": true,
+        "columnDefs": [{
+            "searchable": false,
+            "orderable": false,
+            "targets": 0
+        }],
+        "order": [[1, 'asc']]
+    });
+
+    dtInstance.on('order.dt search.dt', function () {
+        dtInstance.column(0, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
+            cell.innerHTML = i + 1;
+        });
+    }).draw();
+
+    dtInstance.on( 'draw', function () {
+        $('#paginatesearch').val(dtInstance.page()+1);
+        setCookie("listingpage7", dtInstance.page()+1, 1);
+    } );
+
+    var viewModel;
+
+    function cancel() {
+        //ShowDecisionMessage("Are you Sure To Cancel ?", function () {
+
+            location.href = "/Admin/Dashboard";
+        //});
+    }
+
+    function edit(scoreCd) {
+        viewModel.update(scoreCd);
+    }
+
+    function checkExist(val) {
+        viewModel.validate(val.value);
+    }
+
+    var btnRefresh = function () {
+        location.reload();
+    }
+
+    $(function () {
+
+        viewModel = {
+            score1: ko.mapping.fromJS(ScoreType),
+            score2 :
+            {
+                scoreTypeCd: ko.observable(""),
+                scoreTypeNm: ko.observable(""),
+                scoreTypeDesc: ko.observable(""),
+            },
+            score3 :
+            {
+                scoreTypeCd: ko.observable(""),
+                scoreTypeNm: ko.observable(""),
+                scoreTypeDesc: ko.observable(""),
+            },
+
+            remove: function(scoreTypeCd) {
+                ShowDecisionMessage("Are you sure to delete this record ? ", function () {
+
+                    var btnOk = function () {
+
+                    }
+                    $.ajax({
+                        type: "POST",
+                        url: server + "/Admin/DeleteScoreType",
+                        data: JSON.stringify({ scoreTypeCd: scoreTypeCd }),
+                        contentType: "application/json; charset=utf-8",
+                        error: function (xhr) { },
+                        success: function (msg) {
+                            if (msg.OK) {
+                                ShowMessageSuccess("Record successfully deleted.", btnRefresh);
+                            }
+                            else {
+                                ShowMessageDanger('Unsuccesfully deleted.');
+                            }
+                        }
+                    })
+
+                });
+            },
+            add: function () {
+                $('#ScoreAdd').modal('show');
+            },
+            update: function (scoreCd) {
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetScoreTypeEdit",
+                    data: JSON.stringify({ cd: scoreCd }),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+                            viewModel.score3.scoreTypeCd(msg.list.scoreTypeCd);
+                            viewModel.score3.scoreTypeNm(msg.list.scoreTypeNm);
+                            viewModel.score3.scoreTypeDesc(msg.list.scoreTypeDesc);
+
+                            $('#ScoreEdit').modal('show');
+                        }
+                    }
+                });
+            },
+            saveDialog: function () {
+                var value = $("#addForm").validationEngine('validate');
+
+                if (value == true) {
+                    $.ajax({
+                        type: 'POST',
+                        url: '/Admin/AddScoreType',//controller/nama function
+                        contentType: "application/json; charset=utf-8",
+                        data: JSON.stringify({ modelss: ko.mapping.toJS(viewModel.score2) }), //parameter
+
+                        success: function (msg) {
+
+                            if (msg.ok) {
+                                $('#ScoreAdd').modal('hide');
+                                ShowMessageSuccess("Data successfully add.",btnRefresh);
+                            }
+                            else {
+                                $('#ScoreAdd').modal('hide');
+                                ShowMessageDanger('Unsuccesfully add.');
+                            }
+
+                        },
+                        error: function (xhr) {
+                        }
+                    });
+                } else {
+                    $("#addForm").validationEngine();
+                }
+            },
+            validate: function (scope) {
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetScoreTypeEdit",
+                    data: JSON.stringify({ cd: scope }),
+                    contentType: "application/json; charset=utf-8",
+                    success: function (msg) {
+                        if (msg.OK) {
+                            if (msg.list.scoreTypeCd != null) {
+                                ShowMessageWarning("Code already exist");
+                                viewModel.score2.scoreTypeCd('');
+                            }
+
+                        }
+                    }
+                });
+            },
+            validateDelete: function (scoreTypeCd) {
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/ValidateScore",
+                    data: JSON.stringify({ cd: scoreTypeCd }),
+                    contentType: "application/json; charset=utf-8",
+                    success: function (msg) {
+                        if (msg.OK) {
+                            if (msg.list.ScoreTypeCd != null) {
+                                ShowMessageWarning("Score Type cannot be deleted.");
+                            }else {
+                                viewModel.remove(scoreTypeCd);
+                            }
+
+                        }
+                    }
+                });
+            }
+        }
+
+        ko.applyBindings(viewModel);
+    });
+
+    function hapus (scoreTypeCd) {
+        viewModel.remove(scoreTypeCd);
+    }
+
+    function resetDialog() {
+        viewModel.score2.scoreTypeCd("");
+        viewModel.score2.scoreTypeNm("");
+        viewModel.score2.scoreTypeDesc("");
+    }
+
+    function cancelDialog() {
+        $('#ScoreAdd').modal('hide');
+      
+    }
+
+    function resetUpdate() {
+
+        $("#scoreTypeNm2").val(viewModel.score3.scoreTypeNm());
+        $("#scoreTypeDesc2").val(viewModel.score3.scoreTypeDesc());
+        //viewModel.score3.scoreTypeCd("");
+        //viewModel.score3.scoreTypeNm("");
+        //viewModel.score3.scoreTypeDesc("");
+    }
+
+    function cancelUpdate() {
+       // $('#ScoreEdit').modal('hide');
+        //location.href = "/Admin/ScoreType";
+        
+        $('.modal').modal('hide');
+    }
+
+    function saveUpdate() {
+
+        var value = $("#editForm").validationEngine('validate');
+        //alert(htmlEnc($('#scoreTypeDesc2').val()));
+        viewModel.score3.scoreTypeNm(htmlEnc($('#scoreTypeNm2').val()));
+        viewModel.score3.scoreTypeDesc(htmlEnc($('#scoreTypeDesc2').val()));
+
+        if (value == true) {
+            $.ajax({
+                type: "POST",
+                url: server + "/Admin/UpdateScoreType",
+                data: JSON.stringify({ modelss: ko.mapping.toJS(viewModel.score3) }),
+                contentType: "application/json; charset=utf-8",
+                headers: {
+                    'RequestVerificationToken': '@TokenHeaderValue()'
+                },
+                error: function (xhr) { },
+                success: function (msg) {
+                    if (msg.OK) {
+                        $('#ScoreEdit').modal('hide');
+                        ShowMessageSuccess("Data successfully update.",btnRefresh);
+
+                    }
+                    else {
+                        $('#ScoreEdit').modal('hide');
+                        ShowMessageDanger('Unsuccesfully update.');
+                    }
+                }
+            });
+        } else {
+            $("#editForm").validationEngine();
+        }
+    }
+
+    function hapus(scoreTypeCd) {
+        viewModel.validateDelete(scoreTypeCd);
+    }
+    
+    function drawSearchPaginateDT() {
+
+        var searchPaginateDT = "<div id='hidesearch'> Page <input type='text' size='4'  id='paginatesearch' value ='1' onchange='searchPaginateList(this.value)' autocomplete='off'></input></div>";
+
+        $("#drawSearchPaginateDT").html(searchPaginateDT);
+    }
+
+    function searchPaginateList(pageNum) {
+        var lastPage = $('#pageList').DataTable().page.info().pages;
+
+        if(pageNum > lastPage)
+            pageNum = lastPage;
+
+        $('#paginatesearch').val(pageNum);
+
+        var pageIndex = pageNum - 1;
+        $('#pageList').DataTable().page(pageIndex).draw('page')
+
+    }
+    
+    //var table = $('#pageList').DataTable();
+ 
+    //table.on( 'draw', function () {
+    //    $('#paginatesearch').val(table.page()+1);
+    //    setCookie("listingpage7", table.page()+1, 1);
+    //} );
+    
+    $(document).ready(function(){
+        drawSearchPaginateDT();
+        checkListingPageCookie2("listingpage7");
+    });
+</script>

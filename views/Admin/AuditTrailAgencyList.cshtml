@@ -1,0 +1,54 @@
+﻿<div class="panel panel-info">
+    <div class="panel-body">
+        @*<div class="panel-body  col-md-12">*@
+        <div align="left">
+            <table class="table table-bordered table-striped display" id="verifyUser2" align="center" width="100%">
+                <thead style="background-color:moccasin">
+                    <tr>
+                        <th width="3%" class="text-center">No.</th>
+                        <th class="text-center">Record Owner</th>
+                        <th class="text-center">Process</th>
+                        <th class="text-center">Altered Information</th>
+                        <th class="text-center">Previous Data</th>
+                        <th class="text-center">New Data</th>
+                        <th class="text-center">Updated By</th>
+                        <th class="text-center">Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    @{
+                        var count = 0;
+                        foreach (var item in Model.AuditTrailAgencyList)
+
+                        {
+                            count = count + 1;
+                            <tr>
+                                <td style="text-align:center">@count</td>
+                                <td>@item.x.CompFullNm</td>
+                                <td>@item.action</td>
+                                <td>@item.altered_info</td>
+                                <td>@item.old_value</td>
+                                <td>@item.new_value</td>
+                                <td>@item.created_by</td>
+                                <td>@item.created_at</td>
+
+                            </tr>
+                        }
+                    }
+                </tbody>
+                @*<tbody style="text-align:left"></tbody>*@
+            </table>
+        </div>
+
+        <div align="center">
+            @*<button data-bind="click : cancel, visible :true, enable: true" class="btn btn-info btn-sm">
+                <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> Back
+            </button>*@
+
+
+
+        </div>
+        @*</div>*@
+    </div>
+</div>

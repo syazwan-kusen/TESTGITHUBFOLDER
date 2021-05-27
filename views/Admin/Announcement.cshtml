@@ -1,0 +1,226 @@
+﻿@using Newtonsoft.Json;
+@using myvdbsSQL;
+@using MyVDBSDemo.Models;
+@using MVCEncrypt;
+
+@{
+    ViewBag.Title = "Announcement";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<head>
+</head>
+
+<body>
+    <div class="col-lg-12" style="margin-top:70px;">
+        <div class="panel panel-info">
+
+            <div class="panel-body">
+
+                <div class="col-lg-12" style="margin-top:20px">
+                    <div class="panel panel-info">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Announcement</h3>
+                        </div>
+                        <div class="panel-body">
+                            
+                            <table class="table table-bordered table-striped display" id="pageList" align="center" width="100%">
+                                <thead style="background-color:moccasin">
+                                    <tr>
+                                        <th class="col-sm-1 text-center">@MyVDBSDemo.Resources.LangText.No</th>
+                                        <th class="col-sm-5 text-center">Announcement Title</th>
+                                        <th class="col-sm-2 text-center">Start Date</th>
+                                        <th class="col-sm-2 text-center">End Date</th>
+                                        <th class="col-sm-2 text-center">@MyVDBSDemo.Resources.LangText.Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        var count = 0;
+                                        foreach (var item in Model)
+
+                                        {
+                                            count = count + 1;
+                                            <tr>
+                                                <td style="text-align:center">@count</td>
+                                                <td>@Html.Raw(item.AnnouncementTitle)</td>
+                                                <td style="text-align:center">@item.StartDt</td>
+                                                <td style="text-align:center">@item.EndDt</td>
+                                                <td style="text-align:center">
+                                                    <a id="edit" class="btn btn-success btn-xs edit" href="@Url.ActionEnc("mySecret", "EditAnnouncement", new { id = @item.AnnouncementId })"><span class="glyphicon glyphicon-pencil"></span> @MyVDBSDemo.Resources.LangText.Update</a>
+                                                    <button type="button" id="delete" class="btn btn-danger btn-xs delete" onclick="hapus('@item.AnnouncementId')"><span class="glyphicon glyphicon-trash"></span> @MyVDBSDemo.Resources.LangText.Delete</button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                            <div align="right">
+                                <div id="drawSearchPaginateDT"></div>
+                            </div>
+
+                            <div align="center">
+                                <a class="btn btn-primary btn-sm" href="/Admin/AddAnnouncement"><i class="glyphicon glyphicon-plus"></i> @MyVDBSDemo.Resources.LangText.Add</a>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @Html.Partial("_CommonDialog")
+
+
+</body>
+<script src="~/Scripts/Common/CookieHelper.js"></script>
+<script>
+
+    var portal = @Html.Raw(JsonConvert.SerializeObject(@Model, Formatting.None,
+                              new JsonSerializerSettings()
+    {
+
+                                  ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+    }));
+
+    function hapus (cd) {
+        viewModel.remove(cd);
+    }   
+
+    var btnRefresh =  function () {
+        location.reload();
+    }
+
+    var viewModel;
+
+    $(function () {
+
+        viewModel = {
+            search :
+            {
+                item: ko.observable(""),
+                date_created: ko.observable(""),
+            },
+            remove: function(id) {
+                ShowDecisionMessage("@MyVDBSDemo.Resources.LangText.Are_U_Sure_Del ", function () {
+
+                    var btnOk = function () {
+
+                    }
+                    $.ajax({
+                        type: "POST",
+                        url: server + "/Admin/DeleteAnnouncement",
+                        data: JSON.stringify({ id: id }),
+                        contentType: "application/json; charset=utf-8",
+                        error: function (xhr) { },
+                        success: function (msg) {
+                            if (msg.OK) {
+                                ShowMessageSuccess("@MyVDBSDemo.Resources.LangText.Success_Del_Msg",btnRefresh);
+                            }
+                            else {
+                                ShowMessageDanger("@MyVDBSDemo.Resources.LangText.Unsuccess_Del_Msg");
+                            }
+                        }
+                    })
+
+                });
+            },
+            reset: function(){
+                viewModel.search.item('');
+                viewModel.search.date_created('');
+            }
+
+        }
+
+        ko.applyBindings(viewModel);
+    });
+
+    $(document).ready(function() {
+        $( function() {
+            $( "#datepicker" ).datepicker({
+                changeMonth: true,
+                changeYear: true,
+                dateFormat: 'dd/mm/yy'
+            });
+        } );
+
+        var inputMapper = {
+            "item": 2,
+            "seq": 3,
+            "date_created": 4
+        };
+
+        var dtInstance = $("#pageList").DataTable({
+            "scrollCollapse": false,
+            "paging":         true,
+            "columnDefs": [{
+                "searchable": false,
+                "orderable": false,
+                "targets": 0
+            }],
+            "order": [[1, 'asc']]
+        });
+
+        dtInstance.on('order.dt search.dt', function () {
+            dtInstance.column(0, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
+                cell.innerHTML = i + 1;
+            });
+        }).draw();
+
+        dtInstance.on( 'draw', function () {
+            $('#paginatesearch').val(dtInstance.page()+1);
+            setCookie("listingpage1", dtInstance.page()+1, 1);
+        } );
+
+        $("input").on("keyup change", function () {
+
+            var $this = $(this);
+            var val = $this.val();
+            var key = $this.attr("name");
+
+            dtInstance.columns(inputMapper[key] - 1).search(val).draw();
+        });
+
+        $("#reset").on("click", function () {
+            viewModel.search.item('');
+            viewModel.search.date_created('');
+            dtInstance.columns(inputMapper['item'] - 1).search('').draw
+            dtInstance.columns(inputMapper['date_created'] - 1).search('').draw();
+        });
+
+    } );
+
+    function drawSearchPaginateDT() {
+
+        var searchPaginateDT = "<div id='hidesearch'> Page <input type='text' size='4'  id='paginatesearch' value ='1' onchange='searchPaginateList(this.value)' autocomplete='off'></input></div>";
+
+        $("#drawSearchPaginateDT").html(searchPaginateDT);
+    }
+
+    function searchPaginateList(pageNum) {
+        var lastPage = $('#pageList').DataTable().page.info().pages;
+
+        if(pageNum > lastPage)
+            pageNum = lastPage;
+
+        $('#paginatesearch').val(pageNum);
+
+        var pageIndex = pageNum - 1;
+        $('#pageList').DataTable().page(pageIndex).draw('page')
+
+    }
+    
+    //var table = $('#pageList').DataTable();
+ 
+    //table.on( 'draw', function () {
+    //    $('#paginatesearch').val(table.page()+1);
+    //    setCookie("listingpage1", table.page()+1, 1);
+    //} );
+    
+    $(document).ready(function(){
+        drawSearchPaginateDT();
+        checkListingPageCookie2("listingpage1");
+    });
+</script>
+

@@ -1,0 +1,199 @@
+﻿@using Newtonsoft.Json
+@model MyVDBSDemo.Models.RegisterViewModel
+@{
+    ViewBag.Title = "RegisterNew";
+    Layout = "~/Views/Shared/_LayoutRegister.cshtml";
+}
+
+
+<style type="text/css">
+    body {
+        background-color: gray;
+    }
+
+    .mydiv {
+        background-image: url('../images/logo01_s.png') ;
+        background-repeat: no-repeat;
+        background-size: contain;
+        height: 100px;
+        position: relative;
+        border: solid 1px #d2d9db;
+        padding: 15px 0 0 0;
+        text-align: center;
+    }
+</style>
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=8;FF=3;OtherUA=4" />
+    <link rel="stylesheet" href="~/Content/cssLogin/reset.css" />
+    <link rel="stylesheet" href="~/Content/cssLogin/login.css" />
+    <script language="javascript" src="~/Scripts/Common/Common.js" type="text/javascript"></script>
+    <script src="~/Scripts/Core/civem-0.0.7.min.js"></script>
+    <script language="javascript" src="~/Scripts/Common/ConfirmationScript.js" type="text/javascript"></script>
+
+    <title>@ViewBag.Title</title>
+
+</head>
+
+
+<body id="bodytag" onload="maximizeWindow()">
+    <div class="logo-giatmara"></div>
+    <div id="rays"></div>
+    <div id="main_frame">
+
+        @*<div id="outer_frame" class="relcenter">*@
+            <div id="inner_frame" class="frame-width relcenter">
+                @*<div class="glare"></div>
+                <div class="header-login">
+            
+                </div>*@
+                <div class="mydiv"></div>
+                <div class="form-login2">
+                    <div class="cleared" style="height:7px;"></div>
+
+                    @using (Html.BeginForm("RegisterNew", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "p-15", role = "form", id = "register_form" }))
+                    {
+                        <div class="formrow">
+                            <div class="col">
+
+                               <label class="formlabel">User ID</label>
+                                &nbsp;<input type="text" maxlength="4" class="forminput" placeholder="Example: 123" id="IdUser" name="IdUser" autofocus="autofocus" required=required data-errormessage-value-missing="Please enter UserID"  data-bind="value:Register.IdUser,valueUpdate: 'afterkeydown'"/>
+                                <span class="field-validation-valid" data-valmsg-for="IdUser" data-valmsg-replace="true"></span>
+                            </div>
+                        </div>
+
+                        <div class="formrow">
+                            <div class="col">
+
+                                <label class="formlabel">Password</label>
+                                &nbsp;<input type="password" maxlength="100" class="forminput" placeholder="Example: xxxx" id="Password" name="Password" required=required data-errormessage-value-missing="Please enter Password" type="password" data-bind="value:Register.Password,valueUpdate: 'afterkeydown'"/>
+                                <span class="field-validation-valid" data-valmsg-for="Password" data-valmsg-replace="true"></span>
+                            </div>
+                        </div>
+
+                        <div class="formrow">
+                            <div class="col">
+
+                                <label class="formlabel">Confirm Password</label>
+                                &nbsp;<input type="password" maxlength="100" class="forminput" placeholder="Example: xxxx" id="NewPassword" name="NewPassword" required=required data-errormessage-value-missing="Please confirm Password"  onchange="CheckVal()" data-bind="value:Register.NewPassword,valueUpdate: 'afterkeydown'" />
+                                <span class="field-validation-valid" data-valmsg-for="NewPassword" data-valmsg-replace="true"></span>
+                            </div>
+                        </div>
+
+                        <div class="formrow">
+                            <div class="col">
+
+                                <label class="formlabel">Name</label>
+                                &nbsp;<input type="text" maxlength="250" class="forminput" placeholder="Example: Aida"  id="Name" name="Name" required=required data-errormessage-value-missing="Please enter Name"  data-bind="value:Register.Name,valueUpdate: 'afterkeydown'"/>
+                                <span class="field-validation-valid" data-valmsg-for="Name" data-valmsg-replace="true"></span>
+                            </div>
+                        </div>
+
+                        <div class="formrow">
+                            <div class="col">
+
+                                <label class="formlabel">Position</label>
+                                &nbsp;<input type="text" maxlength="250" class="forminput" placeholder="Example: Manager" id="Position" name="Position" required=required data-errormessage-value-missing="Please enter Position" data-bind="value:Register.Position,valueUpdate: 'afterkeydown'" />
+                                <span class="field-validation-valid" data-valmsg-for="Position" data-valmsg-replace="true"></span>
+                            </div>
+                        </div>
+
+                        <div class="formrow">
+                            <div class="col">
+
+                                <label class="formlabel">Tel.No</label>
+                                &nbsp;<input type="text" maxlength="50" class="forminput" placeholder="Example: +60123456789" id="TelNo" name="TelNo" required=required data-errormessage-value-missing="Please enter Tel No" data-bind="value:Register.TelNo,valueUpdate: 'afterkeydown'" />
+                                <span class="field-validation-valid" data-valmsg-for="TelNo" data-valmsg-replace="true"></span>
+                            </div>
+                        </div>
+
+                        <div class="formrow">
+                            <div class="col">
+
+                                <label class="formlabel">Email</label>
+                                &nbsp;<input type="text" maxlength="50" class="forminput" placeholder="Example: aida@gmail.com" id="Email" name="Email" required=required data-errormessage-value-missing="Please enter Email" data-bind="value:Register.Email,valueUpdate: 'afterkeydown'" />
+                                <span class="field-validation-valid" data-valmsg-for="Email" data-valmsg-replace="true"></span>
+          
+
+                            </div>
+                        </div>
+
+
+                        <div class="formrow">
+                            <div class="col">
+
+                                <label class="formlabel">Agency Name</label>&nbsp;
+                                @*<select class="form-control validate[required]" data-bind="options: accpurpose, optionsText: 'AgcyNm', optionsValue: 'AgcyID', optionsCaption: 'SILA PILIH', valueAllowUnset: true,value : testacc, valueUpdate: 'afterkeydown' ,  value: account.AgcyID "></select>*@
+                                @*<select class="field-validation-valid" data-bind="options: accpurpose, optionsText: 'AgcyNm', optionsValue: 'AgcyID', optionsCaption: 'SILA PILIH', valueAllowUnset: true,value : testacc, valueUpdate: 'afterkeydown' ,  value: account.AgcyID "></select>*@
+                                @*<input type="text" class="select" placeholder="Example: System Development" id="Agency" name="Agency" required=required data-errormessage-value-missing="Please enter Agency" data-bind="value:Register.Agency,valueUpdate: 'afterkeydown'" />*@
+                                <span class="field-validation-valid" data-valmsg-for="Agency" data-valmsg-replace="true"></span>
+
+
+                            </div>
+                        </div>
+
+                        <div class="cleared" style="height:17px;"></div>
+
+                        <div class="buttonwrap" align="center">
+                            <input id="btnSubmit" type="submit" value="Daftar" class="button" />
+
+                        </div>
+                        @*<div class="buttonwrap" align="center">
+                            <input id="btnBtal" value="Batal" class="button medium" />
+                        </div>*@
+
+                        <div class="cleared"></div>
+                    }
+
+                </div>
+
+            </div>
+            <div class="shadow-form"></div>
+        </div>
+        @*<div class="reflection"></div>*@
+
+    </div>
+    <div class="cleared"></div>
+
+
+
+</body>
+</html>
+
+
+<script>
+    var Register = @Html.Raw(JsonConvert.SerializeObject(@Model, Formatting.None,
+                               new JsonSerializerSettings()
+    {
+                                   ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+    }));
+
+
+    $('#btnBtal').click(function () {
+        //location.href = server + "/Account/Login";
+        location.href = "/Account/Login";
+
+    });
+
+
+    $('#register_form').submit(function () {
+        $('input[type=submit]', this).attr('disabled', 'disabled');
+    });
+
+</script>
+                    }
+<script src="~/Scripts/Common/Register.js"></script>
+@if (TempData["Message"] != null)
+{
+<script type="text/javascript">
+                    $(function () {
+                        ShowMessage('@TempData["Message"]');
+                        $('input[type="submit"]').attr('disabled' , false);
+});
+</script>
+}

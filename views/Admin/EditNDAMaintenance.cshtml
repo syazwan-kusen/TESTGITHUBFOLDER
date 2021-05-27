@@ -1,0 +1,158 @@
+﻿
+@using Newtonsoft.Json;
+@using myvdbsSQL;
+@using MyVDBSDemo.Models;
+
+@{
+    ViewBag.Title = "Non-Disclosure Agreement (NDA) Maintenance";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<head></head>
+
+<body>
+    <div class="col-lg-12" style="margin-top:80px;">
+        <div class="panel panel-info">
+
+            <div class="panel-body">
+
+                <div class="col-lg-12" style="margin-top:20px">
+                    <div class="panel panel-info">
+                        <div class="panel-body">
+                            <form id="myForm">
+                                <div class="form-row">
+                                    <div class="form-group col-md-12">
+                                        <label class="required" for="Descr">NDA Indicator :</label>
+                                        <select id="NDAInd" class="validate[required] form-control" data-bind="options: availableCountries, optionsText: 'indName', optionsValue: 'indNo', optionsCaption: '--- Please Choose ---', valueAllowUnset: true,value : nda.NDAInd, valueUpdate: 'afterkeydown'" disabled></select>
+
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group col-md-12">
+                                        <label class="required" for="Descr">Title :</label>
+                                        <textarea id="Descr" name="Descr" class="validate[required] form-control" rows="3" data-bind="html:nda.NDATitle"></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group col-md-12">
+                                        <label class="required" for="DetailDesc">Agreement/Term and Condition :</label>
+                                        <textarea id="DetailDesc" name="DetailDesc" class="form-control" rows="5" data-bind="value:nda.Agreement" style="display:none;"></textarea>
+                                        <div class="standalone-container">
+                                            <div id="snow-container"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                            <div align="center">
+
+                                <button type="submit" class="btn btn-primary btn-sm m-t-10" data-bind="click:save"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Save</button>
+
+                                <button id="cancel" class="btn btn-info btn-sm m-t-10" data-bind="click:cancel"><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Back </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    @Html.Partial("_CommonDialog")
+</body>
+<script src="~/Scripts/Common/Common.js"></script>
+<script>
+
+    var nda= @Html.Raw(JsonConvert.SerializeObject(@Model, Formatting.None,
+                              new JsonSerializerSettings()
+    {
+
+                                  ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+    }));
+
+</script>
+
+<script>
+    $("#pageList").dataTable();
+
+    var viewModel;
+
+    var btnRefresh = function () {
+        location.reload();
+    }
+
+    var toolbarOptions = [
+        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+        [{ 'font': [] }],
+        [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+        ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+        ['blockquote', 'code-block'],
+        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+        [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
+        [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
+        [{ 'align': [] }],
+        ['link']
+    ];
+
+    var quill = new Quill('#snow-container', {
+        modules: {
+            toolbar: toolbarOptions
+        },
+        theme: 'snow'
+    });
+    function cancel() {
+        location.href = "/Admin/NDAMaintenance";
+    }
+
+
+    $(function () {
+        var Indicator = function(name, ind) {
+            this.indName = name;
+            this.indNo = ind;
+        };
+        viewModel = {
+            nda: ko.mapping.fromJS(nda),
+            availableCountries : ko.observableArray([
+            new Indicator("Project Owners", 1),
+            new Indicator("Selected Participant", 2),
+            new Indicator("Public User", 3)
+            ]),
+            save: function () {
+                var value = $("#myForm").validationEngine('validate');
+                viewModel.nda.Agreement($(".ql-editor").html());
+                viewModel.nda.NDATitle(htmlEnc($('#Descr').val()));
+
+                if (value == true) {
+                    $.ajax({
+                        type: "POST",
+                        url: server + "/Admin/UpdateNDA",
+                        data: JSON.stringify({ modelss: ko.mapping.toJS(viewModel.nda) }),
+                        contentType: "application/json; charset=utf-8",
+                        error: function (xhr) { },
+                        success: function (msg) {
+                            if (msg.OK) {
+                                ShowMessageSuccess("@MyVDBSDemo.Resources.LangText.Success_Update_Msg",btnRefresh);
+                            }
+                        }
+                    });
+                }
+            },
+
+        }
+
+        ko.applyBindings(viewModel);
+    });
+
+    function resetField() {
+        viewModel.nda.WhereAs("");
+        viewModel.nda.Agreement("");
+    }
+    $(document).ready(function() {
+
+        var q = $('#DetailDesc').val();
+        $(".ql-editor").html(q);
+    });
+
+</script>

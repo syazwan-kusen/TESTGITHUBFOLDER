@@ -1,0 +1,499 @@
+﻿@using Newtonsoft.Json;
+@using myvdbsSQL;
+@using MyVDBSDemo.Models;
+@model IEnumerable<MyVDBSDemo.Models.tblREFDREADType>
+
+@{
+    ViewBag.Title = "DREAD Type";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+
+}
+
+<div class="col-lg-12" style="margin-top:80px">
+    <div class="panel panel-info">
+        <div class="panel-body">
+            <table  class="table table-bordered table-striped display" id="pageList" align="center">
+                <thead style="background-color:moccasin">
+                    <tr>
+                        <th class="text-center">No.</th>
+                        <th class="col-sm-2 text-center">DREAD Type Code</th>
+                        <th class="col-sm-2 text-center">DREAD Type Name</th>
+                        <th class="col-sm-4 text-center">DREAD Type Description</th>
+                        <th class="col-sm-2 text-center">DREAD Abbreviation</th>
+                        <th class="col-sm-2 text-center"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        var count = 0;
+                        foreach (var item in Model)
+
+                        {
+                            count = count + 1;
+                            <tr>
+                                <td style="text-align:center">@count</td>
+                                <td>@item.DREADTypeCd</td>
+                                <td>@item.DREADTypeNm</td>
+                                <td>@item.DREADTypeDesc</td>
+                                <td style="text-align:center">@item.DREADAbrvn</td>
+                                <td style="text-align:center">
+                                    <button type="button" id="edit" class="btn btn-success btn-xs edit" onclick="edit('@item.DREADTypeCd')"><span class="glyphicon glyphicon-pencil"></span> Update</button>
+                                    @*<button type="button" id="delete" class="btn btn-danger btn-xs delete" onclick="hapus('@item.DREADTypeCd')"><span class="glyphicon glyphicon-trash"></span> Delete</button>*@
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+            <div align="right">
+                <div id="drawSearchPaginateDT"></div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12" align="center">
+
+                    @*<button data-bind="click : add, visible :true, enable: true" class="btn btn-primary btn-sm m-t-10">
+                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
+                    </button>*@
+
+                    @*<button data-bind="click : cancel, visible :true, enable: true" class="btn btn-info btn-sm m-t-10">
+                        <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
+                    </button>*@
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<div id="ScoreAdd" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+    <div class="modal-dialog" style="width:500px">
+        <div class="modal-content">
+            <div class="modal-header">
+
+                <h4 align="center">Add DREAD Type </h4>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <form id="addForm">
+                        <div class="form-group">
+                            <label for="DREADTypeCd" class="col-form-label">DREAD Type Code:</label>
+                            <input type="text" class="validate[required] form-control" maxlength="2" data-bind="value:score2.DREADTypeCd" id="DREADTypeCd" placeholder="e.g. BS"  onchange="checkExist(this)">
+                        </div>
+                        <br />
+                        <div class="form-group">
+                            <label for="DREADTypeNm" class="col-form-label">DREAD Type Name:</label>
+                            <input type="text" class="validate[required] form-control" data-bind="value:score2.DREADTypeNm" id="DREADTypeNm" placeholder="e.g. Base Score">
+                        </div>
+                        <br />
+                        <div class="form-group">
+                            <label for="DREADTypeDesc" class="col-form-label">DREAD Type Description:</label>
+                            <textarea name="DREADTypeDesc" class="form-control" data-bind="value:score2.DREADTypeDesc" rows="3" placeholder="e.g. This is Base Score description."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="DREADAbrvn" class="col-form-label">DREAD Type Abbreviation:</label>
+                            <input type="text" maxlength="1" style="width:15%;" class="validate[required] form-control" data-bind="value:score2.DREADAbrvn" id="DREADAbrvn2" placeholder="e.g. A">
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <div align="center">
+                    <button id="saveDialog" class="btn btn-success btn-sm m-t-10" data-bind="click:saveDialog"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> Save </button>
+                    <button id="resetDialog" class="btn btn-warning btn-sm m-t-10" data-bind="click:resetDialog"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Reset </button>
+                    <button id="cancelDialog" class="btn btn-info btn-sm m-t-10" data-bind="click:cancelDialog"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="ScoreEdit" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+    <div class="modal-dialog" style="width:500px">
+        <div class="panel panel-info">
+            @*<div class="modal-header">
+                <h4 align="center">Update DREAD Type </h4>
+            </div>*@
+            <div class="panel-heading">
+                <h3 class="panel-title">Update DREAD Type</h3>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <form id="editForm">
+                        <br />
+                        <div class="form-group">
+                            <label for="DREADTypeNm" class="col-form-label">DREAD Type Code:</label>
+                            <input type="text" class="validate[required] form-control" data-bind="value:score3.DREADTypeCd" id="DREADTypeCd" disabled>
+                        </div>
+                        <br />
+                        <div class="form-group">
+                            <label for="DREADTypeNm" class="col-form-label">DREAD Type Name:</label>
+                            @*<input type="text" class="validate[required] form-control" data-bind="value:score3.DREADTypeNm" id="DREADTypeNm" placeholder="e.g. Base Score">*@
+                            <textarea id="DREADTypeNm1" maxlength="20" type="text" class="form-control textarearesize" name="DREADTypeNm1" placeholder="e.g. Base Score" autofocus rows="1" data-bind="html:score3.DREADTypeNm, valueUpdate:'afterkeydown'" onkeypress="return runScript(event)" autocomplete="off"></textarea>
+                            <input type="hidden" class="validate[required] form-control" data-bind="value:score3.DREADTypeCd" id="DREADTypeCd" placeholder="e.g. BS">
+                        </div>
+                        <br />
+                        <div class="form-group">
+                            <label for="DREADTypeDesc" class="col-form-label">DREAD Type Description:</label>
+                            <textarea id="DREADTypeDesc1" name="DREADTypeDesc1" class="form-control" data-bind="html:score3.DREADTypeDesc" rows="3" placeholder="e.g. This is Base Score description."></textarea>
+                        </div>
+                        <br />
+                        <div class="form-group">
+                            <label for="DREADAbrvn" class="col-form-label">DREAD Type Abrvn:</label>
+                            <input type="text"  maxlength="1" style="width:15%;" class="validate[required] form-control" data-bind="value:score3.DREADAbrvn" id="DREADAbrvn" placeholder="e.g. Base Score">
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <div align="center">
+                    <button id="saveUpdate" class="btn btn-success btn-sm m-t-10" data-bind="click:saveUpdate"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> Save </button>
+                    <button id="resetUpdate" class="btn btn-warning btn-sm m-t-10" data-bind="click:resetUpdate"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Reset </button>
+                    <button id="cancelUpdate" class="btn btn-info btn-sm m-t-10" data-bind="click:cancelUpdate"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/Scripts/Common/CookieHelper.js"></script>
+<script>
+
+    var DREADType = @Html.Raw(JsonConvert.SerializeObject(@Model, Formatting.None,
+                    new JsonSerializerSettings()
+    {
+                        ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+    }));
+
+</script>
+
+<script>
+    $('#DREADAbrvn').keydown(function (e) {
+  
+        if (e.shiftKey || e.ctrlKey || e.altKey) {
+    
+            e.preventDefault();
+      
+        } else {
+    
+            var key = e.keyCode;
+      
+            if (!((key == 8) || (key == 32) || (key == 46) || (key >= 35 && key <= 40) || (key >= 65 && key <= 90))) {
+      
+                e.preventDefault();
+        
+            }
+
+        }
+    
+    });
+    $('#DREADAbrvn2').keydown(function (e) {
+  
+        if (e.shiftKey || e.ctrlKey || e.altKey) {
+    
+            e.preventDefault();
+      
+        } else {
+    
+            var key = e.keyCode;
+      
+            if (!((key == 8) || (key == 32) || (key == 46) || (key >= 35 && key <= 40) || (key >= 65 && key <= 90))) {
+      
+                e.preventDefault();
+        
+            }
+
+        }
+    
+    });
+
+    var dtInstance = $("#pageList").DataTable({
+        "scrollCollapse": false,
+        "paging": true,
+        "columnDefs": [{
+            "searchable": false,
+            "orderable": false,
+            "targets": 0
+        }],
+        "order": [[1, 'asc']]
+    });
+
+    dtInstance.on('order.dt search.dt', function () {
+        dtInstance.column(0, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
+            cell.innerHTML = i + 1;
+        });
+    }).draw();
+
+    dtInstance.on( 'draw', function () {
+        $('#paginatesearch').val(dtInstance.page()+1);
+        setCookie("listingpage5", dtInstance.page()+1, 1);
+    } );
+
+    var viewModel;
+
+    var btnRefresh = function () {
+        location.reload();
+    }
+
+    function cancel() {
+        //ShowDecisionMessage("Are you Sure To Cancel ?", function () {
+
+            location.href = "/Admin/Dashboard";
+        //});
+    }
+
+    function edit(DREADTypeCd) {
+        viewModel.update(DREADTypeCd);
+    }
+
+    function checkExist(val) {
+        viewModel.validate(val.value);
+    }
+
+    $(function () {
+
+        viewModel = {
+            score1: ko.mapping.fromJS(DREADType),
+            score2 : 
+            {
+                DREADTypeCd: ko.observable(""),
+                DREADTypeNm: ko.observable(""),
+                DREADTypeDesc: ko.observable(""),
+                DREADAbrvn: ko.observable(""),
+                ResetDREADTypeCd: ko.observable(""),
+                ResetDREADTypeNm: ko.observable(""),
+                ResetDREADTypeDesc: ko.observable(""),
+                ResetDREADAbrvn: ko.observable(""),
+            },
+            score3 : 
+            {
+                DREADTypeCd: ko.observable(""),
+                DREADTypeNm: ko.observable(""),
+                DREADTypeDesc: ko.observable(""),
+                DREADAbrvn: ko.observable(""),
+                ResetDREADTypeCd: ko.observable(""),
+                ResetDREADTypeNm: ko.observable(""),
+                ResetDREADTypeDesc: ko.observable(""),
+                ResetDREADAbrvn: ko.observable(""),
+            },
+
+            remove: function(DREADTypeCd) {
+                ShowDecisionMessage("Are you sure to delete this record ? ", function () {
+
+                    var btnOk = function () {
+
+                    }
+                    $.ajax({
+                        type: "POST",
+                        url: server + "/Admin/DeleteDREADType",
+                        data: JSON.stringify({ DREADTypeCd: DREADTypeCd }),
+                        contentType: "application/json; charset=utf-8",
+                        error: function (xhr) { },
+                        success: function (msg) {
+                            if (msg.OK) {
+
+                                ShowMessageSuccess("Record successfully deleted.",btnRefresh);
+                            }
+                            else {
+                                ShowMessageDanger('Unsuccesfully deleted.');
+                            }
+                        }
+                    })
+
+                });
+            },
+            add: function () {
+                $('#ScoreAdd').modal('show');
+            },
+            update: function (DREADTypeCd) {
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetDREADTypeEdit",
+                    data: JSON.stringify({ cd: DREADTypeCd }),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+                            viewModel.score3.DREADTypeCd(msg.list.DREADTypeCd);
+                            viewModel.score3.DREADTypeNm(msg.list.DREADTypeNm);
+                            viewModel.score3.DREADTypeDesc(msg.list.DREADTypeDesc);
+                            viewModel.score3.DREADAbrvn(msg.list.DREADAbrvn);
+                            viewModel.score3.ResetDREADTypeCd(msg.list.DREADTypeCd);
+                            viewModel.score3.ResetDREADTypeNm(msg.list.DREADTypeNm);
+                            viewModel.score3.ResetDREADTypeDesc(msg.list.DREADTypeDesc);
+                            viewModel.score3.ResetDREADAbrvn(msg.list.DREADAbrvn);
+
+                            $("#DREADTypeNm1").val(msg.list.DREADTypeNm);
+                            $("#DREADTypeDesc1").val(msg.list.DREADTypeDesc);
+
+                            $("#ScoreEdit").modal({
+                                show: 'true',
+                                backdrop: 'true',
+                                keyboard: 'true'
+                            });
+
+                        }
+                    }
+                });
+            },
+            saveDialog: function () {
+                var value = $("#addForm").validationEngine('validate');
+
+                if (value == true) {
+                    $.ajax({
+                        type: 'POST',
+                        url: '/Admin/AddDREADType',//controller/nama function
+                        contentType: "application/json; charset=utf-8",
+                        data: JSON.stringify({ modelss: ko.mapping.toJS(viewModel.score2) }), //parameter
+
+                        success: function (msg) {
+
+                            if (msg.ok) {
+                                $('#ScoreAdd').modal('hide');
+                                //ShowMessageSuccess("Data successfully add.");
+                                //location.reload();
+
+                                ShowMessageSuccess("Data successfully add.",btnRefresh);
+                            }
+                            else {
+                                $('#ScoreAdd').modal('hide');
+                                ShowMessageDanger('Unsuccesfully add.');
+                            }
+
+                        },
+                        error: function (xhr) {
+                        }
+                    });
+                } else {
+                    $("#addForm").validationEngine();
+                }
+            },
+            validate: function (scope) {
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetDREADTypeEdit",
+                    data: JSON.stringify({ cd: scope }),
+                    contentType: "application/json; charset=utf-8",
+                    success: function (msg) {
+                        if (msg.OK) {
+                            if (msg.list.DREADTypeCd != null) {
+                                ShowMessageWarning("Code already exist");
+                                viewModel.score2.DREADTypeCd('');
+                            }
+
+                        }
+                    }
+                });
+            }
+        }
+
+        ko.applyBindings(viewModel);
+    });
+
+    function hapus (DREADTypeCd) {
+        viewModel.remove(DREADTypeCd);
+    }
+
+    function resetDialog() {
+        viewModel.score2.DREADTypeCd("");
+        viewModel.score2.DREADTypeNm("");
+        viewModel.score2.DREADTypeDesc("");
+        viewModel.score2.DREADAbrvn("");
+    }
+
+    function cancelDialog() {
+        $('#ScoreAdd').modal('hide');
+    }
+
+    function resetUpdate() {
+        
+        viewModel.score3.DREADTypeCd(viewModel.score3.ResetDREADTypeCd());
+        viewModel.score3.DREADTypeNm(viewModel.score3.ResetDREADTypeNm());
+        viewModel.score3.DREADTypeDesc(viewModel.score3.ResetDREADTypeDesc());
+        viewModel.score3.DREADAbrvn(viewModel.score3.ResetDREADAbrvn());
+        $("#DREADTypeNm1").val(viewModel.score3.ResetDREADTypeNm());
+        $("#DREADTypeDesc1").val(viewModel.score3.ResetDREADTypeDesc());
+    }
+
+    function cancelUpdate() {
+        $('#ScoreEdit').modal('hide');
+        $('.modal').modal('hide');
+    }
+
+    function saveUpdate() {
+
+        var value = $("#editForm").validationEngine('validate');
+
+        viewModel.score3.DREADTypeNm(htmlEnc($('#DREADTypeNm1').val()));
+        viewModel.score3.DREADTypeDesc(htmlEnc($('#DREADTypeDesc1').val()));
+
+        //alert($('#DREADTypeNm1').val());
+
+        if (value == true) {
+            $.ajax({
+                type: "POST",
+                url: server + "/Admin/UpdateDREADType",
+                data: JSON.stringify({ modelss: ko.mapping.toJS(viewModel.score3) }),
+                contentType: "application/json; charset=utf-8",
+                error: function (xhr) { },
+                success: function (msg) {
+                    if (msg.OK) {
+                        $('#ScoreEdit').modal('hide');
+
+                        ShowMessageSuccess("Data successfully update.",btnRefresh);
+                    }
+                    else {
+                        $('#ScoreEdit').modal('hide');
+                        ShowMessageDanger('Unsuccesfully update.');
+                    }
+                }
+            });
+        } else {
+            $("#editForm").validationEngine();
+        }
+    }
+
+
+    
+
+    function drawSearchPaginateDT() {
+
+        var searchPaginateDT = "<div id='hidesearch'> Page <input type='text' size='4'  id='paginatesearch' value ='1' onchange='searchPaginateList(this.value)' autocomplete='off'></input></div>";
+
+        $("#drawSearchPaginateDT").html(searchPaginateDT);
+    }
+
+    function searchPaginateList(pageNum) {
+        var lastPage = $('#pageList').DataTable().page.info().pages;
+
+        if(pageNum > lastPage)
+            pageNum = lastPage;
+
+        $('#paginatesearch').val(pageNum);
+
+        var pageIndex = pageNum - 1;
+        $('#pageList').DataTable().page(pageIndex).draw('page')
+
+    }
+    
+    //var table = $('#pageList').DataTable();
+ 
+    //table.on( 'draw', function () {
+    //    $('#paginatesearch').val(table.page()+1);
+    //    setCookie("listingpage5", table.page()+1, 1);
+    //} );
+    
+    $(document).ready(function(){
+        drawSearchPaginateDT();
+        checkListingPageCookie2("listingpage5");
+    });
+
+
+</script>
+   

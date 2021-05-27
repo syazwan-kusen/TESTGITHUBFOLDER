@@ -1,0 +1,678 @@
+﻿
+@using Newtonsoft.Json;
+@using myvdbsSQL;
+@using MyVDBSDemo.Models;
+@model MyVDBSDemo.Models.StarRatings
+
+@{
+    ViewBag.Title = "Star Rating";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<head></head>
+<style>
+    span.stars, span.stars>* {
+        display: inline-block;
+        background: url('../images/stars.png') 0 -16px repeat-x;
+        width: 80px;
+        height: 16px;
+    }
+    span.stars>*{
+        max-width:80px;
+        background-position: 0 0;
+    }
+</style>
+<body>
+    <div class="col-lg-12" style="margin-top:80px;">
+        <div class="panel panel-info">
+
+            <div class="panel-body">
+        
+                <div class="col-lg-12" style="margin-top:20px">
+                    <div class="panel panel-info">
+                        <div class="panel-body">
+                            <table class="table table-bordered table-striped display" id="pageList" align="center" width="100%">
+                                <thead style="background-color:moccasin">
+                                    <tr>
+                                        <th class="text-center">@MyVDBSDemo.Resources.LangText.No</th>
+                                        <th class="col-sm-4 text-center">Star Rating</th>
+                                        <th class="col-sm-3 text-center">Minimum Star Rating</th>
+                                        <th class="col-sm-3 text-center">Maximum Star Rating</th>
+                                        <th class="col-sm-2 text-center">@MyVDBSDemo.Resources.LangText.Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        var count = 0;
+                                        foreach (var item in Model.GetStarRatings)
+
+                                        {
+                                            count = count + 1;
+                                            <tr>
+                                                <td style="text-align:center">@count.</td>
+                                                <td><span class="stars">@item.StarNo</span></td>
+                                                <td>@item.MinStarRating</td>
+                                                <td>@item.MaxStarRating</td>
+                                                <td style="text-align:center">
+                                                    <button type="button" id="edit" class="btn btn-success btn-xs edit" onclick="edit('@item.StarId')"><span class="glyphicon glyphicon-pencil"></span> @MyVDBSDemo.Resources.LangText.Update</button>
+                                                    @*<button type="button" id="delete" class="btn btn-danger btn-xs delete" onclick="hapus('@item.StarId')"><span class="glyphicon glyphicon-trash"></span> @MyVDBSDemo.Resources.LangText.Delete</button>*@
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                            <div align="right">
+                                <div id="drawSearchPaginateDT"></div>
+                            </div>
+                            <div align="center" style="display: @(Model.GetNumStarRating.Total >= 10 ? "none" : "")">
+
+                                <button data-bind="click : add, visible :true, enable: true" class="btn btn-primary btn-sm m-t-10">
+                                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Add
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="StarEdit" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+        <div class="modal-dialog" style="width:500px">
+            <div class="modal-content">
+                <div class="modal-header heady">
+
+                    <h4 align="center">Update Star Rating</h4>
+                </div>
+
+                <div class="modal-body">
+                    <div class="form-group">
+                        <form id="editForm">
+                            <div class="row">
+                                <div class='col-md-5'>
+                                    <label class="required">Star Rating No</label>
+                                </div>
+                                <div class="col-md-1"><label> : </label></div>
+                                <div class="col-md-6">
+                                    <input type="number" class="validate[required]" size="4" id="StarNo2" data-bind="value:star3.StarNo" placeholder="e.g. 0" disabled/>
+                                    <input type="button" value="-" onclick="minus_update()" />
+                                    <input type="button" value="+" onclick="plus_update()" />
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class='col-md-5'>
+                                    <label class="required">Minimum Star Rating</label>
+                                </div>
+                                <div class="col-md-1"><label> : </label></div>
+                                <div class="col-md-6">
+                                    <input type="number" class="validate[required] form-control" id="UpdateMinStarRating" data-bind="value:star3.MinStarRating" placeholder="e.g. 0" onchange="check_limit_min(this,2)" />
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class='col-md-5'>
+                                    <label class="required">Maximum Star Rating</label>
+                                </div>
+                                <div class="col-md-1"><label> : </label></div>
+                                <div class="col-md-6">
+                                    <input type="number" class="validate[required] form-control" id="UpdateMaxStarRating" data-bind="value:star3.MaxStarRating" placeholder="e.g. 20" onchange="check_limit_max(this,2)"/>
+                                </div>
+                            </div>
+                            <br />
+                            @*<div class="row">
+                                <div class='col-md-5'>
+                                    <label class="required">Sequence</label>
+                                </div>
+                                <div class="col-md-1"><label> : </label></div>
+                                <div class="col-md-6">
+                                    <input type="number" class="validate[required] form-control" id="SeqNo" data-bind="value:star3.SeqNo" placeholder="e.g. 1" />
+                                </div>
+                            </div>*@
+                        </form>
+
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <div align="center">
+                        <button id="saveUpdate" class="btn btn-success btn-sm m-t-10" onclick="checkExist(0,2)"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Save </button>
+                        <button id="resetUpdate" class="btn btn-warning btn-sm m-t-10" data-bind="click:resetUpdate"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Reset </button>
+                        <button id="cancelUpdate" class="btn btn-info btn-sm m-t-10" data-bind="click:cancelUpdate"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Cancel </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="StarAdd" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+        <div class="modal-dialog" style="width:500px">
+            <div class="modal-content">
+                <div class="modal-header heady">
+
+                    <h4 align="center">Add Star Rating</h4>
+                </div>
+
+                <div class="modal-body">
+                    <div class="form-group">
+                        <form id="addForm">
+                            <div class="row">
+                                <div class='col-md-5'>
+                                    <label class="required">Star Rating No</label>
+                                </div>
+                                <div class="col-md-1"><label> : </label></div>
+                                <div class="col-md-6">
+                                    <div id="input_div">
+                                        <input type="number" size="4" class="validate[required]" id="StarNo1" data-bind="value:star2.StarNo" placeholder="e.g. 0" disabled/>
+                                        <input type="button" value="-" onclick="minus_add()"/>
+                                        <input type="button" value="+" onclick="plus_add()"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class='col-md-5'>
+                                    <label class="required">Minimum Star Rating</label>
+                                </div>
+                                <div class="col-md-1"><label> : </label></div>
+                                <div class="col-md-6">
+                                    <input type="number" class="validate[required] form-control" id="AddMinStarRating" data-bind="value:star2.MinStarRating" placeholder="e.g. 0" onchange="check_limit_min(this,1)" />
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class='col-md-5'>
+                                    <label class="required">Maximum Star Rating</label>
+                                </div>
+                                <div class="col-md-1"><label> : </label></div>
+                                <div class="col-md-6">
+                                    <input type="number" class="validate[required] form-control" id="AddMaxStarRating" data-bind="value:star2.MaxStarRating" placeholder="e.g. 20" onchange="check_limit_max(this,1)" />
+                                </div>
+                            </div>
+                            <br />
+                            @*<div class="row">
+                                <div class='col-md-5'>
+                                    <label class="required">Sequence</label>
+                                </div>
+                                <div class="col-md-1"><label> : </label></div>
+                                <div class="col-md-6">
+                                    <input type="number" class="validate[required] form-control" id="SeqNo" data-bind="value:star2.SeqNo" placeholder="e.g. 1" />
+                                </div>
+                            </div>*@
+                        </form>
+
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <div align="center">
+                        <button id="saveDialog" class="btn btn-success btn-sm m-t-10" onclick="checkExist(0,1)"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Save </button>
+                        <button id="resetDialog" class="btn btn-warning btn-sm m-t-10" data-bind="click:resetDialog"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Reset </button>
+                        <button id="cancelDialog" class="btn btn-info btn-sm m-t-10" data-bind="click:cancelDialog"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Cancel </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @Html.Partial("_CommonDialog")
+</body>
+<script src="~/Scripts/Common/Common.js"></script>
+<script src="~/Scripts/Common/CookieHelper.js"></script>
+<script>
+
+    var star= @Html.Raw(JsonConvert.SerializeObject(@Model, Formatting.None,
+                              new JsonSerializerSettings()
+    {
+
+                                  ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+    }));
+
+</script>
+
+<script>
+    var dtInstance = $("#pageList").DataTable({
+        "scrollCollapse": false,
+        "paging": true,
+        "columnDefs": [{
+            "searchable": false,
+            "orderable": false,
+            "targets": 0
+        }],
+        "order": [[1, 'asc']]
+    });
+
+    dtInstance.on('order.dt search.dt', function () {
+        dtInstance.column(0, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
+            cell.innerHTML = i + 1;
+        });
+    }).draw();
+
+    dtInstance.on( 'draw', function () {
+        $('#paginatesearch').val(dtInstance.page()+1);
+        setCookie("listingpage9", dtInstance.page()+1, 1);
+    } );
+
+    $.fn.stars = function() {
+        return this.each(function(i,e){$(e).html($('<span/>').width($(e).text()*16));});
+    };
+    $('.stars').stars();
+
+    var count = 0;
+    var count2 = 0;
+    var countEl = document.getElementById("StarNo1");
+    var countE2 = document.getElementById("StarNo2");
+
+    
+    var viewModel;
+
+    var btnRefresh = function () {
+        location.reload();
+    }
+
+    $(function () {
+
+        viewModel = {
+            star1: ko.mapping.fromJS(star),
+            star2 :
+            {
+                StarNo: ko.observable(""),
+                MinStarRating: ko.observable(""),
+                MaxStarRating: ko.observable(""),
+                SeqNo: ko.observable(""),
+                StarId: ko.observable(""),
+            },
+            star3 :
+            {
+                StarNo: ko.observable(""),
+                MinStarRating: ko.observable(""),
+                MaxStarRating: ko.observable(""),
+                SeqNo: ko.observable(""),
+                StarId: ko.observable(""),
+            },
+            OldStarNo: ko.observable(""),
+            OldMinStarRating: ko.observable(""),
+            OldMaxStarRating: ko.observable(""),
+
+            update: function (no) {
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetStarEdit",
+                    data: JSON.stringify({ no: no }),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+                            viewModel.star3.StarNo(msg.list.StarNo);
+                            viewModel.star3.MinStarRating(msg.list.MinStarRating);
+                            viewModel.star3.MaxStarRating(msg.list.MaxStarRating);
+                            viewModel.star3.SeqNo(msg.list.SeqNo);
+                            viewModel.star3.StarId(msg.list.StarId);
+                            viewModel.OldStarNo(msg.list.StarNo);
+                            viewModel.OldMinStarRating(msg.list.MinStarRating);
+                            viewModel.OldMaxStarRating(msg.list.MaxStarRating);
+                            count2 = msg.list.StarNo;
+                            $("#StarEdit").modal({
+                                show: 'true',
+                                backdrop: 'true',
+                                keyboard: 'true'
+                            });
+
+                        }
+                    }
+                });
+            },
+            add: function () {
+                $('#StarAdd').modal('show');
+            },
+            saveDialog: function () {
+                var value = $("#addForm").validationEngine('validate');
+                viewModel.star2.StarNo(count);
+                if (value == true) {
+                    $.ajax({
+                        type: 'POST',
+                        url: '/Admin/AddStarRating',
+                        contentType: "application/json; charset=utf-8",
+                        data: JSON.stringify({ modelss: ko.mapping.toJS(viewModel.star2) }),
+
+                        success: function (msg) {
+
+                            if (msg.ok) {
+                                $('#StarAdd').modal('hide');
+                                ShowMessageSuccess("@MyVDBSDemo.Resources.LangText.Success_Add_Msg",btnRefresh);
+                            }
+                            else {
+                                $('#StarAdd').modal('hide');
+                                ShowMessageDanger("@MyVDBSDemo.Resources.LangText.Unsuccess_Add_Msg");
+                            }
+
+                        },
+                        error: function (xhr) {
+                        }
+                    });
+                } else {
+                    $("#addForm").validationEngine();
+                }
+            },
+            remove: function(no) {
+                ShowDecisionMessage("@MyVDBSDemo.Resources.LangText.Are_U_Sure_Del", function () {
+
+                    var btnOk = function () {
+
+                    }
+                    $.ajax({
+                        type: "POST",
+                        url: server + "/Admin/DeleteStarRating",
+                        data: JSON.stringify({ no: no }),
+                        contentType: "application/json; charset=utf-8",
+                        error: function (xhr) { },
+                        success: function (msg) {
+                            if (msg.OK) {
+                                ShowMessageSuccess("@MyVDBSDemo.Resources.LangText.Success_Del_Msg",btnRefresh);
+                            }
+                            else {
+                                ShowMessageDanger("@MyVDBSDemo.Resources.LangText.Unsuccess_Del_Msg");
+                            }
+                        }
+                    })
+
+                });
+            },
+            validate: function (no, ind) {
+                if(ind == 1){
+                    var no = count;
+                }else{
+                    no = count2;  
+                }
+                
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetStarNo",
+                    data: JSON.stringify({ no: no }),
+                    contentType: "application/json; charset=utf-8",
+                    success: function (msg) {
+                        if (msg.OK) {
+                            if (msg.list.StarNo != null) {
+                   
+                                if(ind == 1){
+                                    ShowMessageWarning("Star Rating Number already exist.");
+                                    viewModel.star2.StarNo('');
+                                    count = '';
+                                    countEl.value = count;
+                                }else{
+                                    if(viewModel.OldStarNo() != msg.list.StarNo){
+                                        ShowMessageWarning("Star Rating Number already exist.");
+                                        viewModel.star3.StarNo('');
+                                    }else{
+                                        viewModel.validateMinMax(ind);
+                                    }
+                                    
+                                }
+                                
+                            }else{
+                                viewModel.validateMinMax(ind);
+                            }
+
+                        }
+                    }
+                });
+            },
+            validateMinMax: function (ind) {
+                if(ind == 1){ //add
+                    var min = viewModel.star2.MinStarRating();
+                    var max = viewModel.star2.MaxStarRating();
+                }else{ //update
+                    var min = viewModel.star3.MinStarRating();
+                    var max = viewModel.star3.MaxStarRating(); 
+                }
+                
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/validateMinMax",
+                    data: JSON.stringify({ min: min, max: max }),
+                    contentType: "application/json; charset=utf-8",
+                    success: function (msg) {
+                        if (msg.OK) {
+                            if (msg.list.Item2 != 0) {
+                                if(ind == 1){
+                                    ShowMessageWarning("This minumum star rating is same with other maximum star rating that already exist.");
+                                    viewModel.star2.MinStarRating('');
+                                }else{
+                                    if(viewModel.OldMinStarRating() != msg.list.Item2){
+                                        ShowMessageWarning("This minumum star rating is same with other maximum star rating that already exist.");
+                                        viewModel.star3.MinStarRating('');
+                                    }
+                                }
+                                
+                            }else{
+
+                                if (msg.list.Item1 != 0) {
+                                    if(ind == 1){
+                                        ShowMessageWarning("This maximum star rating is same with other minimum star rating that already exist.");
+
+                                        viewModel.star2.MaxStarRating('');
+                                    }else{
+                                        if(viewModel.OldMaxStarRating() != msg.list.Item1){
+                                            ShowMessageWarning("This maximum star rating is same with other minimum star rating that already exist.");
+                                            viewModel.star3.MaxStarRating('');
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            viewModel.validateExistMinMax(ind);
+                            
+                        }
+                    }
+                });
+            },
+            validateExistMinMax: function (ind) {
+                if(ind == 1){ //add
+                    var min = viewModel.star2.MinStarRating();
+                    var max = viewModel.star2.MaxStarRating();
+                }else{ //update
+                    var min = viewModel.star3.MinStarRating();
+                    var max = viewModel.star3.MaxStarRating(); 
+                }
+                
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/validateExistMinMax",
+                    data: JSON.stringify({ min: min, max: max }),
+                    contentType: "application/json; charset=utf-8",
+                    success: function (msg) {
+                        if (msg.OK) {
+                            if (msg.list.Item1 != 0) {
+                                if(ind == 1){
+                                    ShowMessageWarning("This minumum star rating already exist.");
+                                    viewModel.star2.MinStarRating('');
+                                }else{
+                                    if(viewModel.OldMinStarRating() != msg.list.Item1){
+                                        ShowMessageWarning("This minumum star rating already exist.");
+                                        viewModel.star3.MinStarRating('');
+                                    }
+                                }
+                                
+                            }else{
+
+                                if (msg.list.Item2 != 0) {
+                                    if(ind == 1){
+                                        ShowMessageWarning("This maximum star rating already exist.");
+
+                                        viewModel.star2.MaxStarRating('');
+                                    }else{
+                                        if(viewModel.OldMaxStarRating() != msg.list.Item2){
+                                            ShowMessageWarning("This maximum star rating already exist.");
+                                            viewModel.star3.MaxStarRating('');
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            if(ind == 1){
+                                viewModel.saveDialog();
+                            }else{
+                                viewModel.saveUpdate();
+                            }
+                            
+                        }
+                    }
+                });
+            },
+            saveUpdate: function() {
+                var value = $("#editForm").validationEngine('validate');
+                viewModel.star3.StarNo(count2);
+                if (value == true) {
+                    $.ajax({
+                        type: "POST",
+                        url: server + "/Admin/UpdateStarRating",
+                        data: JSON.stringify({ modelss: ko.mapping.toJS(viewModel.star3) }),
+                        contentType: "application/json; charset=utf-8",
+                        error: function (xhr) { },
+                        success: function (msg) {
+                            if (msg.OK) {
+                                $('#StarEdit').modal('hide');
+                                ShowMessageSuccess("@MyVDBSDemo.Resources.LangText.Success_Update_Msg",btnRefresh);
+                            }
+                            else {
+                                $('#StarEdit').modal('hide');
+                                ShowMessageDanger("@MyVDBSDemo.Resources.LangText.Unsuccess_Update_Msg");
+                            }
+                        }
+                    });
+                } else {
+                    $("#editForm").validationEngine();
+                }
+            }
+        }
+
+        ko.applyBindings(viewModel);
+    });
+    function edit(no) {
+        count2=0;
+        viewModel.update(no);
+    }
+    function resetDialog() {
+        viewModel.star2.MinStarRating("");
+        viewModel.star2.MaxStarRating("");
+        viewModel.star2.SeqNo("");
+        viewModel.star2.StarNo("");
+    }
+    function cancelDialog() {
+        $('#StarAdd').modal('hide');
+    }
+   
+    function resetUpdate() {
+        viewModel.star3.MinStarRating("");
+        viewModel.star3.MaxStarRating("");
+        viewModel.star3.SeqNo("");
+        viewModel.star3.StarNo("");
+        viewModel.update(viewModel.star3.StarId());
+    }
+    function cancelUpdate() {
+        $('#StarEdit').modal('hide');
+        $('.modal').modal('hide');
+    }
+    function hapus (no) {
+        viewModel.remove(no);
+    }
+    function checkExist(val, ind) {
+        viewModel.validate(val, ind);
+    }
+
+    function plus_add(){
+        if(count == ''){
+            count = 0;
+        }
+        count = count + 0.5;
+        countEl.value = count;
+    }
+    function minus_add(){
+        if (count > 0) {
+            count = count - 0.5;
+            countEl.value = count;
+        }  
+    }
+    function plus_update(){
+        if(countE2.value == ""){
+            count2 = 0;
+        }else{
+            count2 =  parseFloat(countE2.value);
+
+        }
+        count2 = count2 + 0.5;
+        countE2.value = count2;
+    }
+    function minus_update(){
+        count2 =  parseFloat(countE2.value);
+        if (count2 > 0) {
+            count2 = count2 - 0.5;
+            countE2.value = count2;
+        }  
+    }
+    function check_limit_min(a, b) {
+        if(b == 1){ //add
+            var min = parseFloat(a.value);
+            var max = parseFloat($('#AddMaxStarRating').val());
+            if(min > max){
+                ShowMessageWarning("Minimum star rating cannot be larger than maximum star rating.");
+                a.value = "";
+            }
+        }else if(b == 2){ //update
+            var min = parseFloat(a.value);
+            var max = parseFloat($('#UpdateMaxStarRating').val());
+            if(min > max){
+                ShowMessageWarning("Minimum star rating cannot be larger than maximum star rating.");
+                a.value = "";
+            }
+        }
+    }
+    function check_limit_max(a, b) {
+        if(b == 1){ //add
+            var max = parseFloat(a.value);
+            var min = parseFloat($('#AddMinStarRating').val());
+            if(max < min){
+                ShowMessageWarning("Maximum star rating cannot be smaller than minimum star rating.");
+                a.value = "";
+            }
+        }else if(b == 2){ //update
+            var max = parseFloat(a.value);
+            var min = parseFloat($('#UpdateMinStarRating').val());
+            if(max < min){
+                ShowMessageWarning("Maximum star rating cannot be smaller than minimum star rating.");
+                a.value = "";
+            }
+        }
+    }
+
+    function drawSearchPaginateDT() {
+
+        var searchPaginateDT = "<div id='hidesearch'> Page <input type='text' size='4'  id='paginatesearch' value ='1' onchange='searchPaginateList(this.value)' autocomplete='off'></input></div>";
+
+        $("#drawSearchPaginateDT").html(searchPaginateDT);
+    }
+
+    function searchPaginateList(pageNum) {
+        var lastPage = $('#pageList').DataTable().page.info().pages;
+
+        if(pageNum > lastPage)
+            pageNum = lastPage;
+
+        $('#paginatesearch').val(pageNum);
+
+        var pageIndex = pageNum - 1;
+        $('#pageList').DataTable().page(pageIndex).draw('page')
+
+    }
+    
+    //var table = $('#pageList').DataTable();
+ 
+    //table.on( 'draw', function () {
+    //    $('#paginatesearch').val(table.page()+1);
+    //    setCookie("listingpage9", table.page()+1, 1);
+    //} );
+    
+    $(document).ready(function(){
+        drawSearchPaginateDT();
+        checkListingPageCookie2("listingpage9");
+    });
+</script>

@@ -1,0 +1,2287 @@
+﻿@using Newtonsoft.Json;
+@using myvdbsSQL;
+@using MyVDBSDemo.Models;
+@*@model IEnumerable<MyVDBSDemo.Models.Verify>*@
+@model MyVDBSDemo.Models.FindingListDataUpdate
+@using MVCEncrypt;
+
+@{
+    ViewBag.Title = "Finding List Information";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<style>
+    #hover1:hover {
+        background-color: ActiveBorder;
+    }
+
+    #hover2:hover {
+        background-color: ActiveBorder;
+    }
+
+    .inform {
+        font-size: 11px;
+        text-transform: lowercase;
+        margin: 10px;
+    }
+</style>
+<script>
+    $(function() {
+        $("#tabs").tabs();
+    });
+</script>
+
+<body>
+    @*<div class="col-lg-12">
+            <div class="panel-default" style="text-align:center;background-color:#7BE4E4;text-transform:uppercase;text-decoration:solid"><h3>Audit Trail</h3></div>
+        </div>*@
+
+    <div class="col-lg-12" style="margin-top:70px;">
+        <div class="panel panel-info">
+            <div class="panel-heading">
+                <h3 class="panel-title">Finding List Update</h3>
+            </div>
+            @*<div class="panel panel-info">*@
+            <div class="panel-body">
+                <div class="col-md-2"></div>
+
+                <form id="myForm" class="form-group col-md-8">
+                    <div class="form-row">
+                        <div class="form-group col-md-10">
+                            <label for="inputAddress">MyVDB-ID</label></br>
+                            @Model.VulProjFinding.MyVDBID
+                            @*<input id="MyVDB_ID" type="text" name="MyVDB_ID" class="validate[required] form-control" placeholder="e.g. MyVDB-ID" autofocus data-bind="value:Finding.VulManInput.MyVDBID, valueUpdate:'afterkeydown'" autocomplete="off" readonly>*@
+                        </div>
+                    </div>
+
+                    @*<div class="form-row">
+                            <div class="form-group col-md-8">
+                                <label for="inputAddress">CVE-ID</label>
+                               <textarea id="cve_id" type="text" class="form-control textarearesize" name="cve_id" maxlength="50" placeholder="e.g. CVE-ID" autofocus rows="1" data-bind="html:Finding.VulProjFinding.CVEId, valueUpdate:'afterkeydown'" onkeypress="return runScript(event)" ></textarea>
+                            </div>
+                            <div class="form-group col-md-2">
+                                <label for="validId" style="color:transparent;">transparent</label>
+                                @{
+                                    if (Model.ValidCveID != "")
+                                    {
+                                        <input type="button" class="btn btn-primary btn-xs find" value="CVE-ID Details" onclick="window.open('@Model.ValidCveID')" />
+                                    }
+                                }
+                            </div>
+                        </div>*@
+
+                    <div class="form-row">
+
+                        <div class="col-sm-8">
+                            <label for="inputAddress">CVE-ID</label>
+                            <div id="student-row-1">
+                                <div class="col-sm-8 form-group" style="padding-left: 0px;">
+                                    <textarea id="cve_id-1" type="text" class="form-control textarearesize filestyle" name="cve_id[0]" maxlength="50" placeholder="e.g. CVE-ID" autofocus rows="1" data-bind="html:Finding.VulProjFinding.CVEId, valueUpdate:'afterkeydown'" onkeypress="return runScript(event)" autocomplete="off"></textarea>
+                                </div>
+                                <div class="col-sm-4" style="padding-left: 0px;margin-bottom: 0px;">
+                                    <a title="add_new" data-toggle="modal" href="#" class="btn btn-primary btn-xs" data-url="student-row-1" style="display:solid;" id="student-add-more"><span class='glyphicon glyphicon-plus' aria-hidden='true'></span></a>
+                                    <a title="Delete" data-toggle="modal" href="#" class="btn btn-danger btn-xs hidden" data-url="student-row-1"><span class='glyphicon glyphicon-trash' aria-hidden='true'></span></a>
+
+                                    <a id="clicklink-1" title="link" data-toggle="modal" href="#" class="btn btn-success btn-xs find" style="display:none;background-color:#337ab7;border-color:#2e6da4;" onclick="openLinkFile('')" data-url="student-row-1">CVE-ID Details</a>
+                                </div>
+                            </div>
+                            <input type="hidden" id="count_file" value="1" />
+                        </div>
+
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-5">
+                            <label for="Category">Category</label>
+                            <select id="category" class="form-control" style="width: 60%;" data-bind="options: category, optionsText: 'VulCategoryNm', optionsValue: 'VulCategoryCd', optionsCaption: '--- Please Choose ---', valueAllowUnset: true,value : Finding.VulProjFinding.VulCat,valueUpdate: 'afterkeydown'" onchange="categorychange()"></select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-8">
+                            <label id="vulcode" class="" for="inputAddress">Vulnerability Code</label>
+                            <input id="vulCdCmb" type="text" name="vulCdCmb" class="form-control" placeholder="e.g. Vulnerability Code" autofocus data-bind="value:Finding.VulProjFinding.VulnerabilityCSMCdCombine, valueUpdate:'afterkeydown'" autocomplete="off" readonly>
+                            <input id="vulCd" type="hidden" name="vulCd" class="form-control" placeholder="e.g. Vulnerability Code" autofocus data-bind="value:Finding.VulProjFinding.VulnerabilityCSMCd, valueUpdate:'afterkeydown'" autocomplete="off">
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="vul_code" style="color:transparent;">transparent</label><br />
+                            <button class="btn btn-primary btn-xs find" onclick="searchVulCode(); return false;"><span class="glyphicon glyphicon-search" aria-hidden="true"></span> Search</button>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-12">
+                            <label class="required" for="inputAddress">Vulnerability Description</label>
+                            @*<input id="vul_nm" type="text" name="vul_nm" class="validate[required] form-control" placeholder="e.g. Vulnerability Name" autofocus data-bind="html:Finding.VulProjFinding.VulNm, valueUpdate:'afterkeydown'">*@
+                            <textarea id="vul_nm" type="text" class="validate[required] form-control" name="vul_nm" placeholder="e.g. Vulnerability Name" autofocus rows="3" data-bind="html:Finding.VulProjFinding.VulNm, valueUpdate:'afterkeydown'" onkeypress="return runScript(event)"></textarea>
+                        </div>
+                        @*<div class="form-group col-md-2">
+                                <label for="inputAddress" style="color:transparent;">transparent</label>
+                                <button class="btn btn-primary btn-xs find" onclick="search(); return false;"><span class="glyphicon glyphicon-search" aria-hidden="true"></span> Search</button>
+                            </div>*@
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-3">
+                            <label class="" for="inputAddress">CWEID</label>
+                            <input id="CWENm" type="text" name="CWENm" class="form-control" placeholder="e.g. CWEID" autofocus data-bind="value:Finding.VulProjFinding.CWEId, valueUpdate:'afterkeydown'" autocomplete="off" readonly>
+                            @*<input id="CWEId" type="hidden" name="CWEId" class="validate[required] form-control" placeholder="e.g. CWEID" autofocus data-bind="value:Finding.VulProjFinding.x.CWEId, valueUpdate:'afterkeydown'" autocomplete="off">*@
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label for="CWE_ID" style="color:transparent;">transparent</label>
+                            <button class="btn btn-primary btn-xs find" onclick="searchCWEID_Info(); return false;"><span class="glyphicon glyphicon-search" aria-hidden="true"></span> Search</button>
+                        </div>
+                    </div>
+
+                    <div data-bind="if: Finding.VulProjFinding.CWEId" class="row col-md-12" style="margin-bottom:4px;">
+                        <div class="col-md-2">
+                            <label>CWE Name</label>
+                        </div>
+                        <div class="col-md-1">
+                            <label> : </label>
+                        </div>
+
+                        <div data-bind="html:Finding.VulProjFinding.z.CWENm" class="col-md-7" style="text-align:left"></div>
+                    </div>
+
+                    <div data-bind="if: Finding.VulProjFinding.CWEId" class="row col-md-12" style="margin-bottom:4px;">
+                        <div class="col-md-2">
+                            <label>CWE Description</label>
+                        </div>
+                        <div class="col-md-1">
+                            <label> : </label>
+                        </div>
+                        <div data-bind="html:Finding.VulProjFinding.z.Description" class="col-md-7" style="text-align:left"></div>
+                    </div>
+
+                    <div data-bind="if: Finding.VulProjFinding.CWEId" class="row col-md-12" style="margin-bottom:4px;">
+                        <div class='col-md-2'>
+                            <label>CWE Details</label>
+                        </div>
+                        <div class="col-md-1">
+                            <label> : </label>
+                        </div>
+                        <div class="col-md-7">
+                            <a data-bind="attr: { href: Finding.VulProjFinding.z.UrlLink , title: 'Details' , target:'_blank', rel:'noopener noreferrer'}">
+                                <font color="blue" data-bind="html:Finding.VulProjFinding.z.UrlLink"></font>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="form-group col-md-12">
+                        <label for="SecurityComp">Security Components</label>
+                        <textarea id="SecComp" type="text" class="form-control" name="Sec_Comp" placeholder="e.g. Security Components" autofocus rows="3" data-bind="html:Finding.VulProjFinding.VulSecComp, valueUpdate:'afterkeydown'"></textarea>
+                    </div>
+
+                    <div class="form-group col-md-12">
+                        <label for="AffecApp" class="required">Affected Application(S)</label>
+                        <textarea id="AffecApp" type="text" class="validate[required] form-control" name="Affec_App" placeholder="e.g. Affected Application(S)" autofocus rows="3" data-bind="html:Finding.VulProjFinding.AffectedApp, valueUpdate:'afterkeydown'"></textarea>
+                    </div>
+
+                    @Html.Partial("FindingListAffectedItem")
+
+
+
+                    <div class="form-row">
+                        <div class="form-group col-md-8">
+                            <label class="required" for="inputAddress">Vulnerability Type</label>
+                            <input id="vulTypeNm" type="text" name="vulTypeNm" class="validate[required] form-control" placeholder="e.g. Vulnerability Type" autofocus data-bind="value:Finding.VulProjFinding.x.VulNm, valueUpdate:'afterkeydown'" autocomplete="off" readonly>
+                            <input id="vulTypeID" type="hidden" name="vulTypeID" class="validate[required] form-control" placeholder="e.g. Vulnerability Type" autofocus data-bind="value:Finding.VulProjFinding.VulType, valueUpdate:'afterkeydown'" autocomplete="off">
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label for="vul_type" style="color:transparent;">transparent</label>
+                            <button class="btn btn-primary btn-xs find" onclick="searchVulType(); return false;"><span class="glyphicon glyphicon-search" aria-hidden="true"></span> Search</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group col-md-12">
+                        <label class="required" for="addr1">Observation</label>
+                        <textarea id="Observation" type="text" class="validate[required] form-control" name="area_of_impt" placeholder="e.g. Observation" autofocus rows="3" data-bind="html:Finding.VulProjFinding.ObservationRmk, valueUpdate:'afterkeydown'"></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-5">
+                            <label for="email">Severity</label>
+                            @Model.VulProjFinding.SeverityNm
+
+                            @*@{
+                                    if (@Model.VulProjFinding.ImpactLvl.Trim() == "1")
+                                    {
+                                        <select id="imp_lev" class="form-control" style="width: 60%;" data-bind="value:Finding.VulProjFinding.ImpactLvl, valueUpdate:'afterkeydown'">
+                                            <option value="0">--- Please Choose ---</option>
+                                            <option selected value="1">Low</option>
+                                            <option value="2">Medium</option>
+                                            <option value="3">High</option>
+                                        </select>
+                                    }
+                                    else if (@Model.VulProjFinding.ImpactLvl.Trim() == "2")
+                                    {
+                                        <select id="imp_lev" class="form-control" style="width: 60%;" data-bind="value:Finding.VulProjFinding.ImpactLvl, valueUpdate:'afterkeydown'">
+                                            <option value="0">--- Please Choose ---</option>
+                                            <option value="1">Low</option>
+                                            <option selected value="2">Medium</option>
+                                            <option value="3">High</option>
+                                        </select>
+                                    }
+                                    else if (@Model.VulProjFinding.ImpactLvl.Trim() == "3")
+                                    {
+                                        <select id="imp_lev" class="form-control" style="width: 60%;" data-bind="value:Finding.VulProjFinding.ImpactLvl, valueUpdate:'afterkeydown'">
+                                            <option value="0">--- Please Choose ---</option>
+                                            <option value="1">Low</option>
+                                            <option value="2">Medium</option>
+                                            <option selected value="3">High</option>
+                                        </select>
+                                    }
+                                    else
+                                    {
+                                        <select id="imp_lev" class="form-control" style="width: 60%;" data-bind="value:Finding.VulProjFinding.ImpactLvl, valueUpdate:'afterkeydown'">
+                                            <option selected value="0">--- Please Choose ---</option>
+                                            <option value="1">Low</option>
+                                            <option value="2">Medium</option>
+                                            <option value="3">High</option>
+                                        </select>
+                                    }
+
+                                }*@
+
+
+                        </div>
+                    </div>
+
+                    <div class="form-group col-md-12">
+                        <label class="required" for="addr1">Impact Remark</label>
+                        <textarea id="impact_remark" type="text" class="validate[required] form-control" name="impact_remark" placeholder="e.g. Impact Remark" autofocus rows="3" data-bind="html:Finding.VulProjFinding.ImpactRmk, valueUpdate:'afterkeydown'"></textarea>
+                    </div>
+
+                    <div class="form-group col-md-12">
+                        <label class="required" for="addr1">Area of Improvement</label>
+                        @* <textarea id="area_of_impt" type="text" class="form-control" name="area_of_impt" placeholder="e.g. Area of Important" autofocus rows="3" data-bind="value:Finding.VulProjFinding.ImprovementRmk, valueUpdate:'afterkeydown'"></textarea>*@
+                        <textarea id="area_of_impt" type="text" class="validate[required] form-control" name="area_of_impt" placeholder="e.g. Area of Important" autofocus rows="3" data-bind="html:Finding.VulProjFinding.ImprovementRmk, valueUpdate:'afterkeydown'"></textarea>
+                    </div>
+
+                    @Html.Partial("FindingListScreenshot")
+
+                    </br>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-12">
+                            <div class="form-check">
+                                <label for="agency_abbrv">Status</label>
+                                <br />
+                                @{
+                                    if (@Model.VulProjFinding.Status == null)
+                                    {
+                                        <input type="radio" name="status" value="1" onchange="radioclick(this)">
+                                        <label>Open</label>
+                                            <input type="radio" name="status" value="0" onchange="radioclick(this)">
+                                            <label>Close</label>
+                                    }
+                                    else if (@Model.VulProjFinding.Status.Trim() == "1")
+                                    {
+                                        @*<input type="radio" name="visibility" id="public" value="0" checked onchange="AssignValue(this)">*@
+                                        <input type="radio" name="status" value="1" checked onchange="radioclick(this)">
+                                        <label>Open</label>
+                                            <input type="radio" name="status" value="0" onchange="radioclick(this)">
+                                            <label>Close</label>
+                                    }
+                                    else if (@Model.VulProjFinding.Status.Trim() == "0")
+                                    {
+                                        <input type="radio" name="status" value="1" onchange="radioclick(this)">
+                                        <label>Open</label>
+                                            <input type="radio" name="status" value="0" checked onchange="radioclick(this)">
+                                            <label>Close</label>
+                                    }
+                                    else
+                                    {
+                                        <input type="radio" name="status" value="1" onchange="radioclick(this)">
+                                        <label>Open</label>
+                                            <input type="radio" name="status" value="0" onchange="radioclick(this)">
+                                            <label>Close</label>
+                                    }
+
+                                }
+
+                                @*<input name="parent_agency_ind" type="radio" class="form-check-input" value="1" onchange="AssignValue(this)" checked>  Open
+                                    <input name="parent_agency_ind" type="radio" class="form-check-input" value="0" onchange="AssignValue(this)">  Close*@
+
+
+                            </div>
+                        </div>
+                    </div>
+
+                    </br>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-3">
+                            <label for="email">CVSS Scoring</label>
+                            <input type="email" readonly class="form-control" id="imp_lev" placeholder="e.g. 25.00​" data-bind="value:Finding.VulProjFinding.CVSSScore, valueUpdate:'afterkeydown'">
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label style="color:transparent;">transparent</label>
+                            @*<button class="btn btn-primary btn-xs find" onclick="search(); return false;"><span class="glyphicon glyphicon-search" aria-hidden="true"></span> Search</button>*@
+
+                            <a class="btn btn-primary btn-xs" href='@Url.ActionEnc("mySecret", "CVSSFindingScoring", new { a = Model.VulProjFinding.VulProjFindingId })' onclick="getCVSSFindingScoringSession()"><span class="fas fa-calculator" aria-hidden="true"></span> Calculate </a>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label for="email">DREAD Scoring</label>
+                            <input type="email" readonly class="form-control" id="imp_lev" placeholder="e.g. 20.00​" data-bind="value:Finding.VulProjFinding.DreadScore, valueUpdate:'afterkeydown'">
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label style="color:transparent;">transparent</label>
+                            @{
+                                if (Model.CheckRelDREADVulFindScoring.Count == 0)
+                                {
+                                    //Session["vulName"] = Model.VulProjFinding.VulNm;
+
+                                    <a class="btn btn-primary btn-xs" href='@Url.ActionEnc("mySecret", "DREADScoreCalcFinding", new { a = Model.VulProjFinding.VulProjFindingId })' onclick="getCVSSFindingScoringSession()"><span class="fas fa-calculator" aria-hidden="true"></span> Calculate </a>
+
+                                }
+                                else
+                                {
+                                    <a class="btn btn-primary btn-xs" href='@Url.ActionEnc("mySecret", "DREADScoreCalcFindingUpdate", new { a = Model.VulProjFinding.VulProjFindingId })' onclick="getCVSSFindingScoringSession()"><span class="fas fa-calculator" aria-hidden="true"></span> Calculate </a>
+                                }
+                            }
+                        </div>
+                    </div>
+
+                    @Html.Partial("FindingInputProductInfo")
+
+
+                </form>
+                <div align="center" class="form-group col-md-12">
+                    <button type="submit" class="btn btn-success btn-sm m-t-10" data-bind="click:UpdateFindingListInfo"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> Save</button>
+                    <button id="resetUpdate" class="btn btn-warning btn-sm m-t-10" data-bind="click:ResetFindingListInfo"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Reset </button>
+                    @*<button id="cancel" class="btn btn-info btn-sm m-t-10" onclick='cancel()'><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> Back </button>*@
+                    <a class="btn btn-info btn-sm m-t-10" href='@Url.ActionEnc("mySecret", "FindingList", new { a = Model.VulProjFinding.VulProjectId })'><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> Back </a>
+                </div>
+            </div>
+            @*</div>*@
+        </div>
+    </div>
+
+    <div id="searchdata" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+        <div class="modal-dialog" style="width:700px">
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Vulnerability List</h3>
+                </div>
+
+                <div class="modal-body">
+                    <div class="form-group">
+                        @*@Html.Partial("VulnerabilityList")*@
+                    </div>
+                </div>
+
+                @*<div class="modal-footer">
+                        <div align="center">
+                            <button class="btn btn-info btn-sm m-t-10" onclick="cancelUpdate(); return false;"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel</button>
+                        </div>
+                    </div>*@
+            </div>
+        </div>
+    </div>
+
+    <div id="FindingListAffectedItem" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+        <div class="modal-dialog" style="width:500px">
+            <div class="panel panel-info">
+                @*<div class="modal-header">
+                        <h4 align="center">Update DREAD Type </h4>
+                    </div>*@
+                <div class="panel-heading">
+                    <h3 class="panel-title">Add Affected Item/Asset</h3>
+                </div>
+
+                <div class="modal-body">
+                    <div class="form-group">
+                        <form id="editFormFindingListAffectedItem">
+                            <br />
+                            <div class="form-group">
+                                <label for="Page" class="col-form-label required">Page</label>
+                                <input type="text" class="validate[required] form-control" data-bind="value:FindingListAffectedItem.PageNm" id="Page" placeholder="e.g. Page" autocomplete="off">
+                                @*<textarea id="Page" type="text" class="form-control textarearesize" name="Page" placeholder="e.g. Page" autofocus rows="1" data-bind="html:Finding.VulProjFinding.VulNm, valueUpdate:'afterkeydown'" onkeypress="return runScript(event)"></textarea>*@
+                            </div>
+                            <br />
+                            <div class="form-group">
+                                <label for="Parameter" class="col-form-label required">Parameter</label>
+                                <input type="text" class="validate[required] form-control" data-bind="value:FindingListAffectedItem.Parameter" id="IPAddressLOD" placeholder="e.g. Parameter" autocomplete="off">
+                            </div>
+                            <br />
+                        </form>
+
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <div align="center">
+                        <button id="saveUpdate" class="btn btn-success btn-sm m-t-10" data-bind="click:saveUpdateFindingListAffectedItem"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> Save </button>
+                        <button id="resetUpdate" class="btn btn-warning btn-sm m-t-10" data-bind="click:resetUpdateFindingListAffectedItem"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Reset </button>
+                        <button class="btn btn-info btn-sm m-t-10" onclick="cancelFindingListAffectedItem(); return false;"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel</button>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="FindingListScreenshot" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+        <div class="modal-dialog" style="width:500px">
+            <div class="panel panel-info">
+                @*<div class="modal-header">
+                        <h4 align="center">Update DREAD Type </h4>
+                    </div>*@
+                <div class="panel-heading">
+                    <h3 class="panel-title">Upload Screenshot</h3>
+                </div>
+
+                <div class="modal-body">
+                    <div class="form-group">
+                        <form id="editFormFindingListScreenshot">
+                            <br />
+                            <div class="form-group">
+                                <label for="Title" class="col-form-label required">Title</label>
+                                <input type="text" class="validate[required] form-control" data-bind="value:FindingListScreenshot.Title" id="Title" placeholder="e.g. Title">
+                            </div>
+                            <br />
+                            <div class="form-group">
+                                <label for="Description" class="col-form-label required">Description</label>
+                                <textarea id="Description" type="text" class="validate[required] form-control" name="Description" placeholder="e.g. Description" autofocus rows="3" data-bind="value:FindingListScreenshot.Description, valueUpdate:'afterkeydown'"></textarea>
+                            </div>
+                            <br />
+                            <div class="form-group">
+                                <label for="Description" class="col-form-label required">Attachment</label>
+                                <input type="file" id="picfile" name="upload_pict_path" class="filestyle validate[required] form-control" data-buttonText="cd" data-size="sm" data-placeholder="No File Chosen">
+                            </div>
+                            <br />
+
+                        </form>
+
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <div align="center">
+                        <button id="saveUpdate" class="btn btn-success btn-sm m-t-10" data-bind="click:saveScreenshot"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> Save </button>
+                        <button id="resetUpdate" class="btn btn-warning btn-sm m-t-10" data-bind="click:resetUpdateFindingListScreenshot"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Reset </button>
+                        <button class="btn btn-info btn-sm m-t-10" onclick="cancelFindingListScreenshot(); return false;"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel</button>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="searchVulTypedata" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+        <div class="modal-dialog" style="width:800px">
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Vulnerability Type List</h3>
+                </div>
+
+                <div class="modal-body">
+                    <div class="form-group">
+                        @Html.Partial("VulnerabilityTypeList")
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <div align="center">
+                        <button class="btn btn-info btn-sm m-t-10" onclick="cancelsearchVulType(); return false;"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="searchCWEID_Info" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+        <div class="modal-dialog" style="width:800px">
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    <h3 class="panel-title">CWE List</h3>
+                </div>
+
+                <div class="modal-body">
+                    <div class="form-group">
+                        @Html.Partial("CWEIDInfoList")
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <div align="center">
+                        <button class="btn btn-info btn-sm m-t-10" onclick="cancelsearchCWEID_Info(); return false;"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="decision_attachment" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header" align="center">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">MyVDBS</h4>
+                </div>
+                <div class="modal-body" align="center">
+                    <img src='/images/sureto.png' height='40'>&nbsp;&nbsp;Are you sure to delete this record ?
+                </div>
+                <div class="modal-footer">
+                    <a class="btn btn-default btn-ok" data-dismiss="modal" onclick="confirm_delete_file()">Yes</a>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">No</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="FindingListProductInfo" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+        <div class="modal-dialog" style="width:500px">
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Add Product Information</h3>
+                </div>
+
+                <div class="modal-body">
+                    <div class="form-group">
+                        <form id="editFormFindingListProductInfo">
+                            <br />
+                            <div class="form-group">
+                                <label for="ProductType" class="col-form-label required">Product Type</label>
+
+                                <select id="ProductType" style="width: 60%;" class="validate[required] form-control" data-bind="options: product, optionsText: 'ProductType', optionsValue: 'ProductType', optionsCaption: '--- Please Choose ---', valueAllowUnset: true,value : FindingListProductInfo.ProductType, valueUpdate: 'afterkeydown'"></select>
+
+                                @*<input type="text" class="validate[required] form-control" data-bind="value:FindingListProductInfo.ProductType" id="Page" placeholder="e.g. Product Type">*@
+                            </div>
+                            <br />
+                            <div class="form-group">
+                                <label for="ProductVendor" class="col-form-label required">Product Vendor</label>
+                                <input type="text" class="validate[required] form-control" data-bind="value:FindingListProductInfo.ProductVendor" id="ProductVendor" placeholder="e.g. Product Vendor">
+                                <input type="hidden" class="form-control" data-bind="value:FindingListProductInfo.VulManInputProductId" id="ProductID">
+                                <input type="hidden" class="form-control" data-bind="value:FindingListProductInfo.addUpdInd" id="addUpdInd">
+                            </div>
+                            <br />
+                            <div class="form-group">
+                                <label for="ProductName" class="col-form-label required">Product Name</label>
+                                <input type="text" class="validate[required] form-control" data-bind="value:FindingListProductInfo.ProductName" id="ProductName" placeholder="e.g. Product Name">
+                            </div>
+                            <br />
+                            <div class="form-group">
+                                <label for="ProductUpdate" class="col-form-label">Product Update</label>
+                                <input type="text" class="form-control" data-bind="value:FindingListProductInfo.ProductUpdate" id="ProductUpdate" placeholder="e.g. Product Update">
+                            </div>
+                            <br />
+                            <div class="form-group">
+                                <label for="ProductVersion" class="col-form-label">Product Version</label>
+                                <input type="text" class="form-control" data-bind="value:FindingListProductInfo.ProductVersion" id="ProductVersion" placeholder="e.g. Product Version">
+                            </div>
+                            <br />
+                            <div class="form-group">
+                                <label for="ProductEdition" class="col-form-label">Product Edition</label>
+                                <input type="text" class="form-control" data-bind="value:FindingListProductInfo.ProductEdition" id="ProductEdition" placeholder="e.g. Product Edition">
+                            </div>
+                            <br />
+                            <div class="form-group">
+                                <label for="ProductLanguage" class="col-form-label">Product Language</label>
+                                <input type="text" class="form-control" data-bind="value:FindingListProductInfo.ProductLanguage" id="ProductLanguage" placeholder="e.g. Product Language">
+                            </div>
+                            <br />
+                        </form>
+
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <div align="center">
+                        <button id="saveUpdate" class="btn btn-success btn-sm m-t-10" data-bind="click:saveUpdateFindingListProductInfo"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> Save </button>
+                        <button id="resetUpdate" class="btn btn-warning btn-sm m-t-10" data-bind="click:resetUpdateFindingListProductInfo"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Reset </button>
+                        <button class="btn btn-info btn-sm m-t-10" onclick="cancelFindingListProductInfo(); return false;"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel</button>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="searchVulCodedata" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+        <div class="modal-dialog" style="width:800px">
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Vulnerability Code List</h3>
+                </div>
+
+                <div class="modal-body">
+                    <div class="form-group">
+                        @Html.Partial("VulnerabilityCodeList")
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <div align="center">
+                        <button class="btn btn-info btn-sm m-t-10" onclick="cancelsearchVulCode(); return false;"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @*@Html.Partial("_CommonDialog")*@
+</body>
+
+
+<script src="~/Scripts/Common/Common.js"></script>
+<script src="~/Scripts/Common/Pagination.js"></script>
+<script>
+
+    var Register = @Html.Raw(JsonConvert.SerializeObject(@Model, Formatting.None,
+                new JsonSerializerSettings()
+                {
+
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                }));
+
+      @*var Register = @Html.Raw(HttpUtility.HtmlDecode(JsonConvert.SerializeObject(@Model, Formatting.None,
+                     new JsonSerializerSettings()
+                     {
+
+                         ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                     }
+                    )));*@
+
+
+    @*var Session = '@Session["vulName"]';*@
+
+    @functions{
+        public string TokenHeaderValue()
+        {
+            string cookieToken, formToken;
+            AntiForgery.GetTokens(null, out cookieToken, out formToken);
+            return cookieToken + ":" + formToken;                
+        }
+    }
+</script>
+
+<script>
+    var btnRefresh = function (){
+        location.reload();
+    }
+
+    $("#AffectedItem").dataTable({ pageLength: 5,"bLengthChange": false,});
+    $("#Screenshot").dataTable({ pageLength: 5,"bLengthChange": false,});
+    $("#vullist").dataTable({ pageLength: 8,"bLengthChange": false,});
+    $("#vulTypelist").dataTable({ pageLength: 8,"bLengthChange": false,});
+    $("#CWElist").dataTable({ pageLength: 8,"bLengthChange": false,});
+    $("#ProductInfo").dataTable({ pageLength: 5,"bLengthChange": false,});
+
+    $('#deleteFindingListAffectedItem').click(function () {
+
+        var DelId = "";
+        var objchk = document.getElementsByName("chkdeleteFindingListAffectedItem")
+
+
+        for (var i = 0; i < objchk.length ; i++) {
+            if (objchk[i].checked == true) {
+                DelId = DelId + objchk[i].value + " , ";
+            }
+        }
+
+        if (DelId == "") {
+            ShowMessageWarning("Please select record");
+
+        }
+        else {
+            var count = 0; // utk elakkan decisionmessage masuk lebih dri 1 kali
+            ShowDecisionMessage("Are you sure to delete this record?", function () {
+
+                if (count == 0) {
+                    //       alert(DelId);
+                    viewModel.DeleteFindingListAffectedItem(DelId);
+
+                    count++;
+                }
+
+
+            });
+
+        }
+
+
+    })
+    $('#deleteFindingListScreenshot').click(function () {
+
+        var DelId = "";
+        var objchk = document.getElementsByName("chkFindingListScreenshot")
+
+
+        for (var i = 0; i < objchk.length ; i++) {
+            if (objchk[i].checked == true) {
+                DelId = DelId + objchk[i].value + " , ";
+            }
+        }
+
+        if (DelId == "") {
+            ShowMessageWarning("Please select record");
+
+        }
+        else {
+            var count = 0; // utk elakkan decisionmessage masuk lebih dri 1 kali
+            ShowDecisionMessage("Are you sure to delete this record?", function () {
+
+                if (count == 0) {
+                    //       alert(DelId);
+                    viewModel.DeleteFindingListScreenshot(DelId);
+
+                    count++;
+                }
+
+
+            });
+
+        }
+
+
+    })
+    $('#deleteFindingListProductInfo').click(function () {
+
+        var DelId = "";
+        var objchk = document.getElementsByName("chkdeleteFindingListProductInfo")
+
+
+        for (var i = 0; i < objchk.length ; i++) {
+            if (objchk[i].checked == true) {
+                DelId = DelId + objchk[i].value + " , ";
+            }
+        }
+
+        if (DelId == "") {
+            ShowMessageWarning("Please select record");
+
+        }
+        else {
+            var count = 0; // utk elakkan decisionmessage masuk lebih dri 1 kali
+            ShowDecisionMessage("Are you sure to delete this record?", function () {
+
+                if (count == 0) {
+                    //       alert(DelId);
+                    viewModel.DeleteFindingListProductInfo(DelId);
+
+                    count++;
+                }
+
+
+            });
+
+        }
+
+
+    })
+
+    $('#picfile').change(function(e) {
+
+        var file = $(this).val();
+
+        var extension = file.substr((file.lastIndexOf('.') + 1));
+
+        //alert(extension);
+
+        $.ajax({
+            type: "POST",
+            url: server + "/Admin/CheckFileType",
+            data: JSON.stringify({ ext: extension }),
+            contentType: "application/json; charset=utf-8",
+            error: function (xhr) { },
+            success: function (msg) {
+                if (msg.OK) {
+                    if (msg.list != true) {
+                        ShowMessageWarning('File type not allowed.');
+                        document.getElementById("picfile").value="";
+                    }
+
+                }
+            }
+        });
+
+
+    });
+
+    $('#student-add-more').click(function(e) {
+
+        e.preventDefault();
+
+        var count = $('div[id^=student-row-]').length;
+        var last = $('div[id^=student-row-]').last();
+        var $clone = last.clone(true);
+
+        var count_files =  $("#count_file").val();
+        // var rowCount = $('#material_display tr').length;
+        var next_id;
+        if (count_files!=0){
+            next_id = parseInt(count_files) + 1;;
+        }
+
+        $("#count_file").val(next_id);
+
+        $clone.attr('id', 'student-row-' + next_id);
+
+        var file_container = $clone.find('.filestyle').parent();
+        file_container.empty();
+
+        var fileinput = $('<textarea>').addClass('form-control').addClass('textarearesize').addClass('filestyle').attr('style', 'height:34px').attr({
+            id: 'cve_id-'+next_id,
+            name: 'cve_id['+next_id+']',
+            type: 'text',
+            placeholder: 'e.g. CVE-ID',
+        });
+
+        var cve_details = $clone.find('.btn-primary')
+            .attr('data-url', 'student-row-' + next_id)
+            .attr('href','#addModal')
+            .attr('class', 'btn btn-primary btn-xs btn-add')
+            .attr('style', 'display:none')
+        //.attr('onclick', 'delete_file('+ next_id + ')')
+        ;
+        cve_details.closest('.form-group').removeAttr('style');
+
+
+        file_container.append(fileinput);
+
+        //fileinput.filestyle({
+        //    icon: 'false',
+        //    classButton: 'btn btn-default',
+        //    classInput: 'form-control inline input-s',
+        //});
+        //var file_label_container = file_container.prev();
+        //var new_label = $('<textarea>').addClass('form-control textarearesize').attr('for', 'cve_id-'+next_id).text(file_label_container.find('textarea').text(''));
+        //file_label_container.find('textarea').remove();
+        //file_label_container.prepend(new_label);
+
+        var delete_button = $clone.find('.btn-danger')
+            .attr('data-url', 'student-row-' + next_id)
+            .attr('href','#deleteModal')
+            .attr('class', 'btn btn-danger btn-xs btn-delete')
+            //.attr('style', 'text-align:left')
+            .attr('onclick', 'delete_file('+ next_id + ')')
+        ;
+        delete_button.closest('.form-group').removeAttr('style');
+
+        var styledisp = "none";
+        var cve_link = $clone.find('.btn-success')
+          .attr('data-url', 'student-row-' + next_id)
+          .attr('href','#linkModal')
+          .attr('class', 'btn btn-success btn-xs find')
+          .attr('style', 'background-color:#337ab7;border-color:#2e6da4;display:' + styledisp + ';')
+          //.attr('onclick', 'openLinkFile("'+ tmp1[i] + '")')
+          .attr({
+              id: 'clicklink-'+next_id,
+          })
+        ;
+        cve_link.closest('.form-group').removeAttr('style');
+
+        $clone.show().insertAfter(last);
+    });
+
+    $('#student-reset').click(function(e) {
+        //ShowDecisionMessage("Are you sure to delete this record ? ", function () {
+        $("#cve_id-1").filestyle('clear');
+        //});
+
+    });
+
+    function delete_file(val){
+        this.fileval = val;
+        confirm_delete_file(this.fileval);
+        // $('#decision_attachment').modal('show');
+    }
+
+    function openLinkFile(link){
+
+        if(link == ""){
+            viewModel.GetlinkTab(viewModel.linkValidUrlFirst());
+        }else{
+            viewModel.GetlinkTab(link);
+        }
+
+
+    }
+
+    function confirm_delete_file(val){
+        var id = this.fileval;
+        $('#student-row-'+id).remove();
+    }
+
+    var viewModel;
+
+    var btnRefresh =  function () {
+        location.reload();
+    }
+
+    function radioclick(val)
+    {
+
+        if(val.value == "1")
+        {
+            viewModel.Finding.VulProjFinding.Status(val.value);
+        }
+        else
+        {
+            viewModel.Finding.VulProjFinding.Status(val.value);
+        }
+    }
+
+    $(function () {
+
+        viewModel = {
+            Finding: ko.mapping.fromJS(Register),
+            category: ko.observableArray([]),
+            property : ko.observable(""),
+
+            FindingListAffectedItem :
+            {
+                PageNm: ko.observable(""),
+                Parameter: ko.observable(""),
+
+            },
+            FindingListScreenshot :
+            {
+                Title: ko.observable(""),
+                Description: ko.observable(""),
+            },
+            FindingListProductInfo :
+            {
+               ProductType: ko.observable(""),
+               ProductVendor: ko.observable(""),
+               ProductName: ko.observable(""),
+               ProductVersion: ko.observable(""),
+               ProductUpdate: ko.observable(""),
+               ProductEdition: ko.observable(""),
+               ProductLanguage: ko.observable(""),
+               VulProjFindingProductId: ko.observable(""),
+               addUpdInd: ko.observable(""),
+            },
+            FindingListProductInfo_Ori :
+            {
+               ProductType: ko.observable(""),
+               ProductVendor: ko.observable(""),
+               ProductName: ko.observable(""),
+               ProductVersion: ko.observable(""),
+               ProductUpdate: ko.observable(""),
+               ProductEdition: ko.observable(""),
+               ProductLanguage: ko.observable(""),
+               VulProjFindingProductId: ko.observable(""),
+               addUpdInd: ko.observable(""),
+            },
+
+            product: ko.observableArray([]),
+            pageind: ko.observable(0),
+            countAllRow : ko.observable(""),
+            totaleachpage : ko.observable(""),
+            linkValidUrl: ko.observable(""),
+            linkValidUrlFirst: ko.observable(""),
+            styledisplay : ko.observableArray([0]),
+            VulnerabilityCSMCdListing: ko.observable(""),
+
+
+            saveUpdateFindingListAffectedItem: function () {
+
+                var count_row = $('#count_file').val();
+                var countAdaData = 0;
+                var cveid_data = "";
+
+                if(count_row != 0){
+                    for (let i = 1; i <= count_row; i ++) {
+
+                        var AttchmtPath = $('#cve_id-'+i).val();
+
+                        if(AttchmtPath == undefined || AttchmtPath == "" ){
+                            //alert('xdedata');
+                        }
+                        else
+                        {
+                            if(cveid_data == "")
+                            {
+                                cveid_data = AttchmtPath;
+                            }
+                            else{
+                                cveid_data = cveid_data + String.fromCharCode(253) + AttchmtPath ;
+                            }
+
+                            countAdaData ++;
+                        }
+
+                    }
+                    //alert(cveid_data);
+                    //alert(countAdaData);
+                }
+
+                var value = $("#editFormFindingListAffectedItem").validationEngine('validate');
+
+                if (value == true) {
+
+                    $.ajax({
+                        type: 'POST',
+                        url: '/Vulnerability/AddFindingListAffectedItem',//controller/nama function
+                        contentType: "application/json; charset=utf-8",
+                        data: JSON.stringify({ modelss: ko.mapping.toJS(viewModel.FindingListAffectedItem),VulProjFindingId: viewModel.Finding.VulProjFinding.VulProjFindingId() }), //parameter
+
+                        success: function (msg) {
+
+                            if (msg.ok) {
+
+                                $('#FindingListAffectedItem').modal('hide');
+                               // sessionStorage.setItem("ObservationRmk", viewModel.Finding.VulProjFinding.ObservationRmk());
+
+                                sessionStorage.setItem("vulName", htmlEnc(document.getElementById("vul_nm").value));
+                                sessionStorage.setItem("ObservationRmk", htmlEnc(document.getElementById("Observation").value));
+                                sessionStorage.setItem("ImpactLvl", viewModel.Finding.VulProjFinding.ImpactLvl());
+                                sessionStorage.setItem("ImpactRmk", htmlEnc(document.getElementById("impact_remark").value));
+                                sessionStorage.setItem("ImprovementRmk", htmlEnc(document.getElementById("area_of_impt").value));
+                                sessionStorage.setItem("Status", viewModel.Finding.VulProjFinding.Status());
+                                //sessionStorage.setItem("CVEID", htmlEnc(document.getElementById("cve_id").value));
+                                sessionStorage.setItem("CVEID", cveid_data);
+                                sessionStorage.setItem("CWEID", $("#CWENm").val());
+                                sessionStorage.setItem("VulCategory", viewModel.Finding.VulProjFinding.VulCat());
+                                sessionStorage.setItem("VulTypeName", viewModel.Finding.VulProjFinding.x.VulNm());
+                                sessionStorage.setItem("VulTypeCd", viewModel.Finding.VulProjFinding.VulType());
+                                sessionStorage.setItem("SecComp", htmlEnc(document.getElementById("SecComp").value));
+                                sessionStorage.setItem("vulCd", htmlEnc(document.getElementById("vulCd").value));
+                                sessionStorage.setItem("vulCdCmb", htmlEnc(document.getElementById("vulCdCmb").value));
+                                sessionStorage.setItem("AffecApp", htmlEnc(document.getElementById("AffecApp").value));
+
+                                location.reload();
+
+                                //ShowMessageSuccess("Data successfully Add.",btnRefresh);
+                                //$('#FindingListAffectedItem').modal('hide');
+
+                            }
+                            else {
+                                $('#FindingListAffectedItem').modal('hide');
+                                ShowMessageDanger('Unsuccesfully add.');
+                            }
+
+                        },
+                        error: function (xhr) {
+                        }
+                    });
+                } else {
+                    $("#editFormFindingListAffectedItem").validationEngine();
+                }
+            },
+
+            saveScreenshot: function () {
+
+                var value = $("#editFormFindingListScreenshot").validationEngine('validate');
+
+                if (value == true)
+                {
+                    var totalFiles = document.getElementById("picfile").files.length;
+
+                    if (totalFiles != 0) {
+                        // alert(totalFiles);
+                        viewModel.UploadPic();
+                    }
+                    else
+                    {
+                        //  alert('save data sahaja');
+                        //  viewModel.saveUpdateFindingListScreenshot();
+                    }
+                }
+                else
+                {
+                    $("#editFormFindingListScreenshot").validationEngine();
+                }
+
+
+
+            },
+
+            UploadPic : function ()
+            {
+                var Name = $("#txtName").val();
+                var formData = new FormData();
+                var totalFiles = document.getElementById("picfile").files.length;
+
+                var file = document.getElementById("picfile").files[0];
+                formData.append("FileUpload", file);
+                formData.append("Name", Name);
+
+                $.ajax({
+                    type: "POST",
+                    url: '/Upload/SaveFindingListScreenshot',
+                    data: formData,
+                    // contentType: "application/json; charset=utf-8",
+                    //data: JSON.stringify({ modelss: ko.mapping.toJS(viewModel.FindingListScreenshot),VulProjFindingId: viewModel.Finding.VulProjFinding.VulProjFindingId() }), //parameter
+                    dataType: 'json',
+                    contentType: false,
+                    processData: false,
+                    success: function (msg) {
+                        if (msg.OK) {
+                            $('#FindingListScreenshot').modal('hide');
+                            ShowMessageSuccess(msg.message);
+
+                            //$(window).click(function() {
+                                viewModel.saveUpdateFindingListScreenshot(msg.filePath, msg.OriName);
+                            //});
+
+
+                        }
+                        else
+                        {
+                            //   alert("aaa" + msg.message1);
+                            successMsg =  msg.message1;
+                            //success = 2;
+                            //viewModel.SaveInfo();
+                        }
+
+                    },
+                    error: function (error) {
+                        //   alert("errror");
+                        successMsg = "File size is too big.";
+                        //success = 3;
+                        //viewModel.SaveInfo();
+                    }
+                });
+
+            },
+
+            saveUpdateFindingListScreenshot: function (filePath, OriName) {
+
+                var count_row = $('#count_file').val();
+                var countAdaData = 0;
+                var cveid_data = "";
+
+                if(count_row != 0){
+                    for (let i = 1; i <= count_row; i ++) {
+
+                        var AttchmtPath = $('#cve_id-'+i).val();
+
+                        if(AttchmtPath == undefined || AttchmtPath == "" ){
+                            //alert('xdedata');
+                        }
+                        else
+                        {
+                            if(cveid_data == "")
+                            {
+                                cveid_data = AttchmtPath;
+                            }
+                            else{
+                                cveid_data = cveid_data + String.fromCharCode(253) + AttchmtPath ;
+                            }
+
+                            countAdaData ++;
+                        }
+
+                    }
+
+                }
+
+                //var value = $("#editFormFindingListScreenshot").validationEngine('validate');
+                $.ajax({
+                    type: 'POST',
+                    url: '/Vulnerability/AddFindingListScreenshot',//controller/nama function
+                    contentType: "application/json; charset=utf-8",
+                    data: JSON.stringify({ modelss: ko.mapping.toJS(viewModel.FindingListScreenshot),VulProjFindingId: viewModel.Finding.VulProjFinding.VulProjFindingId(), filePath: filePath , OriName: OriName }), //parameter
+
+                    success: function (msg) {
+
+                        if (msg.ok) {
+                            //ShowMessageSuccess("Upload image success.");
+
+                            //$(window).click(function() {
+
+                            sessionStorage.setItem("vulName", htmlEnc(document.getElementById("vul_nm").value));
+                            sessionStorage.setItem("ObservationRmk", htmlEnc(document.getElementById("Observation").value));
+                            sessionStorage.setItem("ImpactLvl", viewModel.Finding.VulProjFinding.ImpactLvl());
+                            sessionStorage.setItem("ImpactRmk", htmlEnc(document.getElementById("impact_remark").value));
+                            sessionStorage.setItem("ImprovementRmk", htmlEnc(document.getElementById("area_of_impt").value));
+                            sessionStorage.setItem("Status", viewModel.Finding.VulProjFinding.Status());
+                            //sessionStorage.setItem("CVEID", htmlEnc(document.getElementById("cve_id").value));
+                            essionStorage.setItem("CVEID", cveid_data);
+                            sessionStorage.setItem("CWEID", $("#CWENm").val());
+                            sessionStorage.setItem("VulCategory", viewModel.Finding.VulProjFinding.VulCat());
+                            sessionStorage.setItem("VulTypeName", viewModel.Finding.VulProjFinding.x.VulNm());
+                            sessionStorage.setItem("VulTypeCd", viewModel.Finding.VulProjFinding.VulType());
+                            sessionStorage.setItem("SecComp", htmlEnc(document.getElementById("SecComp").value));
+                            sessionStorage.setItem("vulCd", htmlEnc(document.getElementById("vulCd").value));
+                            sessionStorage.setItem("vulCdCmb", htmlEnc(document.getElementById("vulCdCmb").value));
+                            sessionStorage.setItem("AffecApp", htmlEnc(document.getElementById("AffecApp").value));
+
+
+                            location.reload();
+                            //});
+                        }
+                        else {
+                            $('#FindingListScreenshot').modal('hide');
+                            ShowMessageDanger('Unsuccesfully add.');
+                        }
+
+                    },
+                    error: function (xhr) {
+                    }
+                });
+            },
+
+            DeleteFindingListAffectedItem: function (DelId) {
+
+                var count_row = $('#count_file').val();
+                var countAdaData = 0;
+                var cveid_data = "";
+
+                if(count_row != 0){
+                    for (let i = 1; i <= count_row; i ++) {
+
+                        var AttchmtPath = $('#cve_id-'+i).val();
+
+                        if(AttchmtPath == undefined || AttchmtPath == "" ){
+                            //alert('xdedata');
+                        }
+                        else
+                        {
+                            if(cveid_data == "")
+                            {
+                                cveid_data = AttchmtPath;
+                            }
+                            else{
+                                cveid_data = cveid_data + String.fromCharCode(253) + AttchmtPath ;
+                            }
+
+                            countAdaData ++;
+                        }
+
+                    }
+                }
+
+                showLoading();
+                $.ajax({
+                    type: "POST",
+                    url: "/Vulnerability/DeleteFindingListAffectedItem",
+                    contentType: "application/json; charset=utf-8",
+                    data: JSON.stringify({ VulFindAffItemLstId: DelId }),
+                    datatype: "json",
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            ShowMessageSuccess("Data successfully delete.");
+                            //  hideLoading();
+                            sessionStorage.setItem("vulName", htmlEnc(document.getElementById("vul_nm").value));
+                            sessionStorage.setItem("ObservationRmk", htmlEnc(document.getElementById("Observation").value));
+                            sessionStorage.setItem("ImpactLvl", viewModel.Finding.VulProjFinding.ImpactLvl());
+                            sessionStorage.setItem("ImpactRmk", htmlEnc(document.getElementById("impact_remark").value));
+                            sessionStorage.setItem("ImprovementRmk", htmlEnc(document.getElementById("area_of_impt").value));
+                            sessionStorage.setItem("Status", viewModel.Finding.VulProjFinding.Status());
+                            // sessionStorage.setItem("CVEID", htmlEnc(document.getElementById("cve_id").value));
+                            sessionStorage.setItem("CVEID", cveid_data);
+                            sessionStorage.setItem("CWEID", $("#CWENm").val());
+                            sessionStorage.setItem("VulCategory", viewModel.Finding.VulProjFinding.VulCat());
+                            sessionStorage.setItem("VulTypeName", viewModel.Finding.VulProjFinding.x.VulNm());
+                            sessionStorage.setItem("VulTypeCd", viewModel.Finding.VulProjFinding.VulType());
+                            sessionStorage.setItem("SecComp", htmlEnc(document.getElementById("SecComp").value));
+                            sessionStorage.setItem("vulCd", htmlEnc(document.getElementById("vulCd").value));
+                            sessionStorage.setItem("vulCdCmb", htmlEnc(document.getElementById("vulCdCmb").value));
+                            sessionStorage.setItem("AffecApp", htmlEnc(document.getElementById("AffecApp").value));
+
+                            location.reload();
+
+                        }
+                        else{
+                            ShowMessageDanger('Unsuccesfully delete.');
+                        }
+                    }
+                })
+            },
+
+            DeleteFindingListScreenshot: function (DelId) {
+
+                var count_row = $('#count_file').val();
+                var countAdaData = 0;
+                var cveid_data = "";
+
+                if(count_row != 0){
+                    for (let i = 1; i <= count_row; i ++) {
+
+                        var AttchmtPath = $('#cve_id-'+i).val();
+
+                        if(AttchmtPath == undefined || AttchmtPath == "" ){
+                            //alert('xdedata');
+                        }
+                        else
+                        {
+                            if(cveid_data == "")
+                            {
+                                cveid_data = AttchmtPath;
+                            }
+                            else{
+                                cveid_data = cveid_data + String.fromCharCode(253) + AttchmtPath ;
+                            }
+
+                            countAdaData ++;
+                        }
+
+                    }
+                }
+
+
+                showLoading();
+                $.ajax({
+                    type: "POST",
+                    url: "/Vulnerability/DeleteFindingListScreenshot",
+                    contentType: "application/json; charset=utf-8",
+                    data: JSON.stringify({ VulFindScreenshotLstId: DelId }),
+                    datatype: "json",
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            ShowMessageSuccess("Data successfully delete.");
+                            //  hideLoading();
+                            sessionStorage.setItem("vulName", htmlEnc(document.getElementById("vul_nm").value));
+                            sessionStorage.setItem("ObservationRmk", htmlEnc(document.getElementById("Observation").value));
+                            sessionStorage.setItem("ImpactLvl", viewModel.Finding.VulProjFinding.ImpactLvl());
+                            sessionStorage.setItem("ImpactRmk", htmlEnc(document.getElementById("impact_remark").value));
+                            sessionStorage.setItem("ImprovementRmk", htmlEnc(document.getElementById("area_of_impt").value));
+                            sessionStorage.setItem("Status", viewModel.Finding.VulProjFinding.Status());
+                            //sessionStorage.setItem("CVEID", htmlEnc(document.getElementById("cve_id").value));
+                            sessionStorage.setItem("CVEID", cveid_data);
+                            sessionStorage.setItem("CWEID", $("#CWENm").val());
+                            sessionStorage.setItem("VulCategory", viewModel.Finding.VulProjFinding.VulCat());
+                            sessionStorage.setItem("VulTypeName", viewModel.Finding.VulProjFinding.x.VulNm());
+                            sessionStorage.setItem("VulTypeCd", viewModel.Finding.VulProjFinding.VulType());
+                            sessionStorage.setItem("SecComp", htmlEnc(document.getElementById("SecComp").value));
+                            sessionStorage.setItem("vulCd", htmlEnc(document.getElementById("vulCd").value));
+                            sessionStorage.setItem("vulCdCmb", htmlEnc(document.getElementById("vulCdCmb").value));
+                            sessionStorage.setItem("AffecApp", htmlEnc(document.getElementById("AffecApp").value));
+
+                            location.reload();
+
+                        }
+                        else{
+                            ShowMessageDanger('Unsuccesfully delete.');
+                        }
+                    }
+                })
+            },
+
+            UpdateFindingListInfo : function(){
+
+                var count_row = $('#count_file').val();
+                var countAdaData = 0;
+                var cveid_data = "";
+
+                if(count_row != 0){
+                    for (let i = 1; i <= count_row; i ++) {
+
+                        var AttchmtPath = $('#cve_id-'+i).val();
+
+                        if(AttchmtPath == undefined || AttchmtPath == "" ){
+                            //alert('xdedata');
+                        }
+                        else
+                        {
+                            if(cveid_data == "")
+                            {
+                                cveid_data = AttchmtPath;
+                            }
+                            else{
+                                cveid_data = cveid_data + String.fromCharCode(253) + AttchmtPath ;
+                            }
+
+                            countAdaData ++;
+                        }
+
+                    }
+
+                }
+
+                var value = $("#myForm").validationEngine('validate');
+
+
+                viewModel.Finding.VulProjFinding.VulCat ($("#category").val());
+                //viewModel.Finding.VulProjFinding.CVEId(htmlEnc($("#cve_id").val()));
+                viewModel.Finding.VulProjFinding.CVEId (htmlEnc(cveid_data));
+                viewModel.Finding.VulProjFinding.VulNm(htmlEnc($("#vul_nm").val()));
+                viewModel.Finding.VulProjFinding.ObservationRmk(htmlEnc($("#Observation").val()));
+                viewModel.Finding.VulProjFinding.ImpactRmk(htmlEnc($("#impact_remark").val()));
+                viewModel.Finding.VulProjFinding.ImprovementRmk(htmlEnc($("#area_of_impt").val()));
+                viewModel.Finding.VulProjFinding.VulSecComp (htmlEnc($("#SecComp").val()));
+                viewModel.Finding.VulProjFinding.VulnerabilityCSMCd($("#vulCd").val());
+                viewModel.Finding.VulProjFinding.VulnerabilityCSMCdCombine($("#vulCdCmb").val());
+                viewModel.Finding.VulProjFinding.AffectedApp (htmlEnc($("#AffecApp").val()));
+
+                if (value == true)
+                {
+                    ShowDecisionMessage("Are you sure to save this Record ? ", function () {
+                        $.ajax({
+                            type: 'POST',
+                            url: server + '/Admin/UpdateVulProjFindingInfo',
+                            contentType: "application/json; charset=utf-8",
+                            data: JSON.stringify({ modelss: ko.mapping.toJS(viewModel.Finding.VulProjFinding) }),
+                            success: function (msg) {
+                                if (msg.OK) {
+                                    ShowMessageSuccess("Data successfully update.",btnRefresh);
+
+                                }
+                                else {
+                                    ShowMessage('Unsuccesfully update.');
+                                }
+
+                            },
+                            error: function (xhr) {
+                            }
+                        });
+                    });
+                }else{
+                    $("#myForm").validationEngine();
+                }
+
+            },
+
+            ClickCweInformation: function (CWEId) {
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/FindingCweInformation",
+                    data: JSON.stringify({ CWEId: CWEId }),
+                    contentType: "application/json; charset=utf-8",
+                    success: function (msg) {
+                        if (msg.OK) {
+                            viewModel.Finding.VulProjFinding.CWEId(CWEId);
+                            viewModel.Finding.VulProjFinding.z.CWENm(msg.list.CWEDefinition.CWENm);
+                            viewModel.Finding.VulProjFinding.z.Description(msg.list.CWEDefinition.Description);
+                            viewModel.Finding.VulProjFinding.z.UrlLink(msg.list.CWEDefinition.UrlLink);
+
+
+                            $('#searchCWEID_Info').modal('hide');
+
+                        }
+                    }
+                });
+            },
+
+            GetlinkInfo : function(CVEID){
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetCheckValidCveID",
+                    data: JSON.stringify({ CVEID: CVEID }),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+                            //window.open(msg.list, '_blank');
+                            viewModel.linkValidUrl(msg.list);
+
+                            if(msg.list != ""){
+                                document.getElementById("clicklink-1").style.display = "";
+                            }else{
+                                document.getElementById("clicklink-1").style.display = "none";
+                            }
+
+
+                        }
+                        else {
+                            ShowMessageDanger('Error.');
+                        }
+                    }
+                });
+
+            },
+
+            GetlinkInfo2 : function(CVEID){
+
+                // alert(CVEID);
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetCheckValidCveID",
+                    async: false,
+                    data: JSON.stringify({ CVEID: CVEID }),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            viewModel.linkValidUrl(msg.list);
+
+                        }
+                        else {
+                            ShowMessageDanger('Error.');
+                        }
+                    }
+                });
+
+            },
+
+            GetlinkTab : function(CVEID){
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetCheckValidCveID",
+                    data: JSON.stringify({ CVEID: CVEID }),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+                            window.open(msg.list, '_blank');
+                            //viewModel.linkValidUrl(msg.list);
+
+                        }
+                        else {
+                            ShowMessageDanger('Error.');
+                        }
+                    }
+                });
+
+            },
+
+            saveUpdateFindingListProductInfo: function () {
+
+                var count_row = $('#count_file').val();
+                var countAdaData = 0;
+                var cveid_data = "";
+
+                if(count_row != 0){
+                    for (let i = 1; i <= count_row; i ++) {
+
+                        var AttchmtPath = $('#cve_id-'+i).val();
+
+                        if(AttchmtPath == undefined || AttchmtPath == "" ){
+                            //alert('xdedata');
+                        }
+                        else
+                        {
+                            if(cveid_data == "")
+                            {
+                                cveid_data = AttchmtPath;
+                            }
+                            else{
+                                cveid_data = cveid_data + String.fromCharCode(253) + AttchmtPath ;
+                            }
+
+                            countAdaData ++;
+                        }
+
+                    }
+                    //alert(cveid_data);
+                    //alert(countAdaData);
+                }
+
+                var value = $("#editFormFindingListProductInfo").validationEngine('validate');
+
+                if (value == true) {
+
+                    $.ajax({
+                        type: 'POST',
+                        url: '/Vulnerability/AddProjFindingProductInfo',//controller/nama function
+                        contentType: "application/json; charset=utf-8",
+                        data: JSON.stringify({ modelss: ko.mapping.toJS(viewModel.FindingListProductInfo),VulProjFindingId: viewModel.Finding.VulProjFinding.VulProjFindingId() }), //parameter
+
+                        success: function (msg) {
+
+                            if (msg.ok) {
+                                // ShowMessageSuccess("Data successfully update.");
+                                $('#FindingListProductInfo').modal('hide');
+                                //$(window).click(function() {
+
+                                sessionStorage.setItem("vulName", htmlEnc(document.getElementById("vul_nm").value));
+                                sessionStorage.setItem("ObservationRmk", htmlEnc(document.getElementById("Observation").value));
+                                sessionStorage.setItem("ImpactLvl", viewModel.Finding.VulProjFinding.ImpactLvl());
+                                sessionStorage.setItem("ImpactRmk", htmlEnc(document.getElementById("impact_remark").value));
+                                sessionStorage.setItem("ImprovementRmk", htmlEnc(document.getElementById("area_of_impt").value));
+                                sessionStorage.setItem("Status", viewModel.Finding.VulProjFinding.Status());
+                                sessionStorage.setItem("CVEID", cveid_data);
+                                sessionStorage.setItem("CWEID", $("#CWENm").val());
+                                //sessionStorage.setItem("CVEID", htmlEnc(document.getElementById("cve_id").value));
+                                sessionStorage.setItem("VulCategory", viewModel.Finding.VulProjFinding.VulCat());
+                                sessionStorage.setItem("VulTypeName", viewModel.Finding.VulProjFinding.x.VulNm());
+                                sessionStorage.setItem("VulTypeCd", viewModel.Finding.VulProjFinding.VulType());
+                                sessionStorage.setItem("SecComp", htmlEnc(document.getElementById("SecComp").value));
+                                sessionStorage.setItem("vulCd", htmlEnc(document.getElementById("vulCd").value));
+                                sessionStorage.setItem("vulCdCmb", htmlEnc(document.getElementById("vulCdCmb").value));
+                                sessionStorage.setItem("AffecApp", htmlEnc(document.getElementById("AffecApp").value));
+
+                                location.reload();
+                                //});
+
+
+                            }
+                            else {
+                                $('#FindingListProductInfo').modal('hide');
+                                ShowMessageDanger('Unsuccesfully add.');
+                            }
+
+                        },
+                        error: function (xhr) {
+                        }
+                    });
+                } else {
+                    $("#editFormFindingListProductInfo").validationEngine();
+                }
+            },
+
+            DeleteFindingListProductInfo: function (DelId) {
+
+                var count_row = $('#count_file').val();
+                var countAdaData = 0;
+                var cveid_data = "";
+
+                if(count_row != 0){
+                    for (let i = 1; i <= count_row; i ++) {
+
+                        var AttchmtPath = $('#cve_id-'+i).val();
+
+                        if(AttchmtPath == undefined || AttchmtPath == "" ){
+                            //alert('xdedata');
+                        }
+                        else
+                        {
+                            if(cveid_data == "")
+                            {
+                                cveid_data = AttchmtPath;
+                            }
+                            else{
+                                cveid_data = cveid_data + String.fromCharCode(253) + AttchmtPath ;
+                            }
+
+                            countAdaData ++;
+                        }
+
+                    }
+                    //alert(cveid_data);
+                    //alert(countAdaData);
+                }
+
+                showLoading();
+                $.ajax({
+                    type: "POST",
+                    url: "/Vulnerability/DeleteProjFindingProductInfo",
+                    contentType: "application/json; charset=utf-8",
+                    data: JSON.stringify({ VulProjFindingProductId: DelId }),
+                    datatype: "json",
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            //  hideLoading();
+
+                            ShowMessageSuccess("Data successfully delete.");
+                            //$(window).click(function() {
+                            sessionStorage.setItem("vulName", htmlEnc(document.getElementById("vul_nm").value));
+                            sessionStorage.setItem("ObservationRmk", htmlEnc(document.getElementById("Observation").value));
+                            sessionStorage.setItem("ImpactLvl", viewModel.Finding.VulProjFinding.ImpactLvl());
+                            sessionStorage.setItem("ImpactRmk", htmlEnc(document.getElementById("impact_remark").value));
+                            sessionStorage.setItem("ImprovementRmk", htmlEnc(document.getElementById("area_of_impt").value));
+                            sessionStorage.setItem("Status", viewModel.Finding.VulProjFinding.Status());
+                            sessionStorage.setItem("CVEID", cveid_data);
+                            sessionStorage.setItem("CWEID", $("#CWENm").val());
+                            //sessionStorage.setItem("CVEID", htmlEnc(document.getElementById("cve_id").value));
+                            sessionStorage.setItem("VulCategory", viewModel.Finding.VulProjFinding.VulCat());
+                            sessionStorage.setItem("VulTypeName", viewModel.Finding.VulProjFinding.x.VulNm());
+                            sessionStorage.setItem("VulTypeCd", viewModel.Finding.VulProjFinding.VulType());
+                            sessionStorage.setItem("SecComp", htmlEnc(document.getElementById("SecComp").value));
+                            sessionStorage.setItem("vulCd", htmlEnc(document.getElementById("vulCd").value));
+                            sessionStorage.setItem("vulCdCmb", htmlEnc(document.getElementById("vulCdCmb").value));
+                            sessionStorage.setItem("AffecApp", htmlEnc(document.getElementById("AffecApp").value));
+
+                            location.reload();
+                            //});
+
+                        }
+                        else{
+                            ShowMessageDanger('Unsuccesfully delete.');
+                        }
+                    }
+                })
+            },
+
+            searchVulCodedataList: function (pageind,CatCode,search_vulCode_name) {
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetVulCodedataList",
+                    async: false,
+                    data: JSON.stringify({pageind : pageind, CatCode : CatCode, VulnerabilityCSMCd: viewModel.Finding.VulCodeOri(),search_vulCode_name :search_vulCode_name  }),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            viewModel.VulnerabilityCSMCdListing(msg.list.VulnerabilityCSMCdInfo);
+                            viewModel.countAllRow(msg.list.GetTotalVulnerabilityCSMCdInfo.countAllRow);
+                            viewModel.totaleachpage(viewModel.VulnerabilityCSMCdListing().length);
+
+                            $('#searchVulCodedata').modal('show');
+                        }
+                        else{
+
+                        }
+                    }
+                });
+
+            },
+
+            searchVulCodedataList2: function (pageind,CatCode,search_vulCode_name) {
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetVulCodedataList",
+                    async: false,
+                    data: JSON.stringify({pageind : pageind, CatCode : CatCode, VulnerabilityCSMCd: viewModel.Finding.VulCodeOri(),search_vulCode_name :search_vulCode_name  }),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            viewModel.VulnerabilityCSMCdListing(msg.list.VulnerabilityCSMCdInfo);
+                            viewModel.countAllRow(msg.list.GetTotalVulnerabilityCSMCdInfo.countAllRow);
+                            viewModel.totaleachpage(viewModel.VulnerabilityCSMCdListing().length);
+
+                            //paginateCLICK(0, 1);
+
+                        }
+                        else{
+
+                        }
+                    }
+                });
+
+            },
+
+
+            EditVulManInputProduct: function (VulProjFindingProductId) {
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetVulProjFindingProduct",
+                    async: false,
+                    data: JSON.stringify({VulProjFindingProductId : VulProjFindingProductId}),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            // viewModel.FindingListProductInfo(msg.list.VulManInputProduct);
+
+                            viewModel.FindingListProductInfo.ProductType(msg.list.VulProjFindingProduct.ProductType);
+                            viewModel.FindingListProductInfo.ProductVendor(msg.list.VulProjFindingProduct.ProductVendor);
+                            viewModel.FindingListProductInfo.ProductName(msg.list.VulProjFindingProduct.ProductName);
+                            viewModel.FindingListProductInfo.ProductVersion(msg.list.VulProjFindingProduct.ProductVersion);
+                            viewModel.FindingListProductInfo.ProductUpdate(msg.list.VulProjFindingProduct.ProductUpdate);
+                            viewModel.FindingListProductInfo.ProductEdition(msg.list.VulProjFindingProduct.ProductEdition);
+                            viewModel.FindingListProductInfo.ProductLanguage(msg.list.VulProjFindingProduct.ProductLanguage);
+                            viewModel.FindingListProductInfo.VulProjFindingProductId(msg.list.VulProjFindingProduct.VulProjFindingProductId);
+
+                            viewModel.FindingListProductInfo_Ori.ProductType(msg.list.VulProjFindingProduct.ProductType);
+                            viewModel.FindingListProductInfo_Ori.ProductVendor(msg.list.VulProjFindingProduct.ProductVendor);
+                            viewModel.FindingListProductInfo_Ori.ProductName(msg.list.VulProjFindingProduct.ProductName);
+                            viewModel.FindingListProductInfo_Ori.ProductVersion(msg.list.VulProjFindingProduct.ProductVersion);
+                            viewModel.FindingListProductInfo_Ori.ProductUpdate(msg.list.VulProjFindingProduct.ProductUpdate);
+                            viewModel.FindingListProductInfo_Ori.ProductEdition(msg.list.VulProjFindingProduct.ProductEdition);
+                            viewModel.FindingListProductInfo_Ori.ProductLanguage(msg.list.VulProjFindingProduct.ProductLanguage);
+                            viewModel.FindingListProductInfo_Ori.VulProjFindingProductId(msg.list.VulProjFindingProduct.VulProjFindingProductId);
+
+                            $('#FindingListProductInfo').modal('show');
+                        }
+                        else{
+
+                        }
+                    }
+                });
+
+            },
+        }
+
+        //viewModel.Finding.VulProjFinding.ImprovementRmk(viewModel.Finding.VulProjFinding.ImprovementRmk().replace("/scrip","//scrip"));
+
+        if(sessionStorage["vulName"] != undefined)
+        {
+            viewModel.Finding.VulProjFinding.VulNm(sessionStorage["vulName"]);
+        }
+
+        if(sessionStorage["ObservationRmk"] != undefined)
+        {
+            viewModel.Finding.VulProjFinding.ObservationRmk(sessionStorage["ObservationRmk"]);
+        }
+        if(sessionStorage["ImpactLvl"] != undefined)
+        {
+            viewModel.Finding.VulProjFinding.ImpactLvl(sessionStorage["ImpactLvl"]);
+        }
+        if(sessionStorage["ImpactRmk"] != undefined)
+        {
+            viewModel.Finding.VulProjFinding.ImpactRmk(sessionStorage["ImpactRmk"]);
+        }
+        if(sessionStorage["ImprovementRmk"] != undefined)
+        {
+            viewModel.Finding.VulProjFinding.ImprovementRmk(sessionStorage["ImprovementRmk"]);
+        }
+        if(sessionStorage["Status"] != undefined)
+        {
+            viewModel.Finding.VulProjFinding.Status(sessionStorage["Status"]);
+        }
+        if(sessionStorage["CVEID"] != undefined)
+        {
+            viewModel.Finding.VulProjFinding.CVEId(sessionStorage["CVEID"]);
+        }
+
+        if(sessionStorage["CWEID"] != undefined)
+        {
+            viewModel.Finding.VulProjFinding.CWEId(sessionStorage["CWEID"]);
+        }
+
+        if(sessionStorage["VulCategory"] != undefined)
+        {
+            viewModel.Finding.VulProjFinding.VulCat(sessionStorage["VulCategory"]);
+        }
+
+        if(sessionStorage["VulTypeName"] != undefined)
+        {
+            viewModel.Finding.VulProjFinding.x.VulNm(sessionStorage["VulTypeName"]);
+        }
+
+        if(sessionStorage["VulTypeCd"] != undefined)
+        {
+            viewModel.Finding.VulProjFinding.VulType(sessionStorage["VulTypeCd"]);
+        }
+
+        if(sessionStorage["SecComp"] != undefined)
+        {
+            viewModel.Finding.VulProjFinding.VulSecComp(sessionStorage["SecComp"]);
+        }
+        if(sessionStorage["vulCd"] != undefined)
+        {
+            viewModel.Finding.VulProjFinding.VulnerabilityCSMCd(sessionStorage["vulCd"]);
+        }
+        if(sessionStorage["vulCdCmb"] != undefined)
+        {
+            viewModel.Finding.VulProjFinding.VulnerabilityCSMCdCombine(sessionStorage["vulCdCmb"]);
+        }
+        if(sessionStorage["AffecApp"] != undefined)
+        {
+            viewModel.Finding.VulProjFinding.AffectedApp(sessionStorage["AffecApp"]);
+        }
+
+        //localStorage.removeItem("vulName");
+        localStorage.clear();
+
+        localStorage.setItem("vulName", viewModel.Finding.VulProjFinding.VulNm());
+        localStorage.setItem("ObservationRmk", viewModel.Finding.VulProjFinding.ObservationRmk());
+        localStorage.setItem("ImpactLvl", viewModel.Finding.VulProjFinding.ImpactLvl());
+        localStorage.setItem("ImpactRmk", viewModel.Finding.VulProjFinding.ImpactRmk());
+        localStorage.setItem("ImprovementRmk", viewModel.Finding.VulProjFinding.ImprovementRmk());
+        localStorage.setItem("Status", viewModel.Finding.VulProjFinding.Status());
+        localStorage.setItem("CVEID", viewModel.Finding.VulProjFinding.CVEId());
+        localStorage.setItem("CWEID", viewModel.Finding.VulProjFinding.CWEId());
+        localStorage.setItem("VulCategory", viewModel.Finding.VulProjFinding.VulCat());
+        localStorage.setItem("VulTypeName", viewModel.Finding.VulProjFinding.x.VulNm());
+        localStorage.setItem("VulTypeCd", viewModel.Finding.VulProjFinding.VulType());
+        localStorage.setItem("SecComp", viewModel.Finding.VulProjFinding.VulSecComp());
+        localStorage.setItem("vulCd", viewModel.Finding.VulProjFinding.VulnerabilityCSMCd());
+        localStorage.setItem("vulCdCmb", viewModel.Finding.VulProjFinding.VulnerabilityCSMCdCombine());
+        localStorage.setItem("AffecApp", viewModel.Finding.VulProjFinding.AffectedApp());
+
+
+
+
+        //untuk back function
+        viewModel.Finding.VulProjFinding.VulNm.subscribe(function (newValue) {
+            // sessionStorage.setItem("vulName", newValue);
+            localStorage.setItem("vulName", newValue);
+        });
+        viewModel.Finding.VulProjFinding.ObservationRmk.subscribe(function (newValue) {
+            localStorage.setItem("ObservationRmk", newValue);
+        });
+        viewModel.Finding.VulProjFinding.ImpactLvl.subscribe(function (newValue) {
+            localStorage.setItem("ImpactLvl", newValue);
+        });
+        viewModel.Finding.VulProjFinding.ImpactRmk.subscribe(function (newValue) {
+            localStorage.setItem("ImpactRmk", newValue);
+        });
+        viewModel.Finding.VulProjFinding.ImprovementRmk.subscribe(function (newValue) {
+            localStorage.setItem("ImprovementRmk", newValue);
+        });
+        viewModel.Finding.VulProjFinding.Status.subscribe(function (newValue) {
+            localStorage.setItem("Status", newValue);
+        });
+        viewModel.Finding.VulProjFinding.CVEId.subscribe(function (newValue) {
+            localStorage.setItem("CVEID", newValue);
+        });
+        viewModel.Finding.VulProjFinding.CWEId.subscribe(function (newValue) {
+            localStorage.setItem("CWEID", newValue);
+        });
+        viewModel.Finding.VulProjFinding.VulCat.subscribe(function (newValue) {
+            localStorage.setItem("VulCategory", newValue);
+        });
+        viewModel.Finding.VulProjFinding.x.VulNm.subscribe(function (newValue) {
+            localStorage.setItem("VulTypeName", newValue);
+        });
+        viewModel.Finding.VulProjFinding.VulType.subscribe(function (newValue) {
+            localStorage.setItem("VulTypeCd", newValue);
+        });
+        viewModel.Finding.VulProjFinding.VulSecComp.subscribe(function (newValue) {
+            localStorage.setItem("SecComp", newValue);
+        });
+        viewModel.Finding.VulProjFinding.VulnerabilityCSMCd.subscribe(function (newValue) {
+            localStorage.setItem("vulCd", newValue);
+        });
+        viewModel.Finding.VulProjFinding.VulnerabilityCSMCdCombine.subscribe(function (newValue) {
+            localStorage.setItem("vulCdCmb", newValue);
+        });
+        viewModel.Finding.VulProjFinding.AffectedApp.subscribe(function (newValue) {
+            localStorage.setItem("AffecApp", newValue);
+        });
+        //end back
+
+        sessionStorage.clear();
+        loadProductType();
+        ko.applyBindings(viewModel);
+        loadRefVulCategory();
+    });
+
+
+    function search() {
+
+        $('#searchdata').modal('show');
+
+    }
+
+    function searchVulType() {
+
+        $('#searchVulTypedata').modal('show');
+
+    }
+
+    function searchVulCode() {
+
+        paginateCLICK2(0, 1)
+        //viewModel.searchVulCodedataList($("#category").val());
+    }
+
+    function searchCWEID_Info() {
+
+        $('#searchCWEID_Info').modal('show');
+
+    }
+
+    function Clickvultype(VulType,VulNm){
+        viewModel.Finding.VulProjFinding.VulType(VulType);
+        viewModel.Finding.VulProjFinding.x.VulNm(VulNm);
+        //viewModel.FindingValueType.ValueTypeNm(VulNm)
+        $('#searchVulTypedata').modal('hide');
+    }
+
+    function Clickvulcode(VulnerabilityCSMCd,VulnerabilityCSMCdCombine){
+        viewModel.Finding.VulProjFinding.VulnerabilityCSMCd(VulnerabilityCSMCd);
+        viewModel.Finding.VulProjFinding.VulnerabilityCSMCdCombine(VulnerabilityCSMCdCombine);
+        //viewModel.Finding.VulManInput.x.VulNm(VulNm);
+        //viewModel.FindingValueType.ValueTypeNm(VulNm)
+        $('#searchVulCodedata').modal('hide');
+    }
+
+    function ClickCweInfo(CWEId){
+
+        viewModel.ClickCweInformation(CWEId);
+    }
+
+    function cancelUpdate() {
+        $('#searchdata').modal('hide');
+        $('.modal').modal('hide');
+    }
+
+    function cancelsearchVulType() {
+        $('#searchVulTypedata').modal('hide');
+    }
+
+    function cancelsearchVulCode() {
+        $('#searchVulCodedata').modal('hide');
+    }
+
+    function cancelsearchCWEID_Info() {
+        $('#searchCWEID_Info').modal('hide');
+    }
+
+    function cancelFindingListAffectedItem() {
+        $('#FindingListAffectedItem').modal('hide');
+    }
+
+    function cancelFindingListScreenshot() {
+        $('#FindingListScreenshot').modal('hide');
+    }
+
+    function cancelFindingListProductInfo() {
+        $('#FindingListProductInfo').modal('hide');
+    }
+
+    function resetUpdateFindingListAffectedItem() {
+        viewModel.FindingListAffectedItem.PageNm("");
+        viewModel.FindingListAffectedItem.Parameter("");
+    }
+
+    function resetUpdateFindingListProductInfo() {
+
+        if(viewModel.FindingListProductInfo.addUpdInd() == "UPD"){
+            viewModel.FindingListProductInfo.ProductType(viewModel.FindingListProductInfo_Ori.ProductType());
+            viewModel.FindingListProductInfo.ProductVendor(viewModel.FindingListProductInfo_Ori.ProductVendor());
+            viewModel.FindingListProductInfo.ProductName(viewModel.FindingListProductInfo_Ori.ProductName());
+            viewModel.FindingListProductInfo.ProductVersion(viewModel.FindingListProductInfo_Ori.ProductVersion());
+            viewModel.FindingListProductInfo.ProductUpdate(viewModel.FindingListProductInfo_Ori.ProductUpdate());
+            viewModel.FindingListProductInfo.ProductEdition(viewModel.FindingListProductInfo_Ori.ProductEdition());
+            viewModel.FindingListProductInfo.ProductLanguage(viewModel.FindingListProductInfo_Ori.ProductLanguage());
+            viewModel.FindingListProductInfo.VulManInputProductId(viewModel.FindingListProductInfo_Ori.VulManInputProductId());
+        }
+        else
+        {
+            viewModel.FindingListProductInfo.ProductType("");
+            viewModel.FindingListProductInfo.ProductVendor("");
+            viewModel.FindingListProductInfo.ProductName("");
+            viewModel.FindingListProductInfo.ProductVersion("");
+            viewModel.FindingListProductInfo.ProductUpdate("");
+            viewModel.FindingListProductInfo.ProductEdition("");
+            viewModel.FindingListProductInfo.ProductLanguage("");
+        }
+
+
+    }
+
+
+    function resetUpdateFindingListScreenshot() {
+        viewModel.FindingListScreenshot.Title("");
+        viewModel.FindingListScreenshot.Description("");
+        document.getElementById("picfile").value = "";
+        //$("#picfile").val("");
+    }
+
+    function ResetFindingListInfo() {
+        sessionStorage.clear();
+        localStorage.clear();
+        //localStorage.removeItem("vulName");
+        location.reload();
+    }
+
+
+    function getCVSSFindingScoringSession() {
+
+        var count_row = $('#count_file').val();
+        var countAdaData = 0;
+        var cveid_data = "";
+
+        if(count_row != 0){
+            for (let i = 1; i <= count_row; i ++) {
+
+                var AttchmtPath = $('#cve_id-'+i).val();
+
+                if(AttchmtPath == undefined || AttchmtPath == "" ){
+                    //alert('xdedata');
+                }
+                else
+                {
+                    if(cveid_data == "")
+                    {
+                        cveid_data = AttchmtPath;
+                    }
+                    else{
+                        cveid_data = cveid_data + String.fromCharCode(253) + AttchmtPath ;
+                    }
+
+                    countAdaData ++;
+                }
+
+            }
+        }
+
+        localStorage.setItem("vulName", htmlEnc($("#vul_nm").val()));
+        localStorage.setItem("ObservationRmk", htmlEnc($("#Observation").val()));
+        localStorage.setItem("ImpactLvl", viewModel.Finding.VulProjFinding.ImpactLvl());
+        localStorage.setItem("ImpactRmk", htmlEnc($("#impact_remark").val()));
+        localStorage.setItem("ImprovementRmk", htmlEnc($("#area_of_impt").val()));
+        localStorage.setItem("Status", viewModel.Finding.VulProjFinding.Status());
+        localStorage.setItem("CVEID", cveid_data);
+        localStorage.setItem("CWEID", viewModel.Finding.VulProjFinding.CWEId());
+        // localStorage.setItem("CVEID", htmlEnc($("#cve_id").val()));
+        localStorage.setItem("VulCategory", viewModel.Finding.VulProjFinding.VulCat());
+        //localStorage.setItem("VulTypeName", viewModel.Finding.VulProjFinding.x.VulNm());
+        //localStorage.setItem("VulTypeCd", viewModel.Finding.VulProjFinding.VulType());
+        localStorage.setItem("SecComp", htmlEnc($("#SecComp").val()));
+        localStorage.setItem("vulCd", $("#vulCd").val());
+        localStorage.setItem("vulCdCmb", $("#vulCdCmb").val());
+        localStorage.setItem("AffecApp", htmlEnc($("#AffecApp").val()));
+    }
+
+    function paginateCLICK(page, ind) {
+
+        var CatCode = $("#category").val();
+        var pageind = 0;
+        if(ind == 0)
+        {
+            pageind = (parseInt($("#pagenum").val()) + 10);
+        }
+        else if(ind == 2)
+        {
+            pageind = (parseInt($("#pagenum").val()) - 10);
+        }
+        else
+        {
+            pageind = page;
+        }
+
+        var search_vulCode_name=  document.getElementById("search_code").value;;
+
+        viewModel.pageind(pageind);
+        viewModel.searchVulCodedataList(pageind,CatCode,search_vulCode_name);
+
+        //-----------------------------------------------------------------------------------------------------------------
+        paginatation(pageind);
+        //-----------------------------------------------------------------------------------------------------------------
+
+
+    }
+
+    function paginateCLICK2(page, ind){
+
+        document.getElementById("search_code").value= "";
+
+        var CatCode = $("#category").val();
+        var pageind = 0;
+        if(ind == 0)
+        {
+            pageind = (parseInt($("#pagenum").val()) + 10);
+        }
+        else
+        {
+            pageind = page;
+        }
+
+
+        var search_vulCode_name = "";
+
+        viewModel.pageind(pageind);
+        viewModel.searchVulCodedataList(pageind,CatCode,search_vulCode_name);
+
+        //-----------------------------------------------------------------------------------------------------------------
+        paginatation(pageind);
+        //-----------------------------------------------------------------------------------------------------------------
+
+    }
+
+    function choosecategory(valueCd) {
+        //if(valueCd == ""){
+        viewModel.Finding.VulProjFinding.VulnerabilityCSMCd("");
+        viewModel.Finding.VulProjFinding.VulnerabilityCSMCdCombine("");
+        //}
+    }
+
+    function searchdataini(value){
+
+        var pageind = 0;
+        var CatCode = $("#category").val();
+
+        var search_vulCode_name= value;
+        viewModel.pageind(pageind);
+        viewModel.searchVulCodedataList2(pageind,CatCode,search_vulCode_name);
+
+        //-----------------------------------------------------------------------------------------------------------------
+        paginatation(pageind);
+        //-----------------------------------------------------------------------------------------------------------------
+
+    }
+
+    function categorychange(){
+        viewModel.Finding.VulProjFinding.VulnerabilityCSMCd("");
+        viewModel.Finding.VulProjFinding.VulnerabilityCSMCdCombine("");
+
+        $("#vulcode").addClass("required");
+        $("#vulCdCmb").addClass("validate[required]");
+        $("#vulCd").addClass("validate[required]");
+    }
+
+    $(document).ready(function() {
+        var next_id;
+        var new_cveid = viewModel.Finding.VulProjFinding.CVEId();
+        //alert(new_cveid);
+
+        if(new_cveid != null)
+        {
+            var tmp1 = new_cveid.split(String.fromCharCode(253));
+
+            for (let i = 0; i < tmp1.length; i ++) {
+                next_id = i + 1;
+
+                if(next_id == 1){
+                    //alert(tmp1[0]);
+                    document.getElementById("cve_id-1").value= tmp1[0];
+
+                    viewModel.linkValidUrlFirst(tmp1[0]);
+
+                    viewModel.GetlinkInfo(tmp1[0]);
+                }
+                else
+                {
+
+                    var styledisp = "none";
+
+                    viewModel.GetlinkInfo2(tmp1[i]);
+
+                    if(viewModel.linkValidUrl() != ""){
+                        styledisp = "";
+                    }
+                    //alert(viewModel.linkValidUrl());
+
+                    //-----------------------------------------------------------------------
+                    var count = $('div[id^=student-row-]').length;
+                    var last = $('div[id^=student-row-]').last();
+                    var $clone = last.clone(true);
+
+                    $("#count_file").val(next_id);
+
+                    $clone.attr('id', 'student-row-' + next_id);
+
+                    var file_container = $clone.find('.filestyle').parent();
+                    file_container.empty();
+
+                    var fileinput = $('<textarea>').val(tmp1[i]).addClass('form-control').addClass('textarearesize').addClass('filestyle').attr('style', 'height:34px').attr({
+                        id: 'cve_id-'+next_id,
+                        name: 'cve_id['+next_id+']',
+                        type: 'text',
+                        placeholder: 'e.g. CVE-ID',
+                    });
+
+
+                    file_container.append(fileinput);
+
+                    var delete_button = $clone.find('.btn-danger')
+                        .attr('data-url', 'student-row-' + next_id)
+                        .attr('href','#deleteModal')
+                        .attr('class', 'btn btn-danger btn-xs btn-delete')
+                        .attr('onclick', 'delete_file('+ next_id + ')')
+                    ;
+                    delete_button.closest('.form-group').removeAttr('style');
+
+                    var cve_details = $clone.find('.btn-primary')
+                       .attr('data-url', 'student-row-' + next_id)
+                       .attr('href','#addModal')
+                       .attr('class', 'btn btn-primary btn-xs btn-add')
+                       .attr('style', 'display:none')
+                    //.attr('onclick', 'delete_file('+ next_id + ')')
+                    ;
+                    cve_details.closest('.form-group').removeAttr('style');
+                    //var aaa= "www.google.com";
+
+                    var cve_link = $clone.find('.btn-success')
+                      .attr('data-url', 'student-row-' + next_id)
+                      .attr('href','#linkModal')
+                      .attr('class', 'btn btn-success btn-xs find')
+                      .attr('style', 'background-color:#337ab7;border-color:#2e6da4;display:' + styledisp + ';')
+                      .attr('onclick', 'openLinkFile("'+ tmp1[i] + '")')
+                      .attr({
+                          id: 'clicklink-'+next_id,
+                      })
+                    ;
+                    cve_link.closest('.form-group').removeAttr('style');
+
+
+                    $clone.show().insertAfter(last);
+                    //------------------------------------------------------------------
+
+                }
+
+
+            }
+
+        }
+
+    });
+
+</script>
+<script src="~/Scripts/Common/datepicker.js"></script>
+
+

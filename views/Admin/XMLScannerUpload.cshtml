@@ -1,0 +1,1407 @@
+﻿@using Newtonsoft.Json;
+@using myvdbsSQL;
+@using MyVDBSDemo.Models;
+@model IEnumerable<MyVDBSDemo.Models.tblVulXMLProvider>
+
+@{
+    ViewBag.Title = "XML Scanner Input";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+
+}
+<style>
+.testimonial-group > .row {   
+  padding-left: 10px;  
+  overflow-x: auto;
+  white-space: nowrap;
+}
+.testimonial-group > .row > .col-xs-4 {
+  display: inline-block;
+  float: none;
+}
+
+#APIConfigMap {
+    overflow: auto!important;
+}
+
+.tdcenter {
+    text-align:center;
+}
+</style>
+
+
+<div class="col-md-8 col-md-offset-2" style="margin-top:70px;">
+    <div class="panel panel-info">
+
+        <div class="panel-body">
+
+            <div class="col-md-12" style="margin-top:20px">
+                <div class="panel panel-info">
+                    <div class="panel-body">
+                        <table class="table table-bordered table-striped display" id="pageList" align="center">
+                            @*<table class="table table-condensed table-striped table-bordered display" id="pageList" align="center">*@
+                                <thead style="background-color:moccasin">
+                                    <tr>
+                                        <th class="text-center">@MyVDBSDemo.Resources.LangText.No</th>
+                                        <th class="text-center">XML Provider Name</th>
+                                        <th class="text-center">Created Date</th>
+                                        <th class="text-center"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        var count = 0;
+                                        foreach (var item in Model)
+
+                                        {
+                                            count = count + 1;
+                                            <tr>
+                                                <td style="text-align:center">@count</td>
+                                                <td>@Html.Raw(item.VulXMLProviderNm)</td>
+                                                <td>@Html.Raw(item.CreatedDt)</td>
+                                                <td style="text-align:center">
+                                                    <button type="button" id="edit" class="btn btn-success btn-xs edit" onclick="edit('@item.VulXMLMap')"><span class="glyphicon glyphicon-pencil"></span> @MyVDBSDemo.Resources.LangText.Update</button>
+                                                    <button type="button" id="delete" class="btn btn-danger btn-xs delete" onclick="hapus('@item.VulXMLMap')"><span class="glyphicon glyphicon-trash"></span> @MyVDBSDemo.Resources.LangText.Delete</button>
+                                                    <button type="button" id="loadXML" class="btn btn-warning btn-xs load" onclick="loadXML('@item.VulXMLMap')"><span class="glyphicon glyphicon-file"></span> Load XML</button>
+                                                    @*<button type="button" id="mapDataXML" class="btn btn-primary btn-xs search" onclick="mapDataXML('@item.VulXMLMap')"><span class="glyphicon glyphicon-map-marker"></span> Mapping</button>*@
+                                                      @*<button type="button" id="mapDataXML" class="btn btn-info btn-xs search" onclick="mapDataXML('@item.VulXMLMap')"><span class="glyphicon glyphicon-download-alt"></span> Mapping</button>*@
+
+                                                    <button type="button" id="mapData" class="btn btn-primary btn-xs search" onclick="mapData('@item.VulXMLMap')"><span class="glyphicon glyphicon-map-marker"></span> Mapping</button>
+                                                    <button type="button" id="mapDataXML" class="btn btn-info btn-xs search" onclick="mapDataXML('@item.VulXMLMap')"><span class="glyphicon glyphicon-download-alt"></span> Import</button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        <div align="right">
+                            <div id="drawSearchPaginateDT"></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12" align="center">
+
+                                <button data-bind="click : add, visible :true, enable: true" class="btn btn-primary btn-sm m-t-10">
+                                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Add
+                                </button>
+
+                               
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="loadingDiv" style="display:none;">
+    <div class="spinner">
+        <div class="rect1"></div>
+        <div class="rect2"></div>
+        <div class="rect3"></div>
+        <div class="rect4"></div>
+        <div class="rect5"></div>
+    </div>
+</div>
+<div id="APIConfigAdd" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+    <div class="modal-dialog" style="width:500px">
+        <div class="modal-content">
+            <div class="modal-header heady">
+
+                <h4 align="center">Add XML Provider</h4>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <form id="addForm">                             
+                        <div class="form-group">
+                            <label for="VulXMLMap" class="col-form-label required">XML Provider Code</label>
+                            <input type="text" class="validate[required] form-control" data-bind="value:APIConfig2.VulXMLMap" id="VulXMLMap" maxlength="2" placeholder="XML Provider Code">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="VulXMLProviderNm" class="col-form-label required">XML Provider Name</label>
+                            <input type="text" class="validate[required] form-control" data-bind="value:APIConfig2.VulXMLProviderNm" id="VulXMLProviderNm" maxlength="100" placeholder="XML Provider Name">
+                        </div>                        
+                        
+                        <div class="form-group">
+                            <label for="VulXMLDesc" class="col-form-label">XML Provider Description:</label>
+                            <textarea name="VulXMLDesc" class="form-control" data-bind="value:APIConfig2.VulXMLDesc" rows="3" maxlength="300" placeholder="e.g. This is XML Provider description."></textarea>
+                        </div>                                                             
+                    </form>
+
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <div align="center">
+                    <button id="saveDialog" class="btn btn-success btn-sm m-t-10" data-bind="click:saveDialog"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Save </button>
+                    <button id="resetDialog" class="btn btn-warning btn-sm m-t-10" data-bind="click:resetDialog"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Reset </button>
+                    <button id="cancelDialog" class="btn btn-info btn-sm m-t-10" data-bind="click:cancelDialog"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Cancel </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="XMLConfigEdit" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+    <div class="modal-dialog" style="width:500px">
+        <div class="modal-content">
+            <div class="modal-header heady">
+
+                <h4 align="center">Update XML Provider</h4>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <form id="editForm">
+                        <br />
+                        <div class="form-group">
+                            <label for="VulXMLMapUpd" class="col-form-label required">XML Provider Code</label>
+                            <textarea type="text" disabled class="validate[required] form-control textarearesize" rows="1" data-bind="html:APIConfig3.VulXMLMap, valueUpdate:'afterkeydown'" id="VulXMLMapUpd" maxlength="2" placeholder="XML Provider Code"></textarea>
+                            <textarea type="text" style="display:none" id="VulXMLProviderIdUpd" data-bind="html:APIConfig3.VulXMLProviderId" ></textarea>
+                            @*<input type="text" disabled class="validate[required] form-control" data-bind="value:APIConfig3.VulXMLMap, valueUpdate:'afterkeydown'" id="VulXMLMapUpd" maxlength="2" placeholder="XML Provider Code">
+                            <input type="hidden" id="VulXMLProviderIdUpd" data-bind="value:APIConfig3.VulXMLProviderId" />*@
+                        </div>
+
+                        <div class="form-group">
+                            <label for="VulXMLProviderNmUpd" class="col-form-label required">XML Provider Name</label>                            
+                            <textarea id="VulXMLProviderNmUpd" type="text" maxlength="100" class="form-control textarearesize" rows="1" data-bind="html:APIConfig3.VulXMLProviderNm" placeholder="XML Provider Name"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="VulXMLDescUpd" class="col-form-label">XML Provider Description:</label>
+                            <textarea id="VulXMLDescUpd" class="form-control" data-bind="html:APIConfig3.VulXMLDesc, valueUpdate:'afterkeydown'" rows="3" maxlength="300" placeholder="e.g. This is XML Provider description."></textarea>
+                        </div>    
+
+
+                    </form>
+
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <div align="center">
+                    <button id="saveUpdate" class="btn btn-success btn-sm m-t-10" data-bind="click:saveUpdate"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Save </button>
+                    <button id="resetUpdate" class="btn btn-warning btn-sm m-t-10" data-bind="click:resetUpdate"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Reset </button>
+                    <button id="cancelUpdate" class="btn btn-info btn-sm m-t-10" data-bind="click:cancelUpdate"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Cancel </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div id="APIConfigMap" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+    <div class="modal-dialog" style="width:500px">
+        <div class="modal-content">
+            <div class="modal-header heady">
+                <h4 align="center">Mapping XML</h4>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <form id="mapForm">
+                        <br />    
+                        <div class="form-group">  
+                            <table  style="width:100%" border="0">                            
+                                <tr>
+                                    <td  style="width:130px"><label class="col-form-label">XML Provider Name : </label></td>                                    
+                                    <td valign="top"><span id="apinmid"></span></td>
+                                </tr>
+                            </table>                          
+                            <input type="hidden" class="validate[required] form-control" data-bind="value:APIConfigMap.APIId" id="APIIdMap">
+                            
+                            @*<label class="col-form-label" id="apinmid"></label>*@
+                        </div>                        
+                        <div class="form-group">
+                            <table id="tblMapData"  class="table table-bordered table-striped display" align="center">
+                            </table>
+                        </div>                         
+                    </form>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <div align="center">
+                    <button id="saveMap" class="btn btn-success btn-sm m-t-10" data-bind="click:saveMap"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Save </button>
+                    <button id="resetMap" class="btn btn-warning btn-sm m-t-10" data-bind="click:resetMapData"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Reset </button>
+                    <button id="cancelMap" class="btn btn-info btn-sm m-t-10" data-bind="click:cancelMap"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Cancel </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div id="APIConfigView" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+    <div class="modal-dialog" style="width:80%">
+        <div class="modal-content">
+            <div class="modal-header heady">
+
+                <h4 align="center">View XML Data</h4>                
+            </div>                        
+            <div class="modal-body" style="width:98%">
+                <div class="form-group">
+                    <form id="viewForm">
+                        <br />
+                        <table style="width:100%" border="0">
+                            <tr>
+                                <td style="width:130px"><label class="col-form-label">XML Provider Name : </label></td>
+                                <td valign="top"><span id="apinameview"></span></td>
+                            </tr>
+                        </table>
+                        <br />
+                        <div class="container testimonial-group" style="width:100%">
+                            <div class="row text-center">
+                                <table class="table table-bordered table-striped display" id="tblData" align="center" style="width:100%;padding-right: 10px;  "></table>
+
+                            </div>
+                        </div>                        
+                        <table style="width:100%" border="0">
+                            <tr>
+                                <td align="left" id="txtpaginate"></td>
+                                <td style="text-align:right;">
+                                    <input type="hidden" id="numStart" />
+                                    <input type="hidden" id="numSize" value="10" />
+                                    <ul class="pagination">
+                                        <li class="paginate_button previous" id="pageList_previous2">
+                                            <a href="#" id="linkPrev" aria-controls="pageList" data-dt-idx="0" tabindex="0">Previous</a>
+                                        </li>
+                                        <li class="paginate_button next" id="pageList_next2">
+                                            <a href="#" id="linkNext" aria-controls="pageList" data-dt-idx="2" tabindex="0">Next</a>
+                                        </li>
+                                    </ul>
+                                </td>
+                            </tr>
+                        </table>
+                    </form>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <div align="center">
+                    
+                    <button id="saveAPIData" class="btn btn-success btn-sm m-t-10" data-bind="click:saveAPIData"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Save </button>                    
+                    <button id="cancelAPIData" class="btn btn-info btn-sm m-t-10" data-bind="click:cancelAPIData"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Cancel </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="XMLScannerLoad" class="modal" role="dialog" data-keyboard="false" tabindex="-1" data-backdrop="static">
+    <div class="modal-dialog" style="width:500px">
+        <div class="modal-content">
+            <div class="modal-header heady">
+
+                <h4 align="center">Load Data From XML</h4>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <form id="myForm">
+                        <br />
+                        <table style="width:100%" border="0">
+                            <tr>
+                                <td style="width:130px"><label class="col-form-label">XML Provider Name : </label></td>
+                                <td valign="top"><span id="apinameloadxml"></span></td>
+                            </tr>
+                        </table>
+                        <br />
+                        <div>
+                            <p class="p">
+                                @*<label for="Description" class="col-form-label">Load XML :</label>*@
+                                <input type="file" id="FileUpload1" name="upload_pict_path" class="validate[required] form-control" accept=".xml" data-buttonText="<span class='glyphicon glyphicon-folder-open'></span>" data-size="sm" data-placeholder="No File Chosen">
+                                <label for="Description" class="col-form-label"><font color="blue">NOTE : Please select a XML Format Only.</font></label>
+                            </p>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <div align="center">
+                  @*button id="saveUpdate" class="btn btn-success btn-sm m-t-10" data-bind="click:saveUpdate"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Save </button>*@
+                    <button type="button" class="btn btn-primary btn-sm m-t-10" id="btnGenerate"><span class="glyphicon glyphicon-upload"></span> Load XML</button>
+                    <button id="resetXMLScannerLoad" class="btn btn-warning btn-sm m-t-10" data-bind="click:resetXMLScannerLoad"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Reset </button>
+                    <button id="cancelXMLScannerLoad" class="btn btn-info btn-sm m-t-10" data-bind="click:cancelXMLScannerLoad"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> @MyVDBSDemo.Resources.LangText.Cancel </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="decision_dialogXML1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" align="center"><b>MyVDBS</b></h4>
+            </div>
+            <div class="modal-body" align="center">
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-submit btn-sm" data-dismiss="modal">Yes</button>
+                <button type="button" class="btn btn-cancel btn-sm" data-dismiss="modal">No</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="~/Scripts/Common/CookieHelper.js"></script>
+<script>
+
+    var APIConfig = @Html.Raw(JsonConvert.SerializeObject(@Model, Formatting.None,
+        new JsonSerializerSettings()
+    {
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+    }));
+
+    @functions{
+        public string TokenHeaderValue()
+        {
+            string cookieToken, formToken;
+            AntiForgery.GetTokens(null, out cookieToken, out formToken);
+            return cookieToken + ":" + formToken;                
+        }
+    }
+
+</script>
+
+<script>
+    var dtInstance = $("#pageList").DataTable({
+        "scrollCollapse": false,
+        "paging": true,
+        "columnDefs": [{
+            "searchable": false,
+            "orderable": false,
+            "targets": 0
+        }],
+        "order": [[1, 'asc']]
+    });
+
+    dtInstance.on('order.dt search.dt', function () {
+        dtInstance.column(0, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
+            cell.innerHTML = i + 1;
+        });
+    }).draw();
+
+    dtInstance.on( 'draw', function () {
+        $('#paginatesearch').val(dtInstance.page()+1);
+        setCookie("listingpage21", dtInstance.page()+1, 1);
+    } );
+
+    var viewModel;
+
+    function cancel() {
+        //ShowDecisionMessage("Are you Sure To Cancel ?", function () {
+
+            location.href = "/Admin/Dashboard";
+        //});
+    }
+
+    function loadXML(VulXMLMap){
+
+        viewModel.VulXMLMap(VulXMLMap);
+        viewModel.getNameXMLLoad(VulXMLMap);
+        //$("#XMLScannerLoad").modal({
+        //    show: 'true',
+        //    backdrop: 'true',
+        //    keyboard: 'true'
+        //});
+
+        
+        //location.href = "/User/XMLScannerData" ;
+    }
+
+    function mapData(VulXMLMap) {
+        viewModel.mapData(VulXMLMap);
+    }
+
+    function mapDataXML(VulXMLMap){
+        viewModel.mapDataXML(VulXMLMap);
+    }
+
+    function edit(VulXMLMap) {
+        viewModel.update(VulXMLMap);
+    }
+
+    //function mapData(VulXMLMap) {
+    //    viewModel.mapData(VulXMLMap);
+    //}
+
+    function view(APIId) {
+        viewModel.view(APIId);
+    }
+
+    function checkExist(val) {
+        viewModel.validate(val.value);
+    }
+
+    var btnRefresh = function () {
+        location.reload();
+    }
+
+    $(function () {
+
+        viewModel = {
+            APIConfig1: ko.mapping.fromJS(APIConfig),
+            APIConfig2 :
+            {
+                VulXMLProviderNm: ko.observable(""),
+                VulXMLMap: ko.observable(""),
+                VulXMLDesc: ko.observable(""),
+                CreatedBy: ko.observable(""),                
+            },
+            APIConfig3 :
+            {
+                VulXMLProviderId: ko.observable(""),
+                VulXMLProviderNm: ko.observable(""),
+                VulXMLMap: ko.observable(""),
+                VulXMLDesc: ko.observable(""),
+                CreatedBy: ko.observable(""),     
+            },
+            APIConfigView :
+            {
+                VulXMLMap: ko.observable(""),
+                XMLData: ko.observableArray([]),
+                XMLData2: ko.observableArray([]),
+                XMLScanName: ko.observable(""),
+            },
+            APIConfigMap :
+            {
+                VulXMLMap: ko.observable(""),
+            },
+
+            VulXMLMap: ko.observable(""),
+            total: ko.observable(""),
+            total2: ko.observable(""),
+            total3: ko.observable(""),
+
+            remove: function(VulXMLMap) {
+                ShowDecisionMessage("Are you sure to delete this record ? ", function () {
+
+                    var btnOk = function () {
+
+                    }
+                    $.ajax({
+                        type: "POST",
+                        url: server + "/Admin/DeleteXMLProvider",
+                        data: JSON.stringify({ VulXMLMap: VulXMLMap }),
+                        contentType: "application/json; charset=utf-8",
+                        error: function (xhr) { },
+                        success: function (msg) {
+                            if (msg.OK) {
+                                ShowMessageSuccess("Record successfully deleted.", btnRefresh);
+                            }
+                            else {
+                                ShowMessageDanger('Unsuccesfully deleted.');
+                            }
+                        }
+                    })
+
+                });
+            },
+            add: function () {
+                $('#APIConfigAdd').modal('show');             
+            },
+            resetMapData: function () {
+                mapData(viewModel.APIConfigMap.VulXMLMap());
+            },
+            @*mapData: function(APIId){
+                $('#APIConfigMap').modal('show');
+                viewModel.APIConfigMap.APIId(APIId);
+
+                $.ajax({
+                    type: "POST",
+                    url : server + "/API/GetMyField",
+                    data: JSON.stringify({ APIId: APIId}),
+                    headers: {
+                        'RequestVerificationToken': '@TokenHeaderValue()'
+                    },
+                    contentType: "application/json; charset=utf-8",
+                    error: function(xhr){ },
+                    success: function(msg){
+                        if(msg.OK){
+                            var list = ko.mapping.toJS(ko.mapping.fromJSON(msg.list));
+                            var list2 = ko.mapping.toJS(ko.mapping.fromJSON(msg.list2));
+                            var listVal = ko.mapping.toJS(ko.mapping.fromJSON(msg.listVal));
+
+                            $('#apinmid').text(msg.APIName);
+
+                            $('#tblMapData').empty();
+
+                            $('#tblMapData').append('<thead style="background-color:moccasin"><tr><th class="col-sm-1 text-center">@MyVDBSDemo.Resources.LangText.No</th><th class="col-sm-4 text-center">MyVDBS Fields</th><th class="col-sm-3 text-center">Third Party Fields</th></tr></thead><tbody><tr><td></td><td></td></tr></tbody>');
+
+                            var cnt = 0;
+
+                            $.each(list, function (i, v) {
+                                cnt = cnt + 1;
+
+                                var strselect = '<select class="slcDd" onchange="slcField(this)">';
+                                strselect = strselect + '<option value="">--- Please Choose ---</option>';
+                                $.each(list2, function (j, v2) {
+                                    var optselected = '';
+
+                                    $.each(listVal, function (k, v3) {
+                                        if(v3.APIMapMyField == v && v3.APIMapYourField == v2){
+                                            optselected = ' SELECTED = "SELECTED" ';
+                                        }
+                                    });
+
+                                    strselect = strselect + '<option value="' + v2 + '" ' + optselected + ' >' + v2 + '</option>';
+                                });
+                                strselect = strselect + '</select>';
+
+                                var strinputhdn = '<input type="hidden" name="hdnMyField" class="hdnMyField" value="' + v + '" />';
+                                //viewModel.APIConfigMap.MyField.push(v);
+                                $('#tblMapData tr:last').after('<tr><td>' + cnt +'</td><td>' + strinputhdn + v +'</td><td>' + strselect + '</td></tr>');
+                            });
+                        }
+                    }
+                });
+
+            },*@
+            getNameXMLLoad : function(VulXMLMap){
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetXMLProviderName",
+                    data: JSON.stringify({ VulXMLMap: VulXMLMap }),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+                            $('#apinameloadxml').text(msg.XMLScanName);
+
+                            //$("#XMLScannerLoad").modal({
+                            //    show: 'true',
+                            //    backdrop: 'true',
+                            //    keyboard: 'true'
+                            //});
+
+                            $('#XMLScannerLoad').modal('show');
+                        }
+                    }
+                });
+            },
+            view : function(APIId){
+                $.ajax({
+                    type: "POST",
+                    url : server + "/API/GetAPIData",
+                    data: JSON.stringify({ APIId: APIId }),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            //viewModel.APIConfigView.APIData(msg.list);
+
+                            //var response = $.parseJSON(msg.list);
+
+                            //$("#tblData").empty();
+
+                            //$.each(response, function(key,value){
+                            //    $("#tblData").append("<tr><td contenteditable=true>"+ key +"</td><td>" + value +"</td></tr>");
+                            //});
+
+                            //$("#APIConfigView").modal({
+                            //    show: 'true',
+                            //    backdrop: 'true',
+                            //    keyboard: 'true'
+                            //});
+                        }
+                    }
+                });
+            },
+            saveAPIData : function(){
+                
+                var VulXMLMap = viewModel.APIConfigView.VulXMLMap();
+                var XMLData = viewModel.APIConfigView.XMLData();
+                var XMLData2 = viewModel.APIConfigView.XMLData2();
+                var apinameVIEW = viewModel.APIConfigView.XMLScanName();
+               
+                if(XMLData.length == 0){
+                    ShowMessageDanger('No data.');
+                    return;
+                }
+
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/saveXMLData",
+                    data: JSON.stringify({ VulXMLMap: VulXMLMap, XMLData :XMLData, XMLData2: XMLData2 , apinameVIEW:apinameVIEW  }),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+                            //$('#APIConfigView').modal('hide');
+                            ShowMessageSuccess("Data successfully save.",btnRefresh);
+                        }
+                        else {
+                            ShowMessageDanger('Unsuccesfully save. Pleace check your mapping fields.');
+                        }
+                    }
+                });
+            },
+            mapData : function(VulXMLMap){
+                
+                var isdata = 0;
+                viewModel.APIConfigMap.VulXMLMap(VulXMLMap);
+
+                $.ajax({
+                    type: "POST",
+                    url : server + "/Admin/GetMyField",
+                    data: JSON.stringify({ VulXMLMap: VulXMLMap}),
+                    headers: {
+                        'RequestVerificationToken': '@TokenHeaderValue()'
+                    },
+                    contentType: "application/json; charset=utf-8",
+                    error: function(xhr){ },
+                    success: function(msg){
+                        if(msg.OK){
+                            var list = ko.mapping.toJS(ko.mapping.fromJSON(msg.list));
+                            var list2 = ko.mapping.toJS(ko.mapping.fromJSON(msg.list2));
+                            var listVal = ko.mapping.toJS(ko.mapping.fromJSON(msg.listVal));
+
+                            $('#apinmid').text(msg.XMLScanName);
+
+                            $('#tblMapData').empty();
+
+                            $('#tblMapData').append('<thead style="background-color:moccasin"><tr><th class="col-sm-1 text-center">@MyVDBSDemo.Resources.LangText.No</th><th class="col-sm-4 text-center">MyVDBS Fields</th><th class="col-sm-3 text-center">XML Fields</th></tr></thead><tbody><tr><td></td><td></td></tr></tbody>');
+
+                            var cnt = 0;
+
+
+                            $.each(list, function (i, v) {
+                                cnt = cnt + 1;
+
+                                var strselect = '<select class="slcDd" onchange="slcField(this)">';
+                                strselect = strselect + '<option value="">--- Please Choose ---</option>';
+                                $.each(list2, function (j, v2) {
+                                    var optselected = '';
+                                    isdata =1;
+                                    $.each(listVal, function (k, v3) {
+
+                                        if(v3.APIMapMyField == v && v3.APIMapYourField == v2){
+                                            optselected = ' SELECTED = "SELECTED" ';
+                                        }
+                                    });
+
+                                    strselect = strselect + '<option value="' + v2 + '" ' + optselected + ' >' + v2 + '</option>';
+                                });
+                                strselect = strselect + '</select>';
+
+                                var strinputhdn = '<input type="hidden" name="hdnMyField" class="hdnMyField" value="' + v + '" />';
+                                //viewModel.APIConfigMap.MyField.push(v);
+                                $('#tblMapData tr:last').after('<tr><td>' + cnt +'</td><td>' + strinputhdn + v +'</td><td>' + strselect + '</td></tr>');
+                            });
+
+
+                            if(isdata == 0){
+                                ShowMessageWarning('Please Load XML first.');
+                            }else{
+                                $("#APIConfigMap").modal({
+                                    show: 'true',
+                                    backdrop: 'true',
+                                    keyboard: 'true'
+                                });
+                            }
+                        }
+                    }
+                });
+
+            },
+            mapDataXML : function(VulXMLMap){
+                                
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetXMLDataTemp",
+                    data: JSON.stringify({ VulXMLMap: VulXMLMap }),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            $('#apinameview').text(msg.XMLScanName);
+                            viewModel.APIConfigView.XMLScanName(msg.XMLScanName);
+
+                            var response = ko.mapping.toJS(ko.mapping.fromJSON(msg.list));
+                            var response2 = ko.mapping.toJS(ko.mapping.fromJSON(msg.list2));
+
+                            viewModel.APIConfigView.VulXMLMap(VulXMLMap);
+                            viewModel.APIConfigView.XMLData(response);
+                            viewModel.APIConfigView.XMLData2(response2);
+
+                            var cntHdr = 0;
+                            $("#tblData").empty();
+
+                            $row = $('<thead style=\"background-color:moccasin\" />');
+                            $("#tblData").append($row);
+
+                            $row = $("<tr/>");
+
+                            $.each(response2, function(key,value){
+                                cntHdr++;
+                                if(cntHdr ==1){
+                                    $col = $('<th class=\"text-center\" />').append("No.");
+                                    $row.append($col);
+
+                                }
+
+                                $col = $('<th class=\"text-center\" />').append(value);
+                                $row.append($col);
+
+                            });
+
+                            $("#tblData thead").append($row);
+
+                            //--------------mapping-----------        <-- nak mapping apa?
+
+                            //--------------------------------
+
+
+                            var cnt = 0;
+
+                            $col = $('<tbody/>');
+                            $("#tblData").append($col);
+
+                            $.each(response, function(key2,value2){
+                                cnt++;
+
+                                $row = $('<tr/>');
+                                $col = $('<td/>').append(cnt);
+                                $row.append($col);
+                                $.each(value2.XmlScannerData, function(key3,value3){
+                                    $col = $('<td/>').append(value3.FieldValue);
+                                    $row.append($col);
+                                });
+                                $("#tblData tbody").append($row);
+                            });
+
+                            if(cnt == 0){
+                                $("#tblData").append("<tr><td colspan=99 class ='tdcenter' >No data</td></tr>");
+
+                                $("#numStart").val(0);
+                                $('#pageList_next2').removeClass('disabled'); 
+                                
+                                var start = parseInt($("#numStart").val());
+                                var size = parseInt($("#numSize").val());
+                                var end = start + size;
+
+                                $("#numStart").val(end);                                                                
+
+                                $('#pageList_previous2').addClass('disabled');  
+                                
+                                var total = viewModel.APIConfigView.XMLData().length;
+                                
+                                if(parseInt(total) <= end){
+                                    $('#pageList_next2').addClass('disabled');            
+                                }
+
+                                pagetext(1, 2, 0);
+                            }else{
+
+                                $("#numStart").val(0);
+                                $('#pageList_next2').removeClass('disabled'); 
+                                var tableRows = $("#tblData tbody tr");
+                                var start = parseInt($("#numStart").val());
+                                var size = parseInt($("#numSize").val());
+                                var end = start + size;
+
+                                $("#numStart").val(end);
+                                
+                                tableRows.hide();
+                                tableRows.slice(start, end).show();
+
+                                $('#pageList_previous2').addClass('disabled');  
+                                
+                                var total = viewModel.APIConfigView.XMLData().length;
+                                
+                                if(parseInt(total) <= end){
+                                    $('#pageList_next2').addClass('disabled');            
+                                }
+                                
+                                pagetext(start, end, total);
+                            }
+
+                            $("#APIConfigView").modal({
+                                show: 'true',
+                                backdrop: 'true',
+                                keyboard: 'true'
+                            });
+                        }
+                        else{
+                            ShowMessageWarning('Please Load XML first.');
+                        }
+                    }
+                });
+
+
+            },
+
+
+
+            update: function (VulXMLMap) {
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetXMLConfigEdit",
+                    data: JSON.stringify({ VulXMLMap: VulXMLMap }),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+                            viewModel.APIConfig3.VulXMLProviderId(msg.listXML.VulXMLProviderId);
+                            viewModel.APIConfig3.VulXMLProviderNm(msg.listXML.VulXMLProviderNm);
+                            viewModel.APIConfig3.VulXMLMap(msg.listXML.VulXMLMap);
+                            viewModel.APIConfig3.VulXMLDesc(msg.listXML.VulXMLDesc);                            
+                            
+                            resetUpdate();
+
+                            $("#XMLConfigEdit").modal({
+                                show: 'true',
+                                backdrop: 'true',
+                                keyboard: 'true'
+                            });
+                        }
+                    }
+                });
+            },
+            saveMap: function(){
+                var j=0;
+                var strmap = '';
+                $('.slcDd').each(function(index, val) {
+
+                    var currentElement = $(this);
+                    var value = currentElement.val();
+
+                    if(value != ''){
+                        var $getHdnField =  $('.hdnMyField');
+
+                        strmap = strmap + $getHdnField.eq(j).val() +';' + value + '*';
+                    }
+                    j++;
+                });
+
+
+                var VulXMLMap = viewModel.APIConfigMap.VulXMLMap();
+                    $.ajax({
+                        type: "POST",
+                        url: server + "/Admin/SaveXMLMap",
+                        data: JSON.stringify({ VulXMLMap: VulXMLMap, strmap : strmap }),
+                        headers: {
+                            'RequestVerificationToken': '@TokenHeaderValue()'
+                        },
+                        contentType: "application/json; charset=utf-8",
+                        error: function (xhr) { },
+                        success: function (msg){
+                                if (msg.OK) {
+                                    //$('#APIConfigMap').modal('hide');
+                                    ShowMessageSuccess("Data successfully save.",btnRefresh);
+                                }
+                                else {
+                                    //$('#APIConfigMap').modal('hide');
+                                    ShowMessageDanger('Unsuccesfully save.');
+                                }
+                        }
+                    });
+
+            },
+            saveDialog: function () {
+                var value = $("#addForm").validationEngine('validate');
+
+                if (value == true) {
+                    $.ajax({
+                        type: 'POST',
+                        url: '/Admin/CheckAddXMLProvider',//controller/nama function
+                        contentType: "application/json; charset=utf-8",
+                        headers: {
+                            'RequestVerificationToken': '@TokenHeaderValue()'
+                        },
+                        data: JSON.stringify({ model: ko.mapping.toJS(viewModel.APIConfig2) }), //parameter
+
+                        success: function (msg) {
+
+                            if (msg.ok) {
+                                $.ajax({
+                                    type: 'POST',
+                                    url: '/Admin/AddXMLProvider',//controller/nama function
+                                    contentType: "application/json; charset=utf-8",
+                                    data: JSON.stringify({ model: ko.mapping.toJS(viewModel.APIConfig2) }), //parameter
+
+                                    success: function (msg) {
+
+                                        if (msg.ok) {
+                                            $('#APIConfigAdd').modal('hide');
+                                            ShowMessageSuccess("Data successfully add.",btnRefresh);
+                                        }
+                                        else {
+                                            $('#APIConfigAdd').modal('hide');
+                                            ShowMessageDanger('Unsuccesfully add.');
+                                        }
+
+                                    },
+                                    error: function (xhr) {
+                                    }
+                                });
+                            }
+                            else {                                
+                                ShowMessageDanger('XML Provider Code Already Exist.');
+                            }
+
+                        },
+                        error: function (xhr) {
+                        }
+                    });
+
+                    
+                } else {
+                    $("#addForm").validationEngine();
+                }
+            },
+
+            savexmlfile : function ()
+            {
+
+                var formData = new FormData();
+                var file = document.getElementById("FileUpload1").files[0];
+                formData.append("FileUpload", file);
+
+                var filename = $('#FileUpload1').val().split('\\').pop().replace(".xml","");
+
+                viewModel.total2(1);
+                viewModel.total3(1);
+
+                $.ajax({
+                    type: "POST",
+                    url: '/Admin/CheckXmlFileValid',
+                    data: JSON.stringify({ filename: filename,VulXMLMap: viewModel.VulXMLMap() }),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg){
+                        if (msg.ok) {
+                            ShowDecisionMessageXML1("This XML file already loaded. Do you want to replace it?", function () {
+                                viewModel.total2(viewModel.total2() + 1);
+                                if(viewModel.total2() == 2){
+                                    viewModel.xmlfiletable();
+                                }
+
+                            });
+
+                        }
+                        else {
+                            viewModel.xmlfiletable();
+                        }
+
+
+                    }
+                });
+
+            },
+
+            xmlfiletable: function(){
+
+                var formData = new FormData();
+                var file = document.getElementById("FileUpload1").files[0];
+                formData.append("FileUpload", file);
+                formData.append("VulXMLMap", viewModel.VulXMLMap());
+               
+                var filename = $('#FileUpload1').val().split('\\').pop().replace(".xml","");
+
+                $.ajax({
+                    type: "POST",
+                    url: '/Admin/LoadDotXmlFile',
+                    data: formData,
+                    dataType: 'json',
+                    contentType: false,
+                    processData: false,
+                    success: function (msg) {
+                        if (msg.OK) {
+                            viewModel.total(0);
+                            $('#FileUpload1').val('');
+
+                            ShowMessageSuccess("XML data successfully loaded.", function (){
+
+                            });
+                            //location.href = "/API/APIConfiguration";
+                        }
+                        else
+                        {
+                            viewModel.total(0);
+                            $('#FileUpload1').val('');
+
+                            ShowMessageDanger("Unsuccessfully load XML file.");
+                        }
+
+                    },
+                    error: function (error) {
+                        viewModel.total(0);
+                        $('#FileUpload1').val('');
+                        successMsg = "File size is too big.";
+                        ShowMessageWarning(successMsg);
+                    }
+                });
+            },
+
+        }
+
+        ko.applyBindings(viewModel);
+    });
+
+    function hapus(VulXMLMap) {
+        viewModel.remove(VulXMLMap);
+    }
+
+    function resetDialog() {
+        viewModel.APIConfig2.VulXMLProviderNm("");
+        viewModel.APIConfig2.VulXMLMap("");
+        viewModel.APIConfig2.VulXMLDesc("");        
+    }
+
+    function cancelDialog() {
+        $('#APIConfigAdd').modal('hide');
+    }
+
+    function resetUpdate() {
+        $('#editForm').trigger("reset");
+        //viewModel.update(viewModel.APIConfig3.VulXMLMap());
+    }
+
+
+    function resetXMLScannerLoad() {
+
+        $('#FileUpload1').val('');
+    }
+
+    function cancelXMLScannerLoad() {
+        $('#XMLScannerLoad').modal('hide');
+       // location.reload();
+    }
+
+    function cancelUpdate() {
+        $('#XMLConfigEdit').modal('hide');
+        $('.modal').modal('hide');
+    }
+
+    function cancelMap() {
+        $('#APIConfigMap').modal('hide');
+    }
+
+    function cancelAPIData(){
+        $('#APIConfigView').modal('hide');
+    }
+
+    function saveUpdate() {
+
+        var value = $("#editForm").validationEngine('validate');
+
+        viewModel.APIConfig3.VulXMLProviderId(htmlEnc($('#VulXMLProviderIdUpd').val()));
+        viewModel.APIConfig3.VulXMLProviderNm(htmlEnc($('#VulXMLProviderNmUpd').val()));
+        viewModel.APIConfig3.VulXMLMap(htmlEnc($('#VulXMLMapUpd').val()));
+        viewModel.APIConfig3.VulXMLDesc(htmlEnc($('#VulXMLDescUpd').val()));
+        
+        if (value == true) {
+            $.ajax({
+                type: "POST",
+                url: server + "/Admin/UpdateXMLProvider",
+                data: JSON.stringify({ obj: ko.mapping.toJS(viewModel.APIConfig3) }),
+                headers: {
+                    'RequestVerificationToken': '@TokenHeaderValue()'
+                },
+                contentType: "application/json; charset=utf-8",
+                error: function (xhr) { },
+                success: function (msg) {
+                    if (msg.OK) {
+                        $('#XMLConfigEdit').modal('hide');
+                        ShowMessageSuccess("Data successfully update.",btnRefresh);
+                    }
+                    else {
+                        $('#XMLConfigEdit').modal('hide');
+                        ShowMessageDanger('Unsuccesfully update.');
+                    }
+                }
+            });
+        } else {
+            $("#editForm").validationEngine();
+        }
+    }
+
+
+    function slcField(e) {
+        if($(e).val() != ''){
+            var i=0;
+            $('.slcDd').each(function() {
+                var currentElement = $(this);
+                var value = currentElement.val();
+
+                if($(e).val() == value){
+                    i = i+1;
+                }
+            });
+
+            if(i>1){
+                ShowMessageDanger('This field already selected.');
+                $(e).val("");
+            }
+        }
+    }
+
+
+
+
+
+
+
+
+</script>
+
+<script>
+
+    $(function () {
+        $("#btnGenerate").click(function () {
+
+            viewModel.total(1);
+            var totalFiles = viewModel.total();
+
+            var value = $("#myForm").validationEngine('validate');
+
+            if (value == true)
+            {
+                if (totalFiles != 0) {
+
+                    ShowDecisionMessage("Are you Sure To Load this File ? ", function () {
+                        viewModel.total(viewModel.total() + 1);
+
+                        if(viewModel.total() == 2){
+                            viewModel.savexmlfile();
+                            //alert('masuk');
+                        }
+
+                    });
+                }
+                else
+                {
+                    ShowMessageWarning('No XML File Chosen');
+
+                }
+            }
+            else{
+                $("#myForm").validationEngine();
+            }
+
+
+        });
+
+
+    });
+
+    $('#FileUpload1').change(function (event) {
+        var tmppath = URL.createObjectURL(event.target.files[0]);
+
+        var input = this;
+        var url = $(this).val();
+        var file = input.files[0];
+        
+
+        if (!isXML(url))
+        {
+            ShowMessageWarning('Please select a XML Format Only.');
+            $(this).val('');
+        }
+        else{
+            viewModel.total(1);
+        }
+
+    });
+
+   
+
+    function isXML(filename) {
+        var ext = getExtension(filename);
+        switch (ext.toLowerCase()) {
+            case 'xml':
+                //etc
+                return true;
+        }
+        return false;
+    }
+
+    function getExtension(filename) {
+        var parts = filename.split('.');
+        return parts[parts.length - 1];
+    }
+
+    function ShowDecisionMessageXML1(message, btnOk) {
+
+        $("#decision_dialogXML1 .modal-body").html("<img src='/images/sureto.png' height='40'>&nbsp;&nbsp;" + message);
+        $("#decision_dialogXML1").modal({});
+        $('#decision_dialogXML1 .btn-cancel').click(function () {
+            $('#decision_dialogXML1').modal('hide');
+        });
+
+        $('#decision_dialogXML1 .btn-submit').click(function () {
+            btnOk();
+        });
+    }
+
+    function ShowDecisionMessageXML2(message, btnOk) {
+        $("#decision_dialogXML2 .modal-body").html("<img src='/images/sureto.png' height='40'>&nbsp;&nbsp;" + message);
+        $("#decision_dialogXML2").modal({});
+        $('#decision_dialogXML2 .btn-cancel').click(function () {
+            $('#decision_dialogXML2').modal('hide');
+        });
+
+        $('#decision_dialogXML2 .btn-submit').click(function () {
+            btnOk();
+        });
+    }
+
+    var $loading = $('#loadingDiv').hide();
+    $(document)
+      .ajaxStart(function () {
+          $loading.show();
+      })
+      .ajaxStop(function () {
+          $loading.hide();
+      });
+    
+    $('#VulXMLMap').keypress(function (e) {
+        var regex = new RegExp("^[a-zA-Z0-9]+$");
+        var str = String.fromCharCode(!e.charCode ? e.which : e.charCode);
+        if (regex.test(str)) {
+            return true;
+        }
+
+        e.preventDefault();
+        return false;
+    }).change(function (e) {
+        var regex = new RegExp("^[a-zA-Z0-9]+$");
+        var str = $('#VulXMLMap').val();
+        if (regex.test(str)) {
+            return true;
+        }
+
+        $('#VulXMLMap').val("");
+        return false;
+    });
+
+</script>
+
+<script>
+    function htmlEnc(s) {
+        return s.replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/'/g, '&#39;')
+          .replace(/"/g, '&#34;');
+    }
+
+
+    function runScript(event) {
+        return event.keyCode != 13;
+    }
+</script>
+
+<script>
+
+    $( "#linkPrev" ).click(function() {
+        var total = viewModel.APIConfigView.XMLData().length;
+        var start = parseInt($("#numStart").val());
+        var size = parseInt($("#numSize").val());
+        start = start - (size * 2);
+        var end = start + size;
+
+        if(start < 0){        
+            return false;
+        }
+        $('#pageList_next2').removeClass('disabled');         
+
+        $("#numStart").val(end);
+
+        var tableRows = $("#tblData tbody tr");
+        tableRows.hide();
+        tableRows.slice(start, end).show();
+
+        if(start <= 0){
+            $('#pageList_previous2').addClass('disabled');         
+        }
+
+        pagetext(start, end, total);
+
+        return false;
+
+    });
+
+    $( "#linkNext" ).click(function() {
+        var total = viewModel.APIConfigView.XMLData().length;
+
+        var start = parseInt($("#numStart").val());
+        var size = parseInt($("#numSize").val());
+        var end = start + size;
+
+        if(parseInt(total) <= start){            
+            return false;
+        }
+
+        $('#pageList_previous2').removeClass('disabled');         
+
+        $("#numStart").val(end);
+
+        var tableRows = $("#tblData tbody tr");
+        tableRows.hide();
+        tableRows.slice(start, end).show();
+
+        if(parseInt(total) <= end){
+            $('#pageList_next2').addClass('disabled');            
+        }
+
+        pagetext(start, end, total);
+
+        return false;
+    });
+
+    function pagetext(start, end, total){
+
+        if(end > total){
+            end = total;
+        }
+        
+        if(total == 0){
+            $('#txtpaginate').text('');
+        }
+        else{
+            $('#txtpaginate').text('Showing ' + (start+1) + ' to ' + end + ' of ' + total + ' entries');
+        }
+    }
+    
+
+    function drawSearchPaginateDT() {
+
+        var searchPaginateDT = "<div id='hidesearch'> Page <input type='text' size='4'  id='paginatesearch' value ='1' onchange='searchPaginateList(this.value)' autocomplete='off'></input></div>";
+
+        $("#drawSearchPaginateDT").html(searchPaginateDT);
+    }
+
+    function searchPaginateList(pageNum) {
+        var lastPage = $('#pageList').DataTable().page.info().pages;
+
+        if(pageNum > lastPage)
+            pageNum = lastPage;
+
+        $('#paginatesearch').val(pageNum);
+
+        var pageIndex = pageNum - 1;
+        $('#pageList').DataTable().page(pageIndex).draw('page')
+
+    }
+    
+    //var table = $('#pageList').DataTable();
+ 
+    //table.on( 'draw', function () {
+    //    $('#paginatesearch').val(table.page()+1);
+    //    setCookie("listingpage21", table.page()+1, 1);
+    //} );
+    
+    $(document).ready(function(){
+        drawSearchPaginateDT();
+        checkListingPageCookie2("listingpage21");
+    });
+</script>

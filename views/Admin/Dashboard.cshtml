@@ -1,0 +1,4222 @@
+﻿@using Newtonsoft.Json;
+@using myvdbsSQL;
+@using MyVDBSDemo.Models;
+@model MyVDBSDemo.Models.AdminDashboard
+
+
+@{
+    ViewBag.Title = "Dashboard";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+
+}
+
+<link href="~/Content/jsmaps.css" rel="stylesheet" />
+<style>
+    span.stars, span.stars > * {
+        display: inline-block;
+        background: url('../images/stars.png') 0 -16px repeat-x;
+        width: 80px;
+        height: 16px;
+    }
+
+        span.stars > * {
+            max-width: 80px;
+            background-position: 0 0;
+        }
+
+    .white-background {
+        background-color: white;
+    }
+
+    div.dataTables_wrapper div.dataTables_paginate {
+        margin: 0;
+        white-space: nowrap;
+        text-align: center;
+    }
+
+    .pointer {
+        cursor: pointer;
+    }
+
+    /* Side Widget right */
+    .right-side-widget.open {
+        margin-right: 0;
+    }
+
+    .right-side-widget {
+        width: 40px;
+        z-index: 9;
+        background-color: #fff;
+        background-color: rgba(255, 255, 255, 0.9);
+        position: fixed;
+        right: 0;
+        top: 42%;
+        text-align: center;
+        margin-right: -45px;
+        /*-webkit-transition: all 0.2s ease-in-out;
+        transition: all 0.2s ease-in-out;*/
+        -webkit-transform: rotate(90deg);
+        -ms-transform: rotate(90deg);
+        transform: rotate(90deg);
+    }
+
+    /* Side Widget left */
+    .left-side-widget.open {
+        margin-left: 0;
+    }
+
+    .left-side-widget {
+        width: 40px;
+        z-index: 9;
+        background-color: #fff;
+        background-color: rgba(255, 255, 255, 0.9);
+        position: fixed;
+        left: 0;
+        top: 50%;
+        text-align: center;
+        margin-left: -45px;
+        /*-webkit-transition: all 0.2s ease-in-out;
+        transition: all 0.2s ease-in-out;*/
+        -webkit-transform: rotate(-90deg);
+        -ms-transform: rotate(-90deg);
+        transform: rotate(-90deg);
+    }
+
+    .btn.btn-blue:hover {
+        background-color: #fb8c00;
+    }
+
+    .btn.btn-blue {
+        background-color: #ca8d0c;
+    }
+
+    .btn.btn-blue {
+        background-color: #ca8d0c;
+        color: #fff;
+        -webkit-transition: all 0.3s ease;
+        transition: all 0.3s ease;
+    }
+
+    a:hover, a:focus, a:active {
+        text-decoration: none;
+    }
+
+    .btn {
+        font-family: 'proxima-nova', sans-serif;
+        font-size: 17px;
+        font-weight: 500;
+        /*padding: 12px 35px;*/
+        border-radius: 0;
+        /*text-transform: uppercase;*/
+        letter-spacing: -0.5px;
+    }
+
+    .table-condensed {
+        font-size: 12px;
+    }
+
+    a {
+        cursor: pointer;
+    }
+
+    .form-check-label {
+        font-weight: normal !important;
+        font-size: 14px !important;
+    }
+    .dropdown-menu {
+        width: 320px !important;
+        /*height: 400px !important;*/
+    }
+</style>
+
+<script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+@*<script src="~/Scripts/canvasjs-Chart.js"></script>*@
+<script src="~/Scripts/Chart.js"></script>
+@*<script src="~/Scripts/Chart.min.js"></script>*@
+<script src="~/Scripts/jspdf.min.js"></script>
+<script src="~/Scripts/Map/jspdf.debug.js" type="text/javascript"></script>
+<script src="~/Scripts/jspdf-autotable.js"></script>
+<script src="~/Scripts/Map/jsmaps-libs.js" type="text/javascript"></script>
+<script src="~/Scripts/Map/jsmaps-panzoom.js"></script>
+<script src="~/Scripts/Map/jsmaps.js" type="text/javascript"></script>
+<script src="~/Scripts/Map/malaysia.js" type="text/javascript"></script>
+<script src="~/Scripts/Map/canvg.js" type="text/javascript"></script>
+<script type="text/javascript">
+    Chart.plugins.register({
+        beforeDraw: function(chartInstance) {
+            var ctx = chartInstance.chart.ctx;
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, chartInstance.chart.width, chartInstance.chart.height);
+        }
+    });
+
+    function toggleDisplayBrandTable()
+    {
+        $('#vendorChartTableContainer').toggle();
+    }
+
+    function appendBrandTableMsg(){
+        var divHtml = '<div>';
+        divHtml += '<h5>Click on Vulnerability Brand to generate detailed list in PDF.</h5>';
+        divHtml += '<h6>List will generate up to 1500 records only, to avoid large application memory consumption.</h6>';
+        divHtml += '</div>';
+
+        $('#vendorChartTableContainer').append(divHtml);
+    }
+
+    window.onload = function () {
+        var top10CurrYearVul_arr = [];
+        var top10Vulnerability_arr = [];
+        var top10For5Years_arr = [];
+        var i;
+        var currentYear= new Date().getFullYear();
+        var fiveyears= new Date().getFullYear() - 5;
+
+        if(User.StatisticTop10ForCurrYear.length > 0){
+            var arrValue = [];
+            var count = 0;
+            for (var i = 0; i < User.StatisticTop10ForCurrYear.length; i++) {
+                arrValue.push(User.StatisticTop10ForCurrYear[i].bilangan);
+                count = count + User.StatisticTop10ForCurrYear[i].bilangan;
+            }
+            var arrLabel = [];
+            var percentage = 0;
+            for (var i = 0; i < User.StatisticTop10ForCurrYear.length; i++) {
+                percentage = (User.StatisticTop10ForCurrYear[i].bilangan / count * 100);
+                arrLabel.push(User.StatisticTop10ForCurrYear[i].VulnerabilityType + " (" +  percentage.toFixed(2) + "%" + ")");
+            }
+
+            $('#chartTableContainer').html(dataToTableTop10CurrYear(arrLabel,arrValue));
+
+            var ctx = document.getElementById("chartContainer").getContext('2d');
+            var myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: arrLabel,
+                    datasets: [{
+                        //label: '# of Votes',
+                        data: arrValue,
+                        backgroundColor: '#fb8c00',
+                        borderColor: '#fb8c00',
+                        fill: false,
+                    }]
+                },
+                options: {
+                    legend: {
+                        display: true,
+                        position: 'bottom'
+                    },
+                    responsive: true,
+                    title: {
+                        display: true,
+                        text: 'Top 10 Global Vulnerabilities for ' + currentYear,
+                        fontSize: 20,
+                    },
+                    scales: {
+                        xAxes: [{
+                            stacked: false,
+                            beginAtZero: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Vulnerability Type ',
+                                fontStyle: "bold"
+                            },
+                            ticks: {
+                                stepSize: 1,
+                                min: 0,
+                                autoSkip: false,
+                                callback: function(t) {
+                                    var maxLabelLength = 20;
+                                    if (t.length > maxLabelLength) return t.substr(0, maxLabelLength) + '...';
+                                    else return t;
+
+
+                                },
+                                fontStyle: "bold"
+                            }
+                        }],
+                        yAxes: [{
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Number of Vulnerabilities',
+                                fontStyle: "bold"
+                            },
+                            ticks: {
+                                fontStyle: "bold"
+                            }
+                        }]
+
+                    },
+                    tooltips: {
+                        callbacks: {
+                            title: function(t, d) {
+                                return d.labels[t[0].index];
+                            }
+                        }
+                    },
+                    onClick: function(c,i) {
+                        e = i[0];
+                        var x_value = this.data.labels[e._index];
+                        var y_value = this.data.datasets[0].data[e._index];
+                        drawVulTypeChart(e._index);
+                    }
+                }
+            });
+        }else{
+            var ctx = document.getElementById("chartContainer").getContext('2d');
+            var myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['-'],
+                    datasets: [{
+                        //label: '# of Votes',
+                        data: [0],
+                        backgroundColor: '#fb8c00',
+                        borderColor: '#fb8c00',
+                        fill: false,
+                    }]
+                },
+                options: {
+                    legend: {
+                        display: true,
+                        position: 'bottom'
+                    },
+                    responsive: true,
+                    title: {
+                        display: true,
+                        text: 'Top 10 Global Vulnerabilities for ' + currentYear,
+                        fontSize: 20,
+                    },
+                    scales: {
+                        xAxes: [{
+                            stacked: false,
+                            beginAtZero: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Vulnerability Type ',
+                                fontStyle: "bold"
+                            },
+                            ticks: {
+                                stepSize: 1,
+                                min: 0,
+                                autoSkip: false,
+                                fontStyle: "bold"
+                            }
+                        }],
+                        yAxes: [{
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Number of Vulnerabilities',
+                                fontStyle: "bold"
+                            },
+                            ticks: {
+                                beginAtZero: true,
+                                autoSkip: false,
+                                fontStyle: "bold"
+                            }
+                        }]
+
+                    }
+                }
+            });
+        }
+
+        if(User.VulnerabilitybyProduct.length > 0){
+            var arrLabel = [];
+            for (var i = 0; i < User.VulnerabilitybyProduct.length; i++) {
+                arrLabel.push(User.VulnerabilitybyProduct[i].ProductType);
+            }
+            var arrValue = [];
+            for (var i = 0; i < User.VulnerabilitybyProduct.length; i++) {
+                arrValue.push(User.VulnerabilitybyProduct[i].bilangan);
+            }
+
+            $('#productChartTableContainer').html(dataToTableCategory(arrLabel,arrValue));
+
+            var ctx = document.getElementById("productChartContainer").getContext('2d');
+            var myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: arrLabel,
+                    datasets: [{
+                        //label: '# of Votes',
+                        data: arrValue,
+                        backgroundColor: '#fb8c00',
+                        borderColor: '#fb8c00',
+                        fill: false,
+                    }]
+                },
+                options: {
+                    legend: {
+                        display: true,
+                        position: 'bottom'
+                    },
+                    responsive: true,
+                    title: {
+                        display: true,
+                        text: 'Global Vulnerability by Categories',
+                        fontSize: 20,
+                    },
+                    scales: {
+                        xAxes: [{
+                            stacked: false,
+                            beginAtZero: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Vulnerability Categories',
+                                fontStyle: "bold"
+                            },
+                            ticks: {
+                                stepSize: 1,
+                                min: 0,
+                                autoSkip: false,
+                                fontStyle: "bold"
+                            }
+                        }],
+                        yAxes: [{
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Number of Vulnerabilities',
+                                fontStyle: "bold"
+                            },
+                            ticks: {
+                                fontStyle: "bold"
+                            }
+                        }]
+
+                    }
+                }
+            });
+        }else{
+            var ctx = document.getElementById("productChartContainer").getContext('2d');
+            var myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['-'],
+                    datasets: [{
+                        //label: '# of Votes',
+                        data: [0],
+                        backgroundColor: '#fb8c00',
+                        borderColor: '#fb8c00',
+                        fill: false,
+                    }]
+                },
+                options: {
+                    legend: {
+                        display: true,
+                        position: 'bottom'
+                    },
+                    responsive: true,
+                    title: {
+                        display: true,
+                        text: 'Vulnerability Product',
+                        fontSize: 20,
+                    },
+                    scales: {
+                        xAxes: [{
+                            stacked: false,
+                            beginAtZero: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Vulnerability Product ',
+                                fontStyle: "bold"
+                            },
+                            ticks: {
+                                stepSize: 1,
+                                min: 0,
+                                autoSkip: false
+                            }
+                        }],
+                        yAxes: [{
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Number of Vulnerabilities',
+                                fontStyle: "bold"
+                            },
+                            ticks: {
+                                beginAtZero: true,
+                                autoSkip: false,
+                                fontStyle: "bold"
+                            }
+                        }]
+
+                    }
+                }
+            });
+        }
+
+        if(User.StatisticTop10For5Years.length > 0){
+            var arrLabel = [];
+            for (var i = 0; i < User.StatisticTop10For5Years.length; i++) {
+                arrLabel.push(User.StatisticTop10For5Years[i].VulnerabilityType);
+            }
+            var arrValue = [];
+            for (var i = 0; i < User.StatisticTop10For5Years.length; i++) {
+                arrValue.push(User.StatisticTop10For5Years[i].bilangan);
+            }
+
+            $('#pieChartTableContainer').html(dataToTableTop10FiveYear(arrLabel,arrValue));
+
+            var ctx = document.getElementById("pieChartContainer").getContext('2d');
+            var myChart = new Chart(ctx, {
+                type: 'horizontalBar',
+                data: {
+                    labels: arrLabel,
+                    datasets: [{
+                        //label: '# of Votes',
+                        data: arrValue,
+                        backgroundColor: '#fb8c00',
+                        borderColor: '#fb8c00',
+                        fill: false,
+                    }]
+                },
+                options: {
+                    legend: {
+                        display: true,
+                        position: 'bottom'
+                    },
+                    responsive: true,
+                    title: {
+                        display: true,
+                        text: 'Top 10 Global Vulnerabilities for ' + fiveyears + '-' + currentYear,
+                        fontSize: 20,
+                    },
+                    scales: {
+                        xAxes: [{
+                            stacked: false,
+                            beginAtZero: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Number of Vulnerabilities',
+                                fontStyle: "bold"
+                            },
+                            ticks: {
+                                fontStyle: "bold"
+                            }
+
+                        }],
+                        yAxes: [{
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Vulnerability Type',
+                                fontStyle: "bold"
+                            },
+                            ticks: {
+                                fontStyle: "bold"
+                            }
+                        }]
+
+                    },
+
+                    plugins: [{
+                        beforeInit: function (chart) {
+                            chart.data.labels.forEach(function (value, index, array) {
+                                var a = [];
+                                a.push(value.slice(0, 40));
+                                var i = 1;
+                                while(value.length > (i * 40)){
+                                    a.push(value.slice(i * 40, (i + 1) * 40));
+                                    i++;
+                                }
+                                array[index] = a;
+                            })
+                        }
+                    }]
+                }
+            });
+        }else{
+            var ctx = document.getElementById("pieChartContainer").getContext('2d');
+            var myChart = new Chart(ctx, {
+                type: 'horizontalBar',
+                data: {
+                    labels: ['-'],
+                    datasets: [{
+                        //label: '# of Votes',
+                        data: [0],
+                        backgroundColor: '#fb8c00',
+                        borderColor: '#fb8c00',
+                        fill: false,
+                    }]
+                },
+                options: {
+                    legend: {
+                        display: true,
+                        position: 'bottom'
+                    },
+                    responsive: true,
+                    title: {
+                        display: true,
+                        text: 'Top 10 Global Vulnerabilities for ' + fiveyears + '-' + currentYear,
+                        fontSize: 20,
+                    },
+                    scales: {
+                        xAxes: [{
+                            stacked: false,
+                            beginAtZero: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Vulnerability Type ',
+                                fontStyle: "bold"
+                            },
+                            ticks: {
+                                stepSize: 1,
+                                min: 0,
+                                autoSkip: false,
+                                fontStyle: "bold"
+                            }
+                        }],
+                        yAxes: [{
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Number of Vulnerabilities',
+                                fontStyle: "bold"
+                            },
+                            ticks: {
+                                fontStyle: "bold"
+                            }
+                        }]
+
+                    }
+                }
+            });
+        }
+
+        if(User.StatisticTop10Vulnerability.length > 0){
+            var arrLabel = [];
+            for (var i = 0; i < User.StatisticTop10Vulnerability.length; i++) {
+                arrLabel.push(User.StatisticTop10Vulnerability[i].VulnerabilityType);
+            }
+            var arrValue = [];
+            for (var i = 0; i < User.StatisticTop10Vulnerability.length; i++) {
+                arrValue.push(User.StatisticTop10Vulnerability[i].bilangan);
+            }
+
+            $('#LineChartTableContainer').html(dataToTableTop10ToDate(arrLabel,arrValue));
+            var ctx = document.getElementById("LineChartContainer").getContext('2d');
+            var myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: arrLabel,
+                    datasets: [{
+                        //label: '# of Votes',
+                        data: arrValue,
+                        backgroundColor: '#fb8c00',
+                        borderColor: '#fb8c00',
+                        fill: false,
+                    }]
+                },
+                options: {
+                    legend: {
+                        display: true,
+                        position: 'bottom'
+                    },
+                    responsive: true,
+                    title: {
+                        display: true,
+                        text: 'Top 10 Global Vulnerabilities To Date',
+                        fontSize: 20,
+                    },
+                    scales: {
+                        xAxes: [{
+                            stacked: false,
+                            beginAtZero: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Vulnerability Type ',
+                                fontStyle: "bold"
+                            },
+                            ticks: {
+                                stepSize: 1,
+                                min: 0,
+                                autoSkip: false,
+                                fontStyle: "bold"
+                            }
+                        }],
+                        yAxes: [{
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Number of Vulnerabilities',
+                                fontStyle: "bold"
+                            },
+                            ticks: {
+                                fontStyle: "bold"
+                            }
+                        }]
+
+                    }
+                }
+            });
+        }else{
+            var ctx = document.getElementById("LineChartContainer").getContext('2d');
+            var myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['-'],
+                    datasets: [{
+                        //label: '# of Votes',
+                        data: [0],
+                        backgroundColor: '#fb8c00',
+                        borderColor: '#fb8c00',
+                        fill: false,
+                    }]
+                },
+                options: {
+                    legend: {
+                        display: true,
+                        position: 'bottom'
+                    },
+                    responsive: true,
+                    title: {
+                        display: true,
+                        text: 'Top 10 Global Vulnerabilities To Date',
+                        fontSize: 20,
+                    },
+                    scales: {
+                        xAxes: [{
+                            stacked: false,
+                            beginAtZero: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Vulnerability Type ',
+                                fontStyle: "bold"
+                            },
+                            ticks: {
+                                stepSize: 1,
+                                min: 0,
+                                autoSkip: false,
+                                fontStyle: "bold"
+                            }
+                        }],
+                        yAxes: [{
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Number of Vulnerabilities',
+                                fontStyle: "bold"
+                            },
+                            ticks: {
+                                fontStyle: "bold"
+                            }
+                        }]
+
+                    }
+                }
+            });
+        }
+
+        if(User.VulnerabilitybyVendor.length > 0){
+            var arrLabel = [];
+            for (var i = 0; i < User.VulnerabilitybyVendor.length; i++) {
+                arrLabel.push(User.VulnerabilitybyVendor[i].ProductVendor);
+            }
+            var arrValue = [];
+            for (var i = 0; i < User.VulnerabilitybyVendor.length; i++) {
+                arrValue.push(User.VulnerabilitybyVendor[i].bilangan);
+            }
+
+            $('#vendorChartTableContainer').html(dataToTable(arrLabel,arrValue));
+            appendBrandTableMsg();
+
+            var ctx = document.getElementById("VendorChartContainer").getContext('2d');
+            var myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: arrLabel,
+                    datasets: [{
+                        //label: '# of Votes',
+                        data: arrValue,
+                        backgroundColor: '#fb8c00bd',
+                        borderColor: '#fb8c00',
+                        fill: true,
+                        pointBackgroundColor: '#fb8c00'
+                    }]
+                },
+                options: {
+                    legend: {
+                        display: true,
+                        position: 'bottom'
+                    },
+                    responsive: true,
+                    title: {
+                        display: true,
+                        text: 'Global Vulnerability By Brand',
+                        fontSize: 20,
+                    },
+                    scales: {
+                        xAxes: [{
+                            stacked: false,
+                            beginAtZero: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Vulnerability Brand ',
+                                fontStyle: "bold"
+                            },
+                            ticks: {
+                                stepSize: 1,
+                                min: 0,
+                                autoSkip: false,
+                                fontStyle: "bold"
+                            }
+                        }],
+                        yAxes: [{
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Number of Vulnerabilities',
+                                fontStyle: "bold"
+                            },
+                            ticks: {
+                                fontStyle: "bold"
+                            }
+                        }]
+
+                    },
+                    onClick: function(c,i) {
+
+                        toggleDisplayBrandTable();
+                    }
+                },
+            });
+        }else{
+            var ctx = document.getElementById("VendorChartContainer").getContext('2d');
+            var myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['-'],
+                    datasets: [{
+                        //label: '# of Votes',
+                        data: [0],
+                        backgroundColor: '#fb8c00',
+                        borderColor: '#fb8c00',
+                        fill: false,
+                    }]
+                },
+                options: {
+                    legend: {
+                        display: true,
+                        position: 'bottom'
+                    },
+                    responsive: true,
+                    title: {
+                        display: true,
+                        text: 'Global Vulnerability By Vendor',
+                        fontSize: 20,
+                    },
+                    scales: {
+                        xAxes: [{
+                            stacked: false,
+                            beginAtZero: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Vulnerability Type ',
+                                fontStyle: "bold"
+                            },
+                            ticks: {
+                                stepSize: 1,
+                                min: 0,
+                                autoSkip: false,
+                                fontStyle: "bold"
+                            }
+                        }],
+                        yAxes: [{
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Number of Vulnerabilities',
+                                fontStyle: "bold"
+                            },
+                            ticks: {
+                                fontStyle: "bold"
+                            }
+                        }]
+
+                    }
+                }
+            });
+        }
+
+        if(User.VulnerabilityByState.length > 0){
+            for (var i = 0; i < User.VulnerabilityByState.length; i++) {
+                window.JSMaps.maps.malaysia.paths[i].abbreviation = "" + User.VulnerabilityByState[i].countStateCase;
+                window.JSMaps.maps.malaysia.paths[i].name = generateHoverTooltip(i);
+            }
+
+            // for small states, add extra polygon and hover
+            for (var j = 13; j < User.VulnerabilityByState.length; j++) {
+                window.JSMaps.maps.malaysia.paths[j+3].abbreviation = window.JSMaps.maps.malaysia.paths[j+3].abbreviation + "(" + User.VulnerabilityByState[j].countStateCase + ")";
+                window.JSMaps.maps.malaysia.paths[j+3].name = window.JSMaps.maps.malaysia.paths[j].name;
+            }
+
+            //perlis & penang
+            window.JSMaps.maps.malaysia.paths[22].abbreviation = window.JSMaps.maps.malaysia.paths[22].abbreviation + "(" + User.VulnerabilityByState[6].countStateCase + ")";
+            window.JSMaps.maps.malaysia.paths[22].name = window.JSMaps.maps.malaysia.paths[6].name;
+            window.JSMaps.maps.malaysia.paths[23].abbreviation = window.JSMaps.maps.malaysia.paths[23].abbreviation + "(" + User.VulnerabilityByState[8].countStateCase + ")";
+            window.JSMaps.maps.malaysia.paths[23].name = window.JSMaps.maps.malaysia.paths[8].name;
+        }
+
+        if(User.VulnerabilityTop3Severity.length > 0){
+            for (var i = 0; i < window.JSMaps.maps.malaysia.paths.length; i++) {
+                //critical
+                if(window.JSMaps.maps.malaysia.paths[i].abbreviation == User.VulnerabilityTop3Severity[0].countStateCase)
+                {
+                    window.JSMaps.maps.malaysia.paths[i].color = "#e3291b";
+                    window.JSMaps.maps.malaysia.paths[i].selectedColor = "#e3291b";
+                }
+                    //high
+                else if(window.JSMaps.maps.malaysia.paths[i].abbreviation == User.VulnerabilityTop3Severity[1].countStateCase)
+                {
+                    window.JSMaps.maps.malaysia.paths[i].color = "#e8ac15";
+                    window.JSMaps.maps.malaysia.paths[i].selectedColor = "#e8ac15";
+                }
+                    //medium
+                else if(window.JSMaps.maps.malaysia.paths[i].abbreviation == User.VulnerabilityTop3Severity[2].countStateCase)
+                {
+                    window.JSMaps.maps.malaysia.paths[i].color = "#f2f230";
+                    window.JSMaps.maps.malaysia.paths[i].selectedColor = "#f2f230";
+                }
+                    //low
+                else
+                {
+                    window.JSMaps.maps.malaysia.paths[i].color = "#13d453";
+                    window.JSMaps.maps.malaysia.paths[i].selectedColor = "#13d453";
+                }
+                //none
+                if (window.JSMaps.maps.malaysia.paths[i].abbreviation == "0")
+                {
+                    window.JSMaps.maps.malaysia.paths[i].color = "#b4b0b0";
+                    window.JSMaps.maps.malaysia.paths[i].selectedColor = "#b4b0b0";
+                }
+
+            }
+
+            // for small states, add extra color condition
+            for (var j = 13; j < User.VulnerabilityByState.length; j++) {
+                window.JSMaps.maps.malaysia.paths[j+3].color = window.JSMaps.maps.malaysia.paths[j].color;
+                window.JSMaps.maps.malaysia.paths[j+3].selectedColor = window.JSMaps.maps.malaysia.paths[j].selectedColor;
+            }
+            
+            //perlis & penang
+            window.JSMaps.maps.malaysia.paths[22].color = window.JSMaps.maps.malaysia.paths[6].color;
+            window.JSMaps.maps.malaysia.paths[22].selectedColor = window.JSMaps.maps.malaysia.paths[6].selectedColor;
+            window.JSMaps.maps.malaysia.paths[23].color = window.JSMaps.maps.malaysia.paths[8].color;
+            window.JSMaps.maps.malaysia.paths[23].selectedColor = window.JSMaps.maps.malaysia.paths[8].selectedColor;
+        }
+
+        $('#malaysia-map').JSMaps({
+            map: 'malaysia'
+        });
+        FirstResize();
+        ResizeMap();
+    };
+
+    function resetMap(year, vulnerabilityByState, top3Vulnerability){
+        var textYear = "Year: " + year + " ";
+        $('#labelYear').text(textYear);
+        
+        if(vulnerabilityByState.length > 0){
+            for (var i = 0; i < vulnerabilityByState.length; i++) {
+                window.JSMaps.maps.malaysia.paths[i].abbreviation = "" + vulnerabilityByState[i].countStateCase;
+                window.JSMaps.maps.malaysia.paths[i].name = generateHoverTooltip2(i, vulnerabilityByState, top3Vulnerability);
+            }
+
+            // for small states, add extra polygon and hover
+            for (var j = 13; j < vulnerabilityByState.length; j++) {
+                window.JSMaps.maps.malaysia.paths[j+3].abbreviation = removeBracketText(window.JSMaps.maps.malaysia.paths[j+3].abbreviation);
+                window.JSMaps.maps.malaysia.paths[j+3].abbreviation = window.JSMaps.maps.malaysia.paths[j+3].abbreviation + "(" + vulnerabilityByState[j].countStateCase + ")";
+                window.JSMaps.maps.malaysia.paths[j+3].name = window.JSMaps.maps.malaysia.paths[j].name;
+            }
+
+            //perlis & penang
+            window.JSMaps.maps.malaysia.paths[22].abbreviation = removeBracketText(window.JSMaps.maps.malaysia.paths[22].abbreviation) + "(" + vulnerabilityByState[6].countStateCase + ")";
+            window.JSMaps.maps.malaysia.paths[22].name = window.JSMaps.maps.malaysia.paths[6].name;
+            window.JSMaps.maps.malaysia.paths[23].abbreviation = removeBracketText(window.JSMaps.maps.malaysia.paths[23].abbreviation) + "(" + vulnerabilityByState[8].countStateCase + ")";
+            window.JSMaps.maps.malaysia.paths[23].name = window.JSMaps.maps.malaysia.paths[8].name;
+        }
+
+        if(top3Vulnerability.length > 0){
+            for (var i = 0; i < window.JSMaps.maps.malaysia.paths.length; i++) {
+                //critical
+                if(window.JSMaps.maps.malaysia.paths[i].abbreviation == top3Vulnerability[0].countStateCase)
+                {
+                    window.JSMaps.maps.malaysia.paths[i].color = "#e3291b";
+                    window.JSMaps.maps.malaysia.paths[i].selectedColor = "#e3291b";
+                }
+                    //high
+                else if(window.JSMaps.maps.malaysia.paths[i].abbreviation == top3Vulnerability[1].countStateCase)
+                {
+                    window.JSMaps.maps.malaysia.paths[i].color = "#e8ac15";
+                    window.JSMaps.maps.malaysia.paths[i].selectedColor = "#e8ac15";
+                }
+                    //medium
+                else if(window.JSMaps.maps.malaysia.paths[i].abbreviation == top3Vulnerability[2].countStateCase)
+                {
+                    window.JSMaps.maps.malaysia.paths[i].color = "#f2f230";
+                    window.JSMaps.maps.malaysia.paths[i].selectedColor = "#f2f230";
+                }
+                    //low
+                else
+                {
+                    window.JSMaps.maps.malaysia.paths[i].color = "#13d453";
+                    window.JSMaps.maps.malaysia.paths[i].selectedColor = "#13d453";
+                }
+                //none
+                if (window.JSMaps.maps.malaysia.paths[i].abbreviation == "0")
+                {
+                    window.JSMaps.maps.malaysia.paths[i].color = "#b4b0b0";
+                    window.JSMaps.maps.malaysia.paths[i].selectedColor = "#b4b0b0";
+                }
+
+            }
+
+            // for small states, add extra color condition
+            for (var j = 13; j < vulnerabilityByState.length; j++) {
+                window.JSMaps.maps.malaysia.paths[j+3].color = window.JSMaps.maps.malaysia.paths[j].color;
+                window.JSMaps.maps.malaysia.paths[j+3].selectedColor = window.JSMaps.maps.malaysia.paths[j].selectedColor;
+            }
+
+            //perlis & penang
+            window.JSMaps.maps.malaysia.paths[22].color = window.JSMaps.maps.malaysia.paths[6].color;
+            window.JSMaps.maps.malaysia.paths[22].selectedColor = window.JSMaps.maps.malaysia.paths[6].selectedColor;
+            window.JSMaps.maps.malaysia.paths[23].color = window.JSMaps.maps.malaysia.paths[8].color;
+            window.JSMaps.maps.malaysia.paths[23].selectedColor = window.JSMaps.maps.malaysia.paths[8].selectedColor;
+        }
+
+        $('#malaysia-map').JSMaps({
+            map: 'malaysia'
+        });
+        FirstResize();
+        ResizeMap();
+    }
+
+    function generateHoverTooltip(index){
+        var stateName = window.JSMaps.maps.malaysia.paths[index].name;
+
+        var hoverHtml = stateName;
+        if(User.VulnerabilityByState[index].countStateCase > 0)
+        {
+            hoverHtml += " (" +User.VulnerabilityByState[index].countStateCase+ ")<br/>";
+            hoverHtml += "<table border='1px'><tr><th style='padding:3px'>Impact Level</th><th style='padding:3px'>Vulnerabilities Number</th></tr>";
+
+            if (User.VulnerabilityByState[index].countInfo >= 0)
+                hoverHtml += "<tr><td align='center' style='padding:3px'>Information</td><td align='center' style='padding:3px'>" +User.VulnerabilityByState[index].countInfo+ "</td></tr>";
+            if (User.VulnerabilityByState[index].countLow >= 0)
+                hoverHtml += "<tr><td align='center' style='padding:3px'>Low</td><td align='center' style='padding:3px'>" +User.VulnerabilityByState[index].countLow+ "</td></tr>";
+            if (User.VulnerabilityByState[index].countMed >= 0)
+                hoverHtml += "<tr><td align='center' style='padding:3px'>Medium</td><td align='center' style='padding:3px'>" +User.VulnerabilityByState[index].countMed+ "</td></tr>";
+            if (User.VulnerabilityByState[index].countHigh >= 0)
+                hoverHtml += "<tr><td align='center' style='padding:3px'>High</td><td align='center' style='padding:3px'>" +User.VulnerabilityByState[index].countHigh+ "</td></tr>";
+            if (User.VulnerabilityByState[index].countCrit >= 0)
+                hoverHtml += "<tr><td align='center' style='padding:3px'>Critical</td><td align='center' style='padding:3px'>" +User.VulnerabilityByState[index].countCrit+ "</td></tr>";
+            if (User.VulnerabilityByState[index].countUndef >= 0)
+                hoverHtml += "<tr><td align='center' style='padding:3px'>Not Defined</td><td align='center' style='padding:3px'>" +User.VulnerabilityByState[index].countUndef+ "</td></tr>";
+
+            hoverHtml += "</table>";
+        }
+
+        return hoverHtml;
+    }
+
+    function generateHoverTooltip2(index, vulnerabilityByState, top3Vulnerability){
+        var stateName = removeBracketText(window.JSMaps.maps.malaysia.paths[index].name);
+
+        var hoverHtml = stateName;
+        if(vulnerabilityByState[index].countStateCase > 0)
+        {
+            hoverHtml += " (" +vulnerabilityByState[index].countStateCase+ ")<br/>";
+            hoverHtml += "<table border='1px'><tr><th style='padding:3px'>Impact Level</th><th style='padding:3px'>Vulnerabilities Number</th></tr>";
+
+            if (vulnerabilityByState[index].countInfo >= 0)
+                hoverHtml += "<tr><td align='center' style='padding:3px'>Information</td><td align='center' style='padding:3px'>" +vulnerabilityByState[index].countInfo+ "</td></tr>";
+            if (vulnerabilityByState[index].countLow >= 0)
+                hoverHtml += "<tr><td align='center' style='padding:3px'>Low</td><td align='center' style='padding:3px'>" +vulnerabilityByState[index].countLow+ "</td></tr>";
+            if (vulnerabilityByState[index].countMed >= 0)
+                hoverHtml += "<tr><td align='center' style='padding:3px'>Medium</td><td align='center' style='padding:3px'>" +vulnerabilityByState[index].countMed+ "</td></tr>";
+            if (vulnerabilityByState[index].countHigh >= 0)
+                hoverHtml += "<tr><td align='center' style='padding:3px'>High</td><td align='center' style='padding:3px'>" +vulnerabilityByState[index].countHigh+ "</td></tr>";
+            if (vulnerabilityByState[index].countCrit >= 0)
+                hoverHtml += "<tr><td align='center' style='padding:3px'>Critical</td><td align='center' style='padding:3px'>" +vulnerabilityByState[index].countCrit+ "</td></tr>";
+            if (vulnerabilityByState[index].countUndef >= 0)
+                hoverHtml += "<tr><td align='center' style='padding:3px'>Not Defined</td><td align='center' style='padding:3px'>" +vulnerabilityByState[index].countUndef+ "</td></tr>";
+
+            hoverHtml += "</table>";
+        }
+
+        return hoverHtml;
+    }
+
+    function removeBracketText(text){
+        var result = text.split('(')[0];
+        return result;
+    }
+</script>
+
+
+<div class="bg" style="margin-top:115px;">
+    @*<div class="col-lg-12">*@
+    @*<div class="panel panel-default" style="background-color: rgba(0, 0, 0, 0.3); border: 1px solid #fff;align-content: center; text-align: center">*@
+    @*<br><img src="~/images/logo01_s.png" height="90"><br><br>*@
+
+    @*<div style="font-family: 'Segoe UI', Arial, sans-serif; color:gold">
+            <strong>Home</strong>
+        </div><hr>*@
+
+
+    <form>
+        <div class="right-side-widget open" style="display:block;">
+            <div class="inner">
+                <a class="btn btn-blue" id="pullrightView" onclick="pullright();">Vulnerability Feeds</a>
+            </div>
+        </div>
+        <div class="left-side-widget open" style="display:block;">
+            <div class="inner">
+                <a class="btn btn-blue" id="pullleftView" onclick="pullleft();">Wall of Fame</a>
+            </div>
+        </div>
+        <div class="row">
+            <div id="leftframe" class="col-lg-2" style="display:none;">
+                <div class="panel panel-default">
+                    <div class="panel-heading col-md-10">
+                        <i class="fa fa-trophy"></i> Wall of Fame
+
+                    </div>
+                    <div class="panel-heading col-md-2">
+                        <span class="pull-left">
+                            <i class="fas fa-eye-slash pointer" style="font-size: 1em;" data-toggle="tooltip" title="Hide Wall of Fame" onclick="pullleft();"></i>
+                        </span>
+                    </div>
+                    <!-- /.panel-heading -->
+                    <div class="panel-body">
+                        @{
+                            var counts = 0;
+                            foreach (var item in Model.WallOfFame)
+
+                            {
+                                counts = counts + 1;
+                                <div>
+                                    <div class="card card-stats">
+                                        <div class="card-header card-header-warning card-header-icon">
+                                            <div class="card-icon">
+                                                <i class="material-icons ">
+                                                    @*@if (File.Exists(Server.MapPath(@item.CrossPath)))*@
+                                                    @if (@item.CompPath != null && @item.CompPath != "")
+                                                    {
+                                                        @*<div><i class="fas fa-user fa-3x"></i></div>*@
+                                                        <img id="previewImg" src="@item.CompPath">
+                                                    }
+
+                                                    else
+                                                    {
+                                                        <img id="previewImg" src="~/images/user_grey.png">
+
+
+                                                    }
+                                                </i>
+                                            </div>
+                                            <p class="card-category">Reports</p>
+                                            <h3 class="card-title">@item.CountRpt</h3>
+                                            <span class="stars">@item.StarNo</span>
+                                        </div>
+                                        <div class="card-footer">
+                                            <div class="stats">
+                                                <span class="glyphicon glyphicon-user" aria-hidden="true"></span>
+                                                <span>@item.CompFullNm</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        @*@{
+                                var count = 0;
+                                foreach (var item in Model.WallOfFame)
+
+                                {
+                                    count = count + 1;
+
+                                    <div class="col-md-12" style="margin-bottom:5px;padding-top:5px;padding-bottom:5px;background-color:#4ed3d8;">
+                                        <table>
+                                            <tr>
+                                                <td class="col-sm-1">
+                                                    <span class="thumbnail-wrapper d60  circular inline m-t-5">
+
+                                                        @if (item.CrossPath == null)
+                                                        {
+                                                            <img id="previewImg" src="~/images/user.png">
+                                                        }
+
+                                                        else
+                                                        {
+
+                                                            <img id="previewImg" src="@item.CrossPath">
+                                                        }
+                                                    </span>
+                                                </td>
+                                                <td class="col-sm-10"><span>@item.CompFullNm</span></td>
+                                                <td class="col-sm-1"><span class="stars">@item.StarNo</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="col-sm-1 text-centers">
+                                                    @item.CountRpt report(s)
+                                                </td>
+                                                <td class="col-sm-11" colspan="3"></td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                }
+                            }*@
+                    </div>
+                </div>
+            </div>
+            <div id="centerframe" class="col-lg-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading col-md-12">
+                        <i class="fa fa-bar-chart-o"></i> Statistic
+                    </div>
+                    @*<div class="panel-heading col-md-6">
+                            <span class="pull-right">
+                                <i class="fas fa-caret-left pointer" style="font-size: 1.25em;" data-toggle="tooltip" title="Show/Hide Wall of Fame" onclick="pullleft();"></i>
+                                <i class="fas fa-caret-right pointer" style="font-size: 1.25em;" data-toggle="tooltip" title="Show/Hide Vulnerability Feeds" onclick="pullright();"></i>
+                            </span>
+                        </div>*@
+                    <div class="pull-right">
+                        <a class="btn btn-sm btn-primary" id="downloadMapContainerImg" download="top10vulnerabilitiescurrentyear.png">
+                            <span class="glyphicon glyphicon-import" style="color:white;"></span><font color="white">Download as PNG</font>
+                        </a>
+                    </div>
+                    <div class="pull-right">
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <span class="glyphicon glyphicon-import" style="color:white;"></span><font color="white">Download as PDF</font>
+                            </button>
+                            <ul class="dropdown-menu list-group row" aria-labelledby="dropdownMenuButton">
+                                <li class="list-group-item col-xs-12"><a class="dropdown-item" id="downloadMapAllStates">All States</a></li>
+                                @{
+                                    //var countState = 0;
+                                    foreach (var item in Model.States)
+                                    {
+                                        <li class="list-group-item col-xs-6">
+                                            <div class="form-check">
+                                                <label class="form-check-label dropdown-item checkbox-inline" for="@item.StateCd">
+                                                <input type="checkbox" class="form-check-input dropdown-item" id="@item.StateCd" name="stt_@item.StateCd" value="@item.StateCd">@item.StateNm
+                                                </label>
+                                            </div>
+                                        </li>
+                                    }
+                                }
+                                <li class="list-group-item col-xs-12"><a class="dropdown-item" id="downloadMapSelectedStates">Download</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="pull-right">
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-primary dropdown-toggle" type="button" id="dropdownYearButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <span id="labelYear"></span><span class="glyphicon glyphicon-chevron-down" style="color:white;"></span>
+                            </button>
+                            <ul class="dropdown-menu list-group row" aria-labelledby="dropdownYearButton">
+                                @{
+                                    var years = Model.VulnerabilityByState[0];
+                                    for (int year = years.minYear; year <= years.maxYear; year++)
+                                    {
+                                        <li class="list-group-item col-xs-6">
+                                            <a id="mapyr_@year" name="mapyr_@year" value="@year" onclick="yearClicked(@year)">
+                                                <font color="black">@year</font>
+                                            </a>
+                                        </li>
+                                    }
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="panel-body" style="margin-top:75px;padding: 5px;">
+                        <div id="mapMyCERT" class="white-background">
+                            <div style="text-align:center;padding:10px;"><h3>Malaysian Vulnerabilities</h3></div>
+                            <div id="malaysia-map" preserveAspectRatio="xMinYMin meet" class="jsmaps-wrapper" style="margin-top:30px"></div>
+                            <div style="text-align:center; padding-top:10px; padding-bottom:10px;"><h4>Click on each states to view detailed vulnerabilities listing.</h4></div>
+                            <div id="vulStatesTableContainer" class="white-background"></div>
+                        </div>
+                    </div>
+                    <div class="panel-body" id="divTop10Chart">
+                        <div class="pull-right">
+                            <a class="btn btn-sm btn-primary" id="downloadChartContainer">
+                                <span class="glyphicon glyphicon-import" style="color:white;"></span><font color="white">Download as PDF</font>
+                            </a>
+                            <a class="btn btn-sm btn-primary" id="downloadChartContainerImg" download="top10vulnerabilitiescurrentyear.png">
+                                <span class="glyphicon glyphicon-import" style="color:white;"></span><font color="white">Download as PNG</font>
+                            </a>
+                        </div>
+                        <div id="pdfChartContainer" style="height: 400px">
+                            <canvas id="chartContainer" class="white-background" style="width: 100%; height: 400px"></canvas>
+                            <br />
+                            <div id="chartTableContainer" class="white-background" style="text-align:center;padding:10px"></div>
+                            <div id="vulTop10CurrYearTableContainer" class="white-background"></div>
+                        </div>
+                    </div>
+                    <div class="panel-body" style="margin-top:20px">
+                        <div class="pull-right">
+                            <a class="btn btn-sm btn-primary" id="downloadVendorChartContainer">
+                                <span class="glyphicon glyphicon-import" style="color:white;"></span><font color="white">Download as PDF</font>
+                            </a>
+                            <a class="btn btn-sm btn-primary" id="downloadVendorChartContainerImg" download="vulnerabilitybybrand.png">
+                                <span class="glyphicon glyphicon-import" style="color:white;"></span><font color="white">Download as PNG</font>
+                            </a>
+                            <a class="btn btn-sm btn-primary" id="downloadVulTypeChartContainer">
+                                <span class="glyphicon glyphicon-import" style="color:white;"></span><font color="white">Download as PDF</font>
+                            </a>
+                            <a class="btn btn-sm btn-primary" id="downloadVulTypeChartContainerImg" download="top10vulnerabilitiescurrentyeardetailed.png">
+                                <span class="glyphicon glyphicon-import" style="color:white;"></span><font color="white">Download as PNG</font>
+                            </a>
+                        </div>
+                        <div class="panel-body" id="divVulTypeChart" style="margin-top:30px">
+                            <div id="pdfVulTypeChartContainer" style="position: relative; height: 400px">
+                                <canvas id="vulTypeChartContainer" class="white-background"></canvas>
+                            </div>
+                        </div>
+                        <div id="pdfVendorChartContainer">
+                            <canvas id="VendorChartContainer" class="white-background" style="width: 100%; height: 400px"></canvas>
+                            <br />
+                            <div id="vendorChartTableContainer" class="white-background" style="text-align:center;padding:10px"></div>
+                            <div id="vulBrandTableContainer" class="white-background"></div>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="pull-right">
+                            <a class="btn btn-sm btn-primary" id="downloadproductChartContainer">
+                                <span class="glyphicon glyphicon-import" style="color:white;"></span><font color="white">Download as PDF</font>
+                            </a>
+                            <a class="btn btn-sm btn-primary" id="downloadproductChartContainerImg" download="vulnerabilitybycategory.png">
+                                <span class="glyphicon glyphicon-import" style="color:white;"></span><font color="white">Download as PNG</font>
+                            </a>
+                        </div>
+                        <div id="pdfproductChartContainer">
+                            <canvas id="productChartContainer" class="white-background" style="width: 100%; height: 400px"></canvas>
+                            <br />
+                            <div id="productChartTableContainer" class="white-background" style="text-align:center;padding:10px"></div>
+                            <div id="vulCategoryTableContainer" class="white-background"></div>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="pull-right">
+                            <a class="btn btn-sm btn-primary" id="downloadpieChartContainer">
+                                <span class="glyphicon glyphicon-import" style="color:white;"></span><font color="white">Download as PDF</font>
+                            </a>
+                            <a class="btn btn-sm btn-primary" id="downloadpieChartContainerImg" download="top10vulnerabilities5years.png">
+                                <span class="glyphicon glyphicon-import" style="color:white;"></span><font color="white">Download as PNG</font>
+                            </a>
+                        </div>
+                        <div id="pdfpieChartContainer">
+                            <canvas id="pieChartContainer" class="white-background" style="width: 100%; height: 400px"></canvas>
+                            <br />
+                            <div id="pieChartTableContainer" class="white-background" style="text-align:center;padding:10px"></div>
+                            <div id="vulTop10FiveYearTableContainer" class="white-background"></div>
+                        </div>
+                    </div>
+
+                    <div class="panel-body">
+                        <div class="pull-right">
+                            <a class="btn btn-sm btn-primary" id="downloadLineChartContainer">
+                                <span class="glyphicon glyphicon-import" style="color:white;"></span><font color="white">Download as PDF</font>
+                            </a>
+                            <a class="btn btn-sm btn-primary" id="downloadLineChartContainerImg" download="top10vulnerabilitiestodate.png">
+                                <span class="glyphicon glyphicon-import" style="color:white;"></span><font color="white">Download as PNG</font>
+                            </a>
+                        </div>
+                        <div id="pdfLineChartContainer">
+                            <canvas id="LineChartContainer" class="white-background" style="width: 100%; height: 400px"></canvas>
+                            <br />
+                            <div id="LineChartTableContainer" class="white-background" style="text-align:center;padding:10px"></div>
+                            <div id="vulTop10ToDateTableContainer" class="white-background"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="rightframe" class="col-lg-4" style="display:none;">
+                <div class="panel panel-default">
+                    <div class="panel-heading col-md-6">
+                        <i class="fas fa-rss-square"></i> Vulnerability Feeds
+                    </div>
+                    <div class="panel-heading col-md-6">
+                        <span class="pull-right">
+                            <i class="fas fa-eye-slash pointer" style="font-size: 1em;" data-toggle="tooltip" title="Hide Vulnerability Feeds" onclick="pullright();"></i>
+                        </span>
+                    </div>
+                    <div class="panel-body white-background">
+                        <div style='font-family:"Roboto","Open Sans",sans-serif;'>
+                            <div class="col-lg-12" style="padding:0px; margin-bottom:15px;">
+                                <div class="col-lg-5" style="padding:0px;">
+                                    <div class="col-lg-2" style="padding:0px;"><label>Year:</label></div>
+                                    <div class="col-lg-10">
+                                        <select id="year" class="validate[required] form-control" data-bind="options: year, optionsText: 'tahun', optionsValue: 'tahun', optionsCaption: 'Choose', valueUpdate: 'afterkeydown'"></select>
+                                    </div>
+
+                                </div>
+                                <div class="col-lg-7" style="padding:0px;">
+                                    <div class="col-lg-2" style="padding:0px;">
+                                        <label>Search:</label>
+
+                                    </div>
+                                    <div class="col-lg-10">
+                                        <input type="text" class="form-control" id="search_name" />
+
+                                    </div>
+                                </div>
+                            </div>
+                            <table id="RSSFeed">
+                                <thead style="background-color:moccasin; display:none">
+                                    <tr>
+                                        <th class="col-sm-1 text-center">@MyVDBSDemo.Resources.LangText.No</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="nodata">
+                                    <tr class="odd">
+                                        <td valign="top" class="dataTables_empty text-center"><center>No matching records found</center></td>
+                                    </tr>
+                                </tbody>
+                                <tbody data-bind="foreach: RssFeed">
+                                    @*@{
+                                            var count = 0;
+                                            foreach (var item in Model.VulnerabilityFeed)
+
+                                            {
+                                                count = count + 1;
+                                                <tr>
+                                                    <td class="col-sm-12">
+                                                        <p style="color:#1d55a9; font-size: 14px;">@item.SourceNm</p>
+                                                        <h3>@item.Title</h3>
+                                                        <p style="text-align: justify;">@Html.Raw(@item.ShortDesc)</p>
+                                                        <div class="col-sm-12">
+                                                            <div class="col-xs-12 col-md-6 col-sm-6 col-md-6 col-lg-6">
+                                                                @if (item.Author != null)
+                                                                {
+                                                                    <i class="glyphicon glyphicon-user"></i> @item.Author
+                                                                }
+                                                            </div>
+                                                            <div class="col-xs-12 col-md-6 col-sm-6 col-md-6 col-lg-6"><i class="glyphicon glyphicon-time"></i> @item.PublishDate</div>
+                                                        </div>
+                                                        <div class="col-sm-12" style="text-align: right;">
+                                                            <a href='@item.UrlLink' style="color:#3E7CFF;" target="_blank" rel="noopener noreferrer">Read More...</a>
+                                                        </div>
+                                                        <hr />
+                                                    </td>
+                                                </tr>
+                                            }
+                                        }*@
+                                    <tr>
+                                        <td class="col-sm-12">
+                                            <p style="color:#1d55a9; font-size: 14px;" data-bind="text: SourceNm"></p>
+                                            <h3 data-bind="text: Title"></h3>
+                                            <p style="text-align: justify;" data-bind="text: ShortDesc"></p>
+                                            <div class="col-sm-12">
+                                                <div class="col-xs-12 col-md-6 col-sm-6 col-md-6 col-lg-6" style="display:none">
+                                                    <i class="glyphicon glyphicon-user"></i> <span data-bind="text: Author"></span>
+                                                </div>
+                                                <div class="col-xs-12 col-md-12 col-sm-12 col-md-12 col-lg-12" style="text-align: right;"><i class="glyphicon glyphicon-time"></i> <span data-bind="text: PublishDate"></span></div>
+                                            </div>
+                                            <div class="col-sm-12" style="text-align: right;">
+                                                <a data-bind="attr: { href: UrlLink, title: Title }, text: 'Read More...'" target="_blank" rel="noopener noreferrer" style="color:#3E7CFF;"></a>
+                                                @*<a href='' style="color:#3E7CFF;" target="_blank">Read More...</a>*@
+                                            </div>
+                                            <hr />
+                                        </td>
+
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="col-sm-12" align="center">
+                                    @{
+                                        <input type="hidden" id="pagenum" data-bind="value:pageind" />
+                                                    <div id="drawPaginate1"></div>
+                                                    <div id="drawSearchPaginate1"></div>
+                                    }
+                                </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </form>
+</div>
+@*</div>*@
+
+@Html.Partial("MapListInfoModel")
+@Html.Partial("_CommonDialog")
+<script src="~/Scripts/Common/Common.js"></script>
+<script src="~/Scripts/Common/DateFormat.js"></script>
+<script src="~/Scripts/Common/Pagination.js"></script>
+<script>
+
+    var User = @Html.Raw(JsonConvert.SerializeObject(@Model, Formatting.None,
+                    new JsonSerializerSettings()
+    {
+                        ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+    }));
+
+
+</script>
+
+<script type="text/javascript">
+    var viewModel;
+    count = 0;
+    //$('#RSSFeed').dataTable( {
+    //    //"bFilter": false,
+    //    "bLengthChange": false,
+    //    "pageLength": 8,
+    //    "bInfo" : false,
+    //    //"dom": '<"top"i>rt<"bottom"flp><"clear">',
+    //    "dom": '<lf<t>ip>',
+    //    "ordering": false
+    //} );
+    $.fn.stars = function() {
+        return this.each(function(i,e){$(e).html($('<span/>').width($(e).text()*16));});
+    };
+    $('.stars').stars();
+
+    @functions{
+        public string TokenHeaderValue()
+        {
+            string cookieToken, formToken;
+            AntiForgery.GetTokens(null, out cookieToken, out formToken);
+            return cookieToken + ":" + formToken;
+        }
+    }
+
+    $(function(){
+
+        viewModel = {
+            RssFeed: ko.observable(""),
+            pageind: ko.observable(0),
+            countAllRow : ko.observable(""),
+            totaleachpage : ko.observable(""),
+            year: ko.observableArray([]),
+            ManualList: ko.mapping.fromJS(Rating),
+            CVEProductList: ko.observable(""),
+            CVEProductListCveDetail: ko.observable(""),
+            InputSourceShortNm: ko.observableArray([]),
+            CVEDetailByBrandList: ko.observable(""),
+            CVEDetailByTop10CurrYear: ko.observable(""),
+            CVEDetailByTop10ToDate: ko.observable(""),
+            CVEDetailByTop10FiveYear: ko.observable(""),
+            CVEDetailByCategory: ko.observable(""),
+
+            searchFunctionBasedonPaginate: function (pageind,name, year) {
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/SearchFeed",
+                    data: JSON.stringify({pageind : pageind, name : name, year : year }),
+                    headers: {
+                        'RequestVerificationToken': '@TokenHeaderValue()'
+                    },
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            viewModel.RssFeed(msg.list.RssFeedList);
+                            viewModel.countAllRow(msg.list.RssFeed_total.countAllRow);
+                            viewModel.totaleachpage(viewModel.RssFeed().length);
+
+
+                        }
+                        else{
+
+                        }
+                    }
+                });
+
+            },
+
+            searchFunctionBasedonPaginate2: function (pageind,name,year) {
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/SearchFeed",
+                    data: JSON.stringify({ pageind : pageind, name : name, year : year}),
+                    headers: {
+                        'RequestVerificationToken': '@TokenHeaderValue()'
+                    },
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            viewModel.RssFeed(msg.list.RssFeedList);
+                            viewModel.countAllRow(msg.list.RssFeed_total.countAllRow);
+                            viewModel.totaleachpage(viewModel.RssFeed().length);
+
+                            paginateCLICK(0, 1);
+
+                        }
+                        else{
+
+                        }
+                    }
+                });
+
+            },
+            VulListInfo :
+               {
+                   Id: ko.observable(""),
+                   CVEId: ko.observable(""),
+                   MyVDBID: ko.observable(""),
+                   VulnerabilityType: ko.observable(""),
+                   Summary: ko.observable(""),
+                   ImprovementRmk: ko.observable(""),
+                   PublishDate: ko.observable(),
+                   Complexity: ko.observable(""),
+                   tblname: ko.observable(""),
+                   UrlLink: ko.observable(""),
+                   Score: ko.observable(""),
+                   IDData :  ko.observable(""),
+                   Reference :  ko.observable(""),
+                   CWEId :  ko.observable(""),
+                   CWENm :  ko.observable(""),
+                   CWEDefDesc :  ko.observable(""),
+                   CWEDefURL :  ko.observable(""),
+                   CVSSRatingNm :  ko.observable(""),
+
+               },
+            VulListInfoDetail :
+               {
+                   CVEId: ko.observable(""),
+                   MyVDBID: ko.observable(""),
+                   VulNm: ko.observable(""),
+                   VulCategoryNm: ko.observable(""),
+                   VulTypeNm: ko.observable(""),
+                   VulType: ko.observable(""),
+                   ObservationRmk: ko.observable(""),
+                   ImpactLvl: ko.observable(""),
+                   ImpactRmk: ko.observable(""),
+                   Status: ko.observable(""),
+                   CVSSScore: ko.observable(""),
+                   DreadScore: ko.observable(""),
+                   ImprovementRmk: ko.observable(""),
+                   VulManInputAffItemDetail: ko.observableArray(""),
+                   VulManInputScreenshotDetail: ko.observableArray(""),
+                   ValidCveID: ko.observable(""),
+                   VulnerabilityCSMCdCombine: ko.observable(""),
+                   VulSecComp: ko.observable(""),
+                   CWEId: ko.observable(""),
+                   CWENm: ko.observable(""),
+                   Description: ko.observable(""),
+                   UrlLink: ko.observable(""),
+                   VulManInputProductInfoDetail: ko.observableArray(""),
+                   Reference :  ko.observable(""),
+                   CVSSVector:  ko.observable(""),
+                   CVSSV2Score: ko.observable(""),
+                   CVSSV2Vector:  ko.observable(""),
+               },
+
+            VulListInfoCveDetail :
+            {
+                Id: ko.observable(""),
+                CVEId: ko.observable(""),
+                MyVDBID: ko.observable(""),
+                VulnerabilityType: ko.observable(""),
+                Summary: ko.observable(""),
+                ImprovementRmk: ko.observable(""),
+                PublishDate: ko.observable(),
+                Complexity: ko.observable(""),
+                tblname: ko.observable(""),
+                UrlLink: ko.observable(""),
+                Score: ko.observable(""),
+                IDData :  ko.observable(""),
+                Reference :  ko.observable(""),
+                CWEId :  ko.observable(""),
+                CWENm :  ko.observable(""),
+                CWEDefDesc :  ko.observable(""),
+                CWEDefURL :  ko.observable(""),
+                CVSSRatingNm :  ko.observable(""),
+                VulManInputProductInfoDetail: ko.observableArray(""),
+                CVSSV3Vector:  ko.observable(""),
+                CVSSV3Score: ko.observable(""),
+                CVSSV2Vector:  ko.observable(""),
+                NVDLoad:  ko.observable(""),
+                NVDUrlLink:  ko.observable(""),
+            },
+
+            search :
+            {
+                search_cve_id: ko.observable(""),
+                search_type: ko.observable(""),
+                search_impact_lvl: ko.observable(""),
+                search_title : ko.observable(""),
+                search_start_date : ko.observable(""),
+                search_end_date : ko.observable(""),
+                search_score_start : ko.observable(""),
+                search_score_to : ko.observable(""),
+                search_score_open : ko.observable(""),
+                search_score_close : ko.observable(""),
+                search_input_source : ko.observable(""),
+                search_state_code: ko.observable(""),
+                search_year: ko.observable(""),
+            },
+
+            ManualInputListing: ko.observable(""),
+            ManualInputListing2: ko.observable(""),
+            VulnerabilityByState: ko.observable(""),
+            VulnerabilityTop3Severity: ko.observable(""),
+            pageind: ko.observable(0),
+            countAllRow : ko.observable(""),
+            totaleachpage : ko.observable(""),
+            linkValidUrl: ko.observable(""),
+
+            searchFunctionBasedonPaginate3: function (pageind,search_cve_id,search_type,search_impact_lvl,search_title,search_start_date,search_end_date,search_score_start, search_score_to,search_score_open,search_score_close,search_input_source,search_state_code,search_year) {
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/ManualInputByStateListTable",
+                    data: JSON.stringify({pageind : pageind ,search_cve_id : viewModel.search_cve_id, search_type : viewModel.search_type, search_impact_lvl : search_impact_lvl,search_title : search_title, search_start_date: search_start_date,search_end_date: search_end_date, search_score_start: search_score_start,search_score_to: search_score_to, search_score_open: search_score_open,search_score_close:search_score_close,search_input_source:search_input_source,search_state_code:search_state_code,search_year:search_year}),
+                    contentType: "application/json; charset=utf-8",
+                    headers: {
+                        'RequestVerificationToken': '@TokenHeaderValue()'
+                    },
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            viewModel.ManualInputListing(msg.list.ManualInputList);
+                            viewModel.countAllRow(msg.list.GetTotalManualInputList.countAllRow);
+                            viewModel.totaleachpage(viewModel.ManualInputListing().length);
+
+                            paginatation(viewModel.pageind);
+
+
+                        }
+                        else{
+
+                        }
+                    }
+                });
+
+            },
+
+            searchFunctionBasedonPaginate4: function (pageind,search_cve_id,search_type,search_impact_lvl,search_title,search_start_date,search_end_date,search_score_start, search_score_to,search_score_open,search_score_close,search_input_source,search_state_code) {
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/ManualInputByStateListTable",
+                    data: JSON.stringify({ pageind : pageind ,search_cve_id : search_cve_id, search_type : search_type, search_impact_lvl : search_impact_lvl,search_title : search_title, search_start_date: search_start_date,search_end_date: search_end_date, search_score_start: search_score_start,search_score_to: search_score_to, search_score_open: search_score_open,search_score_close:search_score_close, search_input_source:search_input_source,search_state_code:search_state_code}),
+                    contentType: "application/json; charset=utf-8",
+                    headers: {
+                        'RequestVerificationToken': '@TokenHeaderValue()'
+                    },
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            viewModel.ManualInputListing(msg.list.ManualInputList);
+                            viewModel.countAllRow(msg.list.GetTotalManualInputList.countAllRow);
+                            viewModel.totaleachpage(viewModel.ManualInputListing().length);
+
+                            paginateCLICK(0, 1);
+
+                        }
+                        else{
+
+                        }
+                    }
+                });
+
+            },
+
+            searchFunctionManualInputStateYear: function (search_year) {
+
+                showLoading();
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/ManualInputByStateYear",
+                    data: JSON.stringify({search_year : search_year}),
+                    contentType: "application/json; charset=utf-8",
+                    headers: {
+                        'RequestVerificationToken': '@TokenHeaderValue()'
+                    },
+                    error: function (xhr) {
+                        hideLoading();
+                        console.log(xhr);
+                    },
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            viewModel.VulnerabilityByState(msg.list.VulnerabilityByState);
+                            viewModel.VulnerabilityTop3Severity(msg.list.VulnerabilityTop3Severity);
+                            hideLoading();
+                            resetMap(search_year, viewModel.VulnerabilityByState(), viewModel.VulnerabilityTop3Severity());
+                            viewModel.VulnerabilityTop3Severity(null);
+                            viewModel.VulnerabilityByState(null);
+                        }
+                        else{
+                            hideLoading();
+                            console.log('error');
+                        }
+                    }
+                });
+
+            },
+
+            searchFunctionManualInputStateList: function (pageind,search_cve_id,search_type,search_impact_lvl,search_title,search_start_date,search_end_date,search_score_start, search_score_to,search_score_open,search_score_close,search_input_source,search_state_code,search_year) {
+
+                showLoading();
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/ManualInputByStateListTable2",
+                    data: JSON.stringify({pageind : pageind ,search_cve_id : viewModel.search_cve_id, search_type : viewModel.search_type, search_impact_lvl : search_impact_lvl,search_title : search_title, search_start_date: search_start_date,search_end_date: search_end_date, search_score_start: search_score_start,search_score_to: search_score_to, search_score_open: search_score_open,search_score_close:search_score_close,search_input_source:search_input_source,search_state_code:search_state_code,search_year:search_year}),
+                    contentType: "application/json; charset=utf-8",
+                    headers: {
+                        'RequestVerificationToken': '@TokenHeaderValue()'
+                    },
+                    error: function (xhr) {
+                        hideLoading();
+                        console.log(xhr);
+                    },
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            viewModel.ManualInputListing2(msg.list.ManualInputList);
+                            $('#vulStatesTableContainer').html(dataToTableState(viewModel.ManualInputListing2()));
+                            hideLoading();
+                            downloadVulByStatePDF();
+                            viewModel.ManualInputListing2(null);
+                        }
+                        else{
+                            hideLoading();
+                            console.log('error');
+                        }
+                    }
+                });
+
+            },
+            
+
+            searchFunctionManualInputStateMultiple: function (pageind,search_cve_id,search_type,search_impact_lvl,search_title,search_start_date,search_end_date,search_score_start, search_score_to,search_score_open,search_score_close,search_input_source,search_state_code, search_year) {
+
+                showLoading();
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/ManualInputByStateListMultiple",
+                    data: JSON.stringify({pageind : pageind ,search_cve_id : viewModel.search_cve_id, search_type : viewModel.search_type, search_impact_lvl : search_impact_lvl,search_title : search_title, search_start_date: search_start_date,search_end_date: search_end_date, search_score_start: search_score_start,search_score_to: search_score_to, search_score_open: search_score_open,search_score_close:search_score_close,search_input_source:search_input_source,search_state_code:search_state_code,search_year:search_year}),
+                    contentType: "application/json; charset=utf-8",
+                    headers: {
+                        'RequestVerificationToken': '@TokenHeaderValue()'
+                    },
+                    error: function (xhr) {
+                        hideLoading();
+                        console.log(xhr);
+                    },
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            viewModel.ManualInputListing2(msg.list.ManualInputList);
+                            $('#vulStatesTableContainer').html(dataToTableState(viewModel.ManualInputListing2()));
+                            hideLoading();
+                            downloadVulByStatePDF();
+                            viewModel.ManualInputListing2(null);
+                        }
+                        else{
+                            hideLoading();
+                            console.log('error');
+                        }
+                    }
+                });
+
+            },
+
+            searchVulByVendor: function (brand) {
+
+                showLoading();
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetVulByBrand",
+                    data: JSON.stringify({brand : brand}),
+                    contentType: "application/json; charset=utf-8",
+                    headers: {
+                        'RequestVerificationToken': '@TokenHeaderValue()'
+                    },
+                    error: function (xhr) {
+                        hideLoading();
+                        console.log(xhr);
+                    },
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            viewModel.CVEDetailByBrandList(msg.list.VulnerabilityList);
+                            $('#vulBrandTableContainer').html(dataToTable2(viewModel.CVEDetailByBrandList()));
+                            hideLoading();
+                            downloadVulByBrandPDF();
+                            viewModel.CVEDetailByBrandList(null);
+                        }
+                        else{
+                            hideLoading();
+                            console.log('error');
+
+                        }
+                    }
+                });
+
+            },
+
+            searchTop10CurrYearVulDetail: function () {
+
+                showLoading();
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetTop10CurrYearVulDetail",
+                    contentType: "application/json; charset=utf-8",
+                    headers: {
+                        'RequestVerificationToken': '@TokenHeaderValue()'
+                    },
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            viewModel.CVEDetailByTop10CurrYear(msg.list.VulnerabilityList);
+                            $('#vulTop10CurrYearTableContainer').html(dataToTableTop10CurrYear(viewModel.CVEDetailByTop10CurrYear()));
+                            hideLoading();
+                            downloadTop10CurrYearPDF();
+                            viewModel.CVEDetailByTop10CurrYear(null);
+                        }
+                        else{
+                            hideLoading();
+                            console.log('error');
+
+                        }
+                    }
+                });
+
+            },
+
+            searchTop10ToDateVulDetail: function () {
+
+                showLoading();
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetTop10ToDateVulDetail",
+                    contentType: "application/json; charset=utf-8",
+                    headers: {
+                        'RequestVerificationToken': '@TokenHeaderValue()'
+                    },
+                    error: function (xhr) {
+                        hideLoading();
+                        console.log(xhr);
+                    },
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            viewModel.CVEDetailByTop10ToDate(msg.list.VulnerabilityList);
+                            $('#vulTop10ToDateTableContainer').html(dataToTableTop10ToDate(viewModel.CVEDetailByTop10ToDate()));
+                            hideLoading();
+                            downloadTop10ToDatePDF();
+                            viewModel.CVEDetailByTop10ToDate(null);
+                        }
+                        else{
+                            hideLoading();
+                            console.log('error');
+
+                        }
+                    }
+                });
+
+            },
+
+            searchTop10FiveYearVulDetail: function () {
+
+                showLoading();
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetTop10FiveYearVulDetail",
+                    contentType: "application/json; charset=utf-8",
+                    headers: {
+                        'RequestVerificationToken': '@TokenHeaderValue()'
+                    },
+                    error: function (xhr) {
+                        hideLoading();
+                        console.log(xhr);
+                    },
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            viewModel.CVEDetailByTop10FiveYear(msg.list.VulnerabilityList);
+                            $('#vulTop10FiveYearTableContainer').html(dataToTableTop10FiveYear(viewModel.CVEDetailByTop10FiveYear()));
+                            hideLoading();
+                            downloadTop10FiveYearPDF();
+                            viewModel.CVEDetailByTop10FiveYear(null);
+                        }
+                        else{
+                            hideLoading();
+                            console.log('error');
+
+                        }
+                    }
+                });
+
+            },
+
+            searchVulByCategoryVulDetail: function () {
+
+                showLoading();
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetCategoryVulDetail",
+                    contentType: "application/json; charset=utf-8",
+                    headers: {
+                        'RequestVerificationToken': '@TokenHeaderValue()'
+                    },
+                    error: function (xhr) {
+                        hideLoading();
+                        console.log(xhr);
+                    },
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            viewModel.CVEDetailByCategory(msg.list.VulnerabilityList);
+                            $('#vulCategoryTableContainer').html(dataToTableCategory(viewModel.CVEDetailByCategory()));
+                            hideLoading();
+                            downloadVulByCategoryPDF();
+                            viewModel.CVEDetailByCategory(null);
+                        }
+                        else{
+                            hideLoading();
+                            console.log('error');
+
+                        }
+                    }
+                });
+
+            },
+
+            SearchListing: function () {
+                paginateCLICK2(0, 1)
+            },
+
+            save : function(){
+                $.ajax({
+                    type: 'POST',
+                    url: server + '/Admin/AddManualInputList',
+                    contentType: "application/json; charset=utf-8",
+                    //data: JSON.stringify({ VulProjectId: VulProjID }),
+                    success: function (msg) {
+                        if (msg.OK) {
+                            ShowMessageSuccess("Successfully add. Please Update Manual Input List Information");
+                            //$(window).click(function() {
+                            // $("#tabs").tabs({ active: 1 });
+
+                            location.href = msg.url;
+                            //location.href = "/Superadmin/VulnerabilityProjectList";
+
+                            //});
+
+                        }
+                        else {
+                            ShowMessage('Unsuccesfully add.');
+                        }
+
+                    },
+                    error: function (xhr) {
+                    }
+                });
+
+
+            },
+
+            remove: function(VulManInptId, MyVDBID) {
+                ShowDecisionMessage("Are you sure to delete this record ? ", function () {
+
+                    var btnOk = function () {
+
+                    }
+                    $.ajax({
+                        type: "POST",
+                        url: server + "/Vulnerability/DeleteVulManInpt",
+                        data: JSON.stringify({ VulManInptId: VulManInptId , MyVDBID: MyVDBID}),
+                        contentType: "application/json; charset=utf-8",
+                        error: function (xhr) { },
+                        success: function (msg) {
+                            if (msg.OK) {
+                                ShowMessageSuccess("Record successfully deleted.", btnOk);
+                                //$(window).click(function() {
+                                location.reload();
+                                //});
+                            }
+                            else {
+                                ShowMessageDanger('Unsuccesfully deleted.');
+                            }
+                        }
+                    })
+
+                });
+            },
+
+            exporttoexcel: function () {
+                showLoading();
+                $.ajax({
+                    type: 'POST',
+                    url: server + '/Upload/GenerateExcelTemplateUpload',
+                    //data: JSON.stringify({  }),
+                    contentType: "application/json; charset=utf-8",
+                    success: function (result) {
+                        if (result.success) {
+                            window.open(server+"/Admin/GetExcelFileTemplate/" + result.path);
+                            //window.open(result.path2);
+                        }
+                        else {
+                            ShowMessage(result.path);
+                        }
+                        hideLoading();
+                    },
+                    error: function (xhr) {
+                    }
+                });
+            },
+
+            uploadTemplate: function () {
+                window.open(server+"/Upload/Download/");
+            },
+
+            clickUrlLink: function (id,name) {
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/FindingListUpdateInfo",
+                    data: JSON.stringify({ id: id, name:name }),
+                    contentType: "application/json; charset=utf-8",
+                    success: function (msg) {
+                        if (msg.OK) {
+                            viewModel.VulListInfoDetail.CVEId(msg.list.VulManInput.CVEId);
+                            viewModel.VulListInfoDetail.MyVDBID(msg.list.VulManInput.MyVDBID);
+                            viewModel.VulListInfoDetail.VulNm(msg.list.VulManInput.VulNm);
+                            viewModel.VulListInfoDetail.VulCategoryNm(msg.list.VulManInput.y.VulCategoryNm);
+                            viewModel.VulListInfoDetail.VulTypeNm(msg.list.VulManInput.x.VulNm);
+                            viewModel.VulListInfoDetail.VulType(msg.list.VulManInput.VulType);
+                            viewModel.VulListInfoDetail.ObservationRmk(msg.list.VulManInput.ObservationRmk);
+
+                            viewModel.VulListInfoDetail.ImpactLvl(msg.list.VulManInput.SeverityNm);
+
+                            viewModel.VulListInfoDetail.ImpactRmk(msg.list.VulManInput.ImpactRmk);
+                            viewModel.VulListInfoDetail.Status(msg.list.VulManInput.Status);
+                            viewModel.VulListInfoDetail.CVSSScore(msg.list.VulManInput.CVSSScore);
+                            viewModel.VulListInfoDetail.DreadScore(msg.list.VulManInput.DreadScore);
+                            viewModel.VulListInfoDetail.VulManInputAffItemDetail(msg.list.VulManInputAffItem);
+                            viewModel.VulListInfoDetail.VulManInputScreenshotDetail(msg.list.VulManInputScreenshot);
+                            viewModel.VulListInfoDetail.ImprovementRmk(msg.list.VulManInput.ImprovementRmk);
+                            viewModel.VulListInfoDetail.ValidCveID(msg.ValidCveID);
+
+                            viewModel.VulListInfoDetail.VulnerabilityCSMCdCombine(msg.list.VulManInput.VulnerabilityCSMCdCombine);
+                            viewModel.VulListInfoDetail.VulSecComp(msg.list.VulManInput.VulSecComp);
+                            viewModel.VulListInfoDetail.CWEId(msg.list.VulManInput.CWEId);
+                            viewModel.VulListInfoDetail.CWENm(msg.list.VulManInput.z.CWENm);
+                            viewModel.VulListInfoDetail.Description(msg.list.VulManInput.z.Description);
+                            viewModel.VulListInfoDetail.UrlLink(msg.list.VulManInput.z.UrlLink);
+                            viewModel.VulListInfoDetail.VulManInputProductInfoDetail(msg.list.VulManInputProductInfo);
+
+                            viewModel.VulListInfoDetail.CVSSVector(msg.list.VulManInput.CVSSVector);
+                            viewModel.VulListInfoDetail.CVSSV2Vector(msg.list.VulManInput.CVSS2Vector);
+                            viewModel.VulListInfoDetail.CVSSV2Score(msg.list.VulManInput.CVSS2Score);
+
+                            //hyperlink untuk vulnerability ID
+
+                            if(msg.list.VulManInput.CVEId !=  null){
+                                var data2 = msg.list.VulManInput.CVEId.split(',');
+                                tableCveID = "";
+
+                                for (i = 0; i < data2.length; i++) {
+                                    var path = data2[i];
+                                    viewModel.GetlinkInfo(path);
+                                    //alert(viewModel.linkValidUrl());
+                                    if(viewModel.linkValidUrl() != ""){
+                                        //tableCveID += "<a href='"+ viewModel.linkValidUrl() +"' target='_blank'><font color='blue'>" + path + "</font></a>";
+                                        tableCveID += "<a href='#' onclick='Click_CVEID(\""+path+"\","+id+",\""+name+"\")'><font color='blue'>" + path + "</font></a>";
+
+                                    }else{
+                                        tableCveID += path ;
+                                    }
+
+                                    if (i < data2.length - 1){ // untuk separete by ,
+                                        tableCveID += ",";
+                                    }
+                                }
+                            }
+                            else{
+                                tableCveID = "";
+                            }
+
+                            document.getElementById("LinkVulnerabilityID").innerHTML = tableCveID;
+                            //end hyperlink
+
+
+                            if (msg.list.VulManInput.Status == null){
+                                viewModel.VulListInfoDetail.Status("");
+                            }
+                            else if (msg.list.VulManInput.Status == 1){
+                                viewModel.VulListInfoDetail.Status("Open");
+                            }
+                            else if (msg.list.VulManInput.Status == 0){
+                                viewModel.VulListInfoDetail.Status("Close");
+                            }
+                            else{
+                                viewModel.VulListInfoDetail.Status("");
+                            }
+
+
+                            $("#FindingListUpdateInfoModel").modal({
+                                show: 'true',
+                                backdrop: 'true',
+                                keyboard: 'true'
+                            });
+
+                        }
+                    }
+                });
+            },
+
+            Edit: function(VulManInptId) {
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/ManInpListUpdate",
+                    data: JSON.stringify({ VulManInptId: VulManInptId }),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.ok) {
+
+                            location.href = msg.url;
+
+                        }
+                        else{
+                            //ShowMessageDanger('Unsuccesfully Back.');
+                        }
+                    }
+                });
+
+
+            },
+
+            GetlinkInfo : function(CVEID){
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/GetCheckValidCveID",
+                    async: false,
+                    data: JSON.stringify({ CVEID: CVEID }),
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr) { },
+                    success: function (msg) {
+                        if (msg.OK) {
+                            //window.open(msg.list, '_blank');
+                            viewModel.linkValidUrl(msg.list);
+
+                        }
+                        else {
+                            ShowMessageDanger('Error.');
+                        }
+                    }
+                });
+
+            },
+
+            clickUrlLinkUsePath: function (path,id,name) {
+
+                $.ajax({
+                    type: "POST",
+                    url: server + "/Admin/VulnerabilityListInfoPathManualInput",
+                    data: JSON.stringify({path:path, id: id, name:name }),
+                    contentType: "application/json; charset=utf-8",
+                    success: function (msg) {
+                        if (msg.OK) {
+                            viewModel.VulListInfoDetail.CVEId(msg.list.VulManInput.CVEId);
+                            viewModel.VulListInfoDetail.MyVDBID(msg.list.VulManInput.MyVDBID);
+                            viewModel.VulListInfoDetail.VulNm(msg.list.VulManInput.VulNm);
+                            viewModel.VulListInfoDetail.VulCategoryNm(msg.list.VulManInput.y.VulCategoryNm);
+                            viewModel.VulListInfoDetail.VulTypeNm(msg.list.VulManInput.x.VulNm);
+                            viewModel.VulListInfoDetail.VulType(msg.list.VulManInput.VulType);
+                            viewModel.VulListInfoDetail.ObservationRmk(msg.list.VulManInput.ObservationRmk);
+                            viewModel.VulListInfoDetail.ImpactLvl(msg.list.VulManInput.SeverityNm);
+                            viewModel.VulListInfoDetail.ImpactRmk(msg.list.VulManInput.ImpactRmk);
+                            viewModel.VulListInfoDetail.Status(msg.list.VulManInput.Status);
+                            viewModel.VulListInfoDetail.CVSSScore(msg.list.VulManInput.CVSSScore);
+                            viewModel.VulListInfoDetail.DreadScore(msg.list.VulManInput.DreadScore);
+                            viewModel.VulListInfoDetail.VulManInputAffItemDetail(msg.list.VulManInputAffItem);
+                            viewModel.VulListInfoDetail.VulManInputScreenshotDetail(msg.list.VulManInputScreenshot);
+                            viewModel.VulListInfoDetail.ImprovementRmk(msg.list.VulManInput.ImprovementRmk);
+                            viewModel.VulListInfoDetail.ValidCveID(msg.ValidCveID);
+                            viewModel.VulListInfoDetail.VulnerabilityCSMCdCombine(msg.list.VulManInput.VulnerabilityCSMCdCombine);
+                            viewModel.VulListInfoDetail.VulSecComp(msg.list.VulManInput.VulSecComp);
+                            viewModel.VulListInfoDetail.CWEId(msg.list.VulManInput.CWEId);
+                            viewModel.VulListInfoDetail.CWENm(msg.list.VulManInput.z.CWENm);
+                            viewModel.VulListInfoDetail.Description(msg.list.VulManInput.z.Description);
+                            viewModel.VulListInfoDetail.UrlLink(msg.list.VulManInput.z.UrlLink);
+                            viewModel.VulListInfoDetail.VulManInputProductInfoDetail(msg.list.VulManInputProductInfo);
+                            viewModel.VulListInfoDetail.Reference(msg.list.VulManInput.Reference);
+
+                            var bil = $('#bilangan_score2').val();
+                            var element = document.getElementById('scoreColour2');
+                            if(bil == 0.00){
+                                //alert(1);
+                                element.className = '';
+                                element.classList.add("scoreRating","none");
+                            }else if ( bil >= 0.1 && bil <= 3.9){
+                                //alert(2);
+                                element.className = '';
+                                element.classList.add("scoreRating","low");
+                            }else if (bil >= 4.0 && bil <= 6.9){
+                                //alert(3);
+                                element.className = '';
+                                element.classList.add("scoreRating","medium");
+                            }
+                            else if (bil >= 7.0 && bil <= 8.9){
+                                //alert(4);
+                                element.className = '';
+                                element.classList.add("scoreRating","high");
+                            }
+                            else if (bil >= 9.0){
+                                //alert(5);
+                                element.className = '';
+                                element.classList.add("scoreRating","critical");
+                            }
+
+                            var text, parser, xmlDoc;
+
+                            //add baca xml data dan list dalam ui
+                            var xmldata = viewModel.VulListInfoDetail.Reference();
+
+                            parser = new DOMParser();
+                            xmlDoc = parser.parseFromString(xmldata,"text/xml");
+
+                            var x,xmlhttp,xmlDoc
+
+                            x = xmlDoc.getElementsByTagName("Reference");
+                            //alert(x.length);
+                            table="";
+                            for (i = 0; i <x.length; i++) {
+                                var path = (x[i].getElementsByTagName("Url")[0].childNodes[0].nodeValue);
+                                table += "<tr><td style='color:blue;'><a href='"+ path +"' target='_blank' rel='noopener noreferrer'><font color='blue'>" + path + "</font></a>";
+                                //table +=  x[i].getElementsByTagName("Url")[0].childNodes[0].nodeValue.link(path);
+                                table += "</td></br></tr>";
+
+                            }
+
+                            //if(x.length == 0){
+                            //    document.getElementById("demo2").innerHTML = "-";
+                            //}else{
+                            //    document.getElementById("demo2").innerHTML = table;
+                            //}
+
+                            //end add
+
+                            //hyperlink untuk vulnerability ID
+
+                            if(msg.list.VulManInput.CVEId !=  null){
+                                var data2 = msg.list.VulManInput.CVEId.split(',');
+                                tableCveID = "";
+
+
+                                for (i = 0; i < data2.length; i++) {
+                                    var path = data2[i];
+                                    viewModel.GetlinkInfo(path);
+                                    //alert(viewModel.linkValidUrl());
+                                    if(viewModel.linkValidUrl() != ""){
+                                        //  tableCveID += "<a href='"+ viewModel.linkValidUrl() +"' target='_blank'><font color='blue'>" + path + "</font></a>";
+                                        tableCveID += "<a href='#' onclick='Click_CVEID(\""+path+"\","+id+",\""+name+"\")'><font color='blue'>" + path + "</font></a>";
+
+                                    }else{
+                                        tableCveID += path ;
+
+                                    }
+
+                                    if (i < data2.length - 1){ // untuk separete by ,
+                                        tableCveID += ",";
+
+                                    }
+                                }
+                            }
+                            else{
+                                tableCveID = "";
+
+                            }
+
+                            //document.getElementById("LinkVulnerabilityID").innerHTML = tableCveID;
+                            document.getElementById("LinkVulnerabilityID3").innerHTML = tableCveID;
+                            //end hyperlink
+
+
+                            if (msg.list.VulManInput.Status == null){
+                                viewModel.VulListInfoDetail.Status("");
+                            }
+                            else if (msg.list.VulManInput.Status == 1){
+                                viewModel.VulListInfoDetail.Status("Open");
+                            }
+                            else if (msg.list.VulManInput.Status == 0){
+                                viewModel.VulListInfoDetail.Status("Close");
+                            }
+                            else{
+                                viewModel.VulListInfoDetail.Status("");
+                            }
+
+
+                            //-------------------------------------------
+                            viewModel.VulListInfoCveDetail.Id(msg.list.VulnerabilityListInformationCveDetail.Id);
+                            viewModel.VulListInfoCveDetail.CVEId(msg.list.VulnerabilityListInformationCveDetail.CVEId);
+                            viewModel.VulListInfoCveDetail.MyVDBID(msg.list.VulnerabilityListInformationCveDetail.MyVDBID);
+                            viewModel.VulListInfoCveDetail.VulnerabilityType(msg.list.VulnerabilityListInformationCveDetail.VulnerabilityType);
+                            viewModel.VulListInfoCveDetail.Summary(msg.list.VulnerabilityListInformationCveDetail.Summary);
+                            viewModel.VulListInfoCveDetail.ImprovementRmk(msg.list.VulnerabilityListInformationCveDetail.ImprovementRmk);
+
+                            viewModel.VulListInfoCveDetail.PublishDate(msg.list.VulnerabilityListInformationCveDetail.PublishDate);
+                            var date = msg.list.VulnerabilityListInformationCveDetail.PublishDate;
+                            var nowDate = new Date(parseInt(date.substr(6)));
+                            var result = "";
+                            result += nowDate.format("dd/mm/yyyy");
+                            viewModel.VulListInfoCveDetail.PublishDate(result);
+
+                            viewModel.VulListInfoCveDetail.Complexity(msg.list.VulnerabilityListInformationCveDetail.Complexity);
+                            viewModel.VulListInfoCveDetail.tblname(msg.list.VulnerabilityListInformationCveDetail.tblname);
+                            if(msg.list.VulnerabilityListInformationCveDetail.tblname == 'CVEDetail'){
+                                viewModel.VulListInfoCveDetail.NVDLoad('yes');
+                                viewModel.VulListInfoCveDetail.NVDUrlLink('https://nvd.nist.gov/vuln/detail/' + msg.list.VulnerabilityListInformationCveDetail.CVEId)
+
+                            }
+                            else{
+                                viewModel.VulListInfoCveDetail.NVDLoad('');
+                                viewModel.VulListInfoCveDetail.NVDUrlLink('')
+                            }
+                            viewModel.VulListInfoCveDetail.UrlLink(msg.list.VulnerabilityListInformationCveDetail.UrlLink);
+                            viewModel.VulListInfoCveDetail.Score(msg.list.VulnerabilityListInformationCveDetail.Score);
+
+                            if(msg.list.VulnerabilityListInformationCveDetail.Score == null)
+                            {
+                                viewModel.VulListInfoCveDetail.Score(0);
+                            }
+                            viewModel.VulListInfoCveDetail.CVSSV3Score(msg.list.VulnerabilityListInformationCveDetail.CVSSScoreV3);  //cvssscore V3
+                            if(msg.list.VulnerabilityListInformationCveDetail.CVSSScoreV3 == null)
+                            {
+                                viewModel.VulListInfoCveDetail.CVSSV3Score(0);
+                            }
+
+                            viewModel.VulListInfoCveDetail.CVSSRatingNm(msg.list.VulnerabilityListInformationCveDetail.CVSSRatingNm);
+
+                            if ((msg.list.VulnerabilityListInformationCveDetail.CVEId == null || msg.list.VulnerabilityListInformationCveDetail.CVEId == "") && (msg.list.VulnerabilityListInformationCveDetail.MyVDBID != null || msg.list.VulnerabilityListInformationCveDetail.MyVDBID != "")  ){
+                                viewModel.VulListInfoCveDetail.IDData(msg.list.VulnerabilityListInformationCveDetail.MyVDBID);
+                            }
+                            else if ((msg.list.VulnerabilityListInformationCveDetail.CVEId != null || msg.list.VulnerabilityListInformationCveDetail.CVEId != "") && (msg.list.VulnerabilityListInformationCveDetail.MyVDBID == null || msg.list.VulnerabilityListInformationCveDetail.MyVDBID == "")  ){
+                                viewModel.VulListInfoCveDetail.IDData(msg.list.VulnerabilityListInformationCveDetail.CVEId);
+                            }
+                            else if ((msg.list.VulnerabilityListInformationCveDetail.CVEId != null || msg.list.VulnerabilityListInformationCveDetail.CVEId != "") && (msg.list.VulnerabilityListInformationCveDetail.MyVDBID != null || msg.list.VulnerabilityListInformationCveDetail.MyVDBID != "")  ){
+                                viewModel.VulListInfoCveDetail.IDData(msg.list.VulnerabilityListInformationCveDetail.CVEId + " / " + msg.list.VulnerabilityListInformationCveDetail.MyVDBID);
+                            }
+                            else{
+                                viewModel.VulListInfoCveDetail.IDData("-");
+                            }
+
+
+                            var countCveIDCve = 0;
+                            var data1Cve = viewModel.VulListInfoCveDetail.IDData().split('/');
+                            var DatacveIDCve = data1Cve[0];
+                            var DataMyVDBIDCve = data1Cve[1];
+                            var data2Cve = DatacveIDCve.split(',');
+                            tableCveIDCve = "";
+
+                            if(DataMyVDBIDCve != undefined){
+                                for (i = 0; i < data2Cve.length; i++) {
+                                    var pathCve = data2Cve[i];
+                                    viewModel.GetlinkInfo(pathCve);
+                                    if(viewModel.linkValidUrl() != ""){
+                                        //tableCveIDCve += "<a href='"+ viewModel.linkValidUrl() +"' target='_blank'><font color='blue'>" + pathCve + "</font></a>";
+                                        tableCveIDCve += "<a href='#' onclick='Click_CVEID(\""+pathCve+"\")'><font color='blue'>" + pathCve + "</font></a>";
+                                    }else{
+                                        tableCveIDCve += pathCve ;
+                                    }
+
+                                    if (i < data2Cve.length - 1){ // untuk separete by ,
+                                        tableCveIDCve += ",";
+                                    }else{
+                                        tableCveIDCve += "/";
+                                        tableCveIDCve += DataMyVDBIDCve;
+                                    }
+                                }
+                            }
+                            else{
+                                tableCveIDCve = DatacveIDCve;
+                            }
+
+
+                            document.getElementById("LinkVulnerabilityID4").innerHTML = tableCveIDCve;
+
+                            if (msg.list.VulnerabilityListInformationCveDetail.Summary == null){
+                                viewModel.VulListInfoCveDetail.Summary("-");
+                            }
+                            else{
+                                viewModel.VulListInfoCveDetail.ImprovementRmk(msg.list.VulnerabilityListInformationCveDetail.Summary);
+                            }
+
+                            if (msg.list.VulnerabilityListInformationCveDetail.ImprovementRmk == null){
+                                viewModel.VulListInfoCveDetail.ImprovementRmk("-");
+                            }
+                            else{
+                                viewModel.VulListInfoCveDetail.ImprovementRmk(msg.list.VulnerabilityListInformationCveDetail.ImprovementRmk);
+                            }
+
+                            if (msg.list.VulnerabilityListInformationCveDetail.Complexity == 1){
+                                viewModel.VulListInfoCveDetail.Complexity("Low");
+                            }
+                            else if (msg.list.VulnerabilityListInformationCveDetail.Complexity == 2){
+                                viewModel.VulListInfoCveDetail.Complexity("Medium");
+                            }
+                            else if (msg.list.VulnerabilityListInformationCveDetail.Complexity == 3){
+                                viewModel.VulListInfoCveDetail.Complexity("High");
+                            }
+                            else if (msg.list.VulnerabilityListInformationCveDetail.Complexity == 4){
+                                viewModel.VulListInfoCveDetail.Complexity("Critical");
+                            }
+                            else if (msg.list.VulnerabilityListInformationCveDetail.Complexity == 0){
+                                viewModel.VulListInfoCveDetail.Complexity("No Impact Level");
+                            }
+                            else{
+                                viewModel.VulListInfoCveDetail.Complexity(msg.list.VulnerabilityListInformationCveDetail.Complexity);
+                            }
+
+                            viewModel.VulListInfoCveDetail.Reference(msg.list.VulnerabilityListInformationCveDetail.Reference);
+                            viewModel.VulListInfoCveDetail.CWEId(msg.list.VulnerabilityListInformationCveDetail.CWEId);
+                            viewModel.VulListInfoCveDetail.CWENm(msg.list.VulnerabilityListInformationCveDetail.x.CWENm);
+                            viewModel.VulListInfoCveDetail.CWEDefDesc(msg.list.VulnerabilityListInformationCveDetail.x.Description);
+                            viewModel.VulListInfoCveDetail.CWEDefURL(msg.list.VulnerabilityListInformationCveDetail.x.UrlLink);
+                            viewModel.VulListInfoCveDetail.VulManInputProductInfoDetail(msg.list.CVEProductListCveDetail);
+
+                            var bil = $('#bilangan_score3').val();
+                            var element = document.getElementById('scoreColour3');
+                            if(bil == 0.00){
+                                //alert(1);
+                                element.className = '';
+                                element.classList.add("scoreRating","none");
+                            }else if ( bil >= 0.1 && bil <= 3.9){
+                                //alert(2);
+                                element.className = '';
+                                element.classList.add("scoreRating","low");
+                            }else if (bil >= 4.0 && bil <= 6.9){
+                                //alert(3);
+                                element.className = '';
+                                element.classList.add("scoreRating","medium");
+                            }
+                            else if (bil >= 7.0 && bil <= 8.9){
+                                //alert(4);
+                                element.className = '';
+                                element.classList.add("scoreRating","high");
+                            }
+                            else if (bil >= 9.0){
+                                //alert(5);
+                                element.className = '';
+                                element.classList.add("scoreRating","critical");
+                            }
+
+                            var bilV2 = $('#bilangan_score3V2').val();
+                            var element2 = document.getElementById('scoreColour3V2');
+
+                            if(bilV2 == 0.00){
+                                //alert(1);
+                                element2.className = '';
+                                element2.classList.add("scoreRatingV2","none");
+                            }else if ( bilV2 >= 0.1 && bilV2 <= 3.9){
+                                //alert(2);
+                                element2.className = '';
+                                element2.classList.add("scoreRatingV2","low");
+                            }else if (bilV2 >= 4.0 && bilV2 <= 6.9){
+                                //alert(3);
+                                element2.className = '';
+                                element2.classList.add("scoreRatingV2","medium");
+                            }
+                            else if (bilV2 >= 7.0 && bilV2 <= 8.9){
+                                //alert(4);
+                                element2.className = '';
+                                element2.classList.add("scoreRatingV2","high");
+                            }
+                            else if (bilV2 >= 9.0){
+                                //alert(5);
+                                element2.className = '';
+                                element2.classList.add("scoreRatingV2","critical");
+                            }
+
+                            var text, parser, xmlDoc;
+
+                            //add baca xml data dan list dalam ui
+                            var xmldata = viewModel.VulListInfoCveDetail.Reference();
+
+                            parser = new DOMParser();
+                            xmlDoc = parser.parseFromString(xmldata,"text/xml");
+
+                            var x,xmlhttp,xmlDoc
+
+                            x = xmlDoc.getElementsByTagName("Reference");
+                            //alert(x.length);
+                            table="";
+                            for (i = 0; i <x.length; i++) {
+                                var path = (x[i].getElementsByTagName("Url")[0].childNodes[0].nodeValue);
+                                table += "<tr><td style='color:blue;'><a href='"+ path +"' target='_blank' rel='noopener noreferrer'><font color='blue'>" + path + "</font></a>";
+                                //table +=  x[i].getElementsByTagName("Url")[0].childNodes[0].nodeValue.link(path);
+                                table += "</td></br></tr>";
+
+                            }
+
+                            if(x.length == 0){
+                                document.getElementById("demo4").innerHTML = "-";
+                            }else{
+                                document.getElementById("demo4").innerHTML = table;
+                            }
+
+                            //end add
+                            //-------------------------------------------
+
+
+
+                            $('#VulListInfo2').modal({
+                                backdrop: false,
+                                show: true
+                            });
+
+
+                            $('#FindingListUpdateInfoModel').modal('hide');
+
+
+                            document.getElementById("splitRight").style.display = "block";
+
+                            //$('.modal-dialog').draggable({
+                            //    handle: ".panel-heading"
+                            //});
+
+                            //$("#FindingListUpdateInfoModel").modal({
+                            //    show: 'true',
+                            //    backdrop: 'false',
+                            //    keyboard: 'true'
+                            //});
+
+
+                            //$('#FindingListUpdateInfoModel .modal-dialog').draggable({
+                            //    handle: ".modal-header"
+                            //});
+
+                        }
+                    }
+                });
+            },
+        };
+
+        loadRssFeedYear();
+        ko.applyBindings(viewModel);
+
+    }
+
+    )
+
+    $('#search_name').keyup(function () {
+        paginateCLICK2(0, 1);
+    })
+
+    $('#year').change(function () {
+        paginateCLICK2(0, 1);
+    })
+
+    function paginateCLICK(page, ind) {
+
+        if(sessionStorage["mypage"] != undefined)
+        {
+            page = parseInt(sessionStorage["mypage"]);
+            sessionStorage.removeItem("mypage");
+        }
+
+
+        var pageind = 0;
+        if(ind == 0)
+        {
+            pageind = (parseInt($("#pagenum").val()) + 10);
+        }
+        else if(ind == 2)
+        {
+            pageind = (parseInt($("#pagenum").val()) - 10);
+        }
+        else
+        {
+            pageind = page;
+        }
+
+        var search_cve_id = document.getElementById('search_cve_id').value;
+        var search_type = document.getElementById('search_type').value;
+        var search_impact_lvl = document.getElementById('search_impact_lvl').value;
+        var search_title = document.getElementById('search_title').value;
+        var search_start_date = document.getElementById('txtFromDate').value;
+        var search_end_date = document.getElementById('txtToDate').value;
+        var search_score_start = document.getElementById('search_score_start').value;
+        var search_score_to = document.getElementById('search_score_to').value;
+        var search_input_source = document.getElementById('search_input_source').value;
+
+        var search_score_openIsChecked = $('input[name="search_score_open"]:checked').length > 0;
+        var search_score_closeIsChecked = $('input[name="search_score_close"]:checked').length > 0;
+
+        if (search_score_openIsChecked == true){
+            var search_score_open = document.getElementById('search_score_open').value;
+        }else{
+            var search_score_open = "";
+        }
+
+        if (search_score_closeIsChecked == true){
+            var search_score_close = document.getElementById('search_score_close').value;
+        }else{
+            var search_score_close = "";
+        }
+
+        var search_state_code = document.getElementById('search_state_code').value;
+
+        var search = document.getElementById('search_name').value;
+        var year = document.getElementById('year').value;
+
+        viewModel.pageind(pageind);
+
+        //viewModel.searchFunctionBasedonPaginate(pageind,search_cve_id,search_type,search_impact_lvl,search_title, search_start_date, search_end_date,search_score_start, search_score_to,search_score_open,search_score_close,search_input_source,search_state_code);
+        viewModel.searchFunctionBasedonPaginate(pageind,search,year);
+        //-----------------------------------------------------------------------------------------------------------------
+        paginatation(pageind);
+        //-----------------------------------------------------------------------------------------------------------------
+
+    }
+
+    function paginateCLICK2(page, ind){
+        var pageind = 0;
+        if(ind == 0)
+        {
+            pageind = (parseInt($("#pagenum").val()) + 10);
+        }
+        else
+        {
+            pageind = page;
+        }
+
+        var search = document.getElementById('search_name').value;
+        var year = document.getElementById('year').value;
+
+        viewModel.pageind(pageind);
+        viewModel.searchFunctionBasedonPaginate2(pageind,search,year);
+        viewModel.searchFunctionBasedonPaginate4(pageind,search,year);
+
+    }
+
+
+    $(document).ready(function(){
+
+        var textYear = "Year: " + User.VulnerabilityByState[0].maxYear + " ";
+        $('#labelYear').text(textYear);
+        viewModel.search.search_year = User.VulnerabilityByState[0].maxYear;
+        paginateCLICK2(0, 1);
+    });
+
+    function pullleft(){
+        //alert(document.getElementById("centerframe").className);
+
+        if(document.getElementById("centerframe").className == "col-lg-12"){
+            document.getElementById("leftframe").style.display = "";
+            document.getElementById("pullleftView").style.display = "none";
+            document.getElementById("centerframe").classList.remove('col-lg-12');
+            document.getElementById("centerframe").classList.add('col-lg-10');
+        }
+        else if(document.getElementById("centerframe").className == "col-lg-10"){
+            document.getElementById("leftframe").style.display = "none";
+            document.getElementById("pullleftView").style.display = "";
+            document.getElementById("centerframe").classList.remove('col-lg-10');
+            document.getElementById("centerframe").classList.add('col-lg-12');
+        }
+        else if(document.getElementById("centerframe").className == "col-lg-8"){
+            document.getElementById("leftframe").style.display = "";
+            document.getElementById("pullleftView").style.display = "none";
+            document.getElementById("centerframe").classList.remove('col-lg-8');
+            document.getElementById("centerframe").classList.add('col-lg-6');
+        }
+        else{ //col-lg-6
+            document.getElementById("leftframe").style.display = "none";
+            document.getElementById("pullleftView").style.display = "";
+            document.getElementById("centerframe").classList.remove('col-lg-6');
+            document.getElementById("centerframe").classList.add('col-lg-8');
+        }
+
+        //document.getElementById("leftframe").style.display = "";
+    }
+
+    function pullright(){
+        // alert('right');
+        //alert(document.getElementById("centerframe").className);
+
+        if(document.getElementById("centerframe").className == "col-lg-12"){
+            document.getElementById("rightframe").style.display = "";
+            document.getElementById("pullrightView").style.display = "none";
+            document.getElementById("centerframe").classList.remove('col-lg-12');
+            document.getElementById("centerframe").classList.add('col-lg-8');
+        }
+        else if(document.getElementById("centerframe").className == "col-lg-10"){
+            document.getElementById("rightframe").style.display = "";
+            document.getElementById("pullrightView").style.display = "none";
+            document.getElementById("centerframe").classList.remove('col-lg-10');
+            document.getElementById("centerframe").classList.add('col-lg-6');
+        }
+        else if(document.getElementById("centerframe").className == "col-lg-8"){
+            document.getElementById("rightframe").style.display = "none";
+            document.getElementById("pullrightView").style.display = "";
+            document.getElementById("centerframe").classList.remove('col-lg-8');
+            document.getElementById("centerframe").classList.add('col-lg-12');
+        }
+        else{ //col-lg-6
+            document.getElementById("rightframe").style.display = "none";
+            document.getElementById("pullrightView").style.display = "";
+            document.getElementById("centerframe").classList.remove('col-lg-6');
+            document.getElementById("centerframe").classList.add('col-lg-10');
+        }
+
+
+    }
+
+</script>
+<script type="text/javascript">
+
+    $('#downloadChartContainerImg').click(function(event) {
+        // get size of report page
+        var reportPageHeight = $('#pdfChartContainer').innerHeight();
+        var reportPageWidth = $('#pdfChartContainer').innerWidth();
+
+        // create a new canvas object that we will populate with all other canvas objects
+        var pdfCanvas = $('<canvas />').attr({
+            id: "canvaspdf",
+            width: reportPageWidth,
+            height: reportPageHeight
+        });
+
+        // keep track canvas position
+        var pdfctx = $(pdfCanvas)[0].getContext('2d');
+        var pdfctxX = 0;
+        var pdfctxY = 0;
+        var buffer = 100;
+
+        // for each chart.js chart
+        $("#chartContainer").each(function(index) {
+            // get the chart height/width
+            var canvasHeight = $(this).innerHeight()+40;
+            var canvasWidth = $(this).innerWidth();
+
+            pdfctx.clearRect( 0 , 0 , canvasHeight, canvasWidth );
+            pdfctx.fillStyle="#FFFFFF";
+            pdfctx.fillRect(0 , 0 , canvasHeight, canvasWidth);
+
+            // draw the chart into the new canvas
+            pdfctx.drawImage($(this)[0], pdfctxX, pdfctxY, canvasWidth, canvasHeight);
+            pdfctxX += canvasWidth + buffer;
+
+            // our report page is in a grid pattern so replicate that in the new canvas
+            if (index % 2 === 1) {
+                pdfctxX = 0;
+                pdfctxY += canvasHeight + buffer;
+            }
+        });
+        var canvas = document.getElementById("chartContainer");
+        var img    = pdfCanvas[0].toDataURL("image/png",1);
+
+        var download = document.getElementById("downloadChartContainerImg");
+        download.setAttribute("href", img);
+
+        ResizeMap();
+    });
+
+    $('#downloadChartContainer').click(function(event) {
+        // get size of report page
+        var reportPageHeight = $('#chartContainer').innerHeight();
+        var reportPageWidth = $('#chartContainer').innerWidth();
+
+        // create a new canvas object that we will populate with all other canvas objects
+        var pdfCanvas = $('<canvas style="background-color: #ffffff;"/>').attr({
+            id: "canvaspdf",
+            width: reportPageWidth,
+            height: reportPageHeight
+        });
+
+        // keep track canvas position
+        var pdfctx = $(pdfCanvas)[0].getContext('2d');
+        var pdfctxX = 0;
+        var pdfctxY = 0;
+        var buffer = 100;
+
+        // for each chart.js chart
+        $("#chartContainer").each(function(index) {
+            // get the chart height/width
+            var canvasHeight = $(this).innerHeight();
+            var canvasWidth = $(this).innerWidth();
+
+            pdfctx.clearRect( 0 , 0 , canvasHeight, canvasWidth );
+            pdfctx.fillStyle="#FFFFFF";
+            pdfctx.fillRect(0 , 0 , canvasHeight, canvasWidth);
+
+            // draw the chart into the new canvas
+            pdfctx.drawImage($(this)[0], pdfctxX, pdfctxY, canvasWidth, canvasHeight);
+            pdfctxX += canvasWidth + buffer;
+
+            // our report page is in a grid pattern so replicate that in the new canvas
+            if (index % 2 === 1) {
+                pdfctxX = 0;
+                pdfctxY += canvasHeight + buffer;
+            }
+        });
+
+        // create new pdf and add our new canvas as an image
+        var pdf = new jsPDF('l', 'pt', [reportPageWidth, reportPageHeight]);
+        pdf.setFillColor(255, 255,255,0);
+        pdf.addImage($(pdfCanvas)[0], 'PNG', 0, 0);
+
+        pdf.addPage('a4','portrait');
+        pdf.setFillColor(255, 255,255,0);
+        pdf.autoTable({ html: '#vulTop10CurrYearGraphTable',includeHiddenHtml:true });
+        pdf.save('top10vulnerabilitiescurrentyear.pdf');
+
+        ResizeMap();
+
+        //viewModel.searchTop10CurrYearVulDetail();
+
+    });
+    function downloadTop10CurrYearPDF()
+    {
+
+        // get size of report page
+        var reportPageHeight = $('#pdfChartContainer').innerHeight();
+        var reportPageWidth = $('#pdfChartContainer').innerWidth();
+
+        // create a new canvas object that we will populate with all other canvas objects
+        var pdfCanvas = $('<canvas style="background-color: #ffffff;"/>').attr({
+            id: "canvaspdf",
+            width: reportPageWidth,
+            height: reportPageHeight
+        });
+
+        // keep track canvas position
+        var pdfctx = $(pdfCanvas)[0].getContext('2d');
+        var pdfctxX = 0;
+        var pdfctxY = 0;
+        var buffer = 100;
+
+        // for each chart.js chart
+        $("#chartContainer").each(function(index) {
+            // get the chart height/width
+            var canvasHeight = $(this).innerHeight()+50;
+            var canvasWidth = $(this).innerWidth();
+
+            pdfctx.clearRect( 0 , 0 , canvasHeight, canvasWidth );
+            pdfctx.fillStyle="#FFFFFF";
+            pdfctx.fillRect(0 , 0 , canvasHeight, canvasWidth);
+            // draw the chart into the new canvas
+            pdfctx.drawImage($(this)[0], pdfctxX, pdfctxY, canvasWidth, canvasHeight);
+            pdfctxX += canvasWidth + buffer;
+
+            // our report page is in a grid pattern so replicate that in the new canvas
+            if (index % 2 === 1) {
+                pdfctxX = 0;
+                pdfctxY += canvasHeight + buffer;
+            }
+        });
+
+        // create new pdf and add our new canvas as an image
+        var pdf = new jsPDF('l', 'pt', [reportPageWidth, reportPageHeight]);
+        pdf.setFillColor(255, 255,255,0);
+        pdf.addImage($(pdfCanvas)[0], 'PNG', 0, 0);
+
+        if(viewModel.CVEDetailByTop10CurrYear().length >0)
+        {
+            //add vulnerability detail table
+            pdf.addPage('a4','landscape');
+            pdf.setFillColor(255, 255,255,0);
+            pdf.autoTable({ html: '#vulTop10CurrYearTable',includeHiddenHtml:true });
+        }
+
+        // download the pdf
+        pdf.save('top10vulnerabilitiescurrentyear.pdf');
+        ResizeMap();
+    };
+
+    $('#downloadVulTypeChartContainerImg').click(function(event) {
+        var canvas = document.getElementById("vulTypeChartContainer");
+        var img    = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+
+        var download = document.getElementById("downloadVulTypeChartContainerImg");
+        download.setAttribute("href", img);
+
+        ResizeMap();
+    });
+
+    $('#downloadVulTypeChartContainer').click(function(event) {
+        // get size of report page
+        var reportPageHeight = $('#pdfVulTypeChartContainer').innerHeight();
+        var reportPageWidth = $('#pdfVulTypeChartContainer').innerWidth();
+
+        // create a new canvas object that we will populate with all other canvas objects
+        var pdfCanvas = $('<canvas style="background-color: #ffffff;"/>').attr({
+            id: "canvaspdf",
+            width: reportPageWidth,
+            height: reportPageHeight
+        });
+
+        // keep track canvas position
+        var pdfctx = $(pdfCanvas)[0].getContext('2d');
+        var pdfctxX = 0;
+        var pdfctxY = 0;
+        var buffer = 100;
+
+        // for each chart.js chart
+        $("#vulTypeChartContainer").each(function(index) {
+            // get the chart height/width
+            var canvasHeight = $(this).innerHeight()+50;
+            var canvasWidth = $(this).innerWidth();
+
+            pdfctx.clearRect( 0 , 0 , canvasHeight, canvasWidth );
+            pdfctx.fillStyle="#FFFFFF";
+            pdfctx.fillRect(0 , 0 , canvasHeight, canvasWidth);
+
+            // draw the chart into the new canvas
+            pdfctx.drawImage($(this)[0], pdfctxX, pdfctxY, canvasWidth, canvasHeight);
+            pdfctxX += canvasWidth + buffer;
+
+            // our report page is in a grid pattern so replicate that in the new canvas
+            if (index % 2 === 1) {
+                pdfctxX = 0;
+                pdfctxY += canvasHeight + buffer;
+            }
+        });
+
+        // create new pdf and add our new canvas as an image
+        var pdf = new jsPDF('l', 'pt', [reportPageWidth, reportPageHeight]);
+        pdf.setFillColor(255, 255,255,0);
+        pdf.addImage($(pdfCanvas)[0], 'PNG', 0, 0);
+
+        // download the pdf
+        pdf.save('top10vulnerabilitiescurrentyearbycomplexity.pdf');
+        ResizeMap();
+    });
+
+
+    $('#downloadLineChartContainerImg').click(function(event) {
+        var canvas = document.getElementById("LineChartContainer");
+        var img    = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+
+        var download = document.getElementById("downloadLineChartContainerImg");
+        download.setAttribute("href", img);
+
+        ResizeMap();
+    });
+    $('#downloadLineChartContainer').click(function(event) {
+        // get size of report page
+        var reportPageHeight = $('#LineChartContainer').innerHeight();
+        var reportPageWidth = $('#LineChartContainer').innerWidth();
+
+        // create a new canvas object that we will populate with all other canvas objects
+        var pdfCanvas = $('<canvas style="background-color: #ffffff;"/>').attr({
+            id: "canvaspdf",
+            width: reportPageWidth,
+            height: reportPageHeight
+        });
+
+        // keep track canvas position
+        var pdfctx = $(pdfCanvas)[0].getContext('2d');
+        var pdfctxX = 0;
+        var pdfctxY = 0;
+        var buffer = 100;
+
+        // for each chart.js chart
+        $("#LineChartContainer").each(function(index) {
+            // get the chart height/width
+            var canvasHeight = $(this).innerHeight();
+            var canvasWidth = $(this).innerWidth();
+
+            pdfctx.clearRect( 0 , 0 , canvasHeight, canvasWidth );
+            pdfctx.fillStyle="#FFFFFF";
+            pdfctx.fillRect(0 , 0 , canvasHeight, canvasWidth);
+
+            // draw the chart into the new canvas
+            pdfctx.drawImage($(this)[0], pdfctxX, pdfctxY, canvasWidth, canvasHeight);
+            pdfctxX += canvasWidth + buffer;
+
+            // our report page is in a grid pattern so replicate that in the new canvas
+            if (index % 2 === 1) {
+                pdfctxX = 0;
+                pdfctxY += canvasHeight + buffer;
+            }
+        });
+
+        // create new pdf and add our new canvas as an image
+        var pdf = new jsPDF('l', 'pt', [reportPageWidth, reportPageHeight]);
+        pdf.setFillColor(255, 255,255,0);
+        pdf.addImage($(pdfCanvas)[0], 'PNG', 0, 0);
+
+        pdf.addPage('a4','portrait');
+        pdf.setFillColor(255, 255,255,0);
+        pdf.autoTable({ html: '#vulTop10ToDateGraphTable',includeHiddenHtml:true });
+        pdf.save('top10vulnerabilitiestodate.pdf');
+
+        ResizeMap();
+
+        //viewModel.searchTop10ToDateVulDetail();
+    });
+    function downloadTop10ToDatePDF(){
+
+        // get size of report page
+        var reportPageHeight = $('#pdfLineChartContainer').innerHeight();
+        var reportPageWidth = $('#pdfLineChartContainer').innerWidth();
+
+        // create a new canvas object that we will populate with all other canvas objects
+        var pdfCanvas = $('<canvas style="background-color: #ffffff;"/>').attr({
+            id: "canvaspdf",
+            width: reportPageWidth,
+            height: reportPageHeight
+        });
+
+        // keep track canvas position
+        var pdfctx = $(pdfCanvas)[0].getContext('2d');
+        var pdfctxX = 0;
+        var pdfctxY = 0;
+        var buffer = 100;
+
+        // for each chart.js chart
+        $("#LineChartContainer").each(function(index) {
+            // get the chart height/width
+            var canvasHeight = $(this).innerHeight()+60;
+            var canvasWidth = $(this).innerWidth();
+
+            pdfctx.clearRect( 0 , 0 , canvasHeight, canvasWidth );
+            pdfctx.fillStyle="#FFFFFF";
+            pdfctx.fillRect(0 , 0 , canvasHeight, canvasWidth);
+
+            // draw the chart into the new canvas
+            pdfctx.drawImage($(this)[0], pdfctxX, pdfctxY, canvasWidth, canvasHeight);
+            pdfctxX += canvasWidth + buffer;
+
+            // our report page is in a grid pattern so replicate that in the new canvas
+            if (index % 2 === 1) {
+                pdfctxX = 0;
+                pdfctxY += canvasHeight + buffer;
+            }
+        });
+
+        // create new pdf and add our new canvas as an image
+        var pdf = new jsPDF('l', 'pt', [reportPageWidth, reportPageHeight]);
+        pdf.setFillColor(255, 255,255,0);
+        pdf.addImage($(pdfCanvas)[0], 'PNG', 0, 0);
+
+        if(viewModel.CVEDetailByTop10ToDate().length >0)
+        {
+            //add vulnerability detail table
+            pdf.addPage('a4','landscape');
+            pdf.setFillColor(255, 255,255,0);
+            pdf.autoTable({ html: '#vulTop10ToDateTable',includeHiddenHtml:true });
+        }
+
+        // download the pdf
+        pdf.save('top10vulnerabilitiestodate.pdf');
+        ResizeMap();
+    };
+
+    $('#downloadpieChartContainerImg').click(function(event) {
+        var canvas = document.getElementById("pieChartContainer");
+        var img    = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+
+        var download = document.getElementById("downloadpieChartContainerImg");
+        download.setAttribute("href", img);
+
+        ResizeMap();
+    });
+    $('#downloadpieChartContainer').click(function(event) {
+        // get size of report page
+        var reportPageHeight = $('#pieChartContainer').innerHeight();
+        var reportPageWidth = $('#pieChartContainer').innerWidth();
+
+        // create a new canvas object that we will populate with all other canvas objects
+        var pdfCanvas = $('<canvas style="background-color: #ffffff;"/>').attr({
+            id: "canvaspdf",
+            width: reportPageWidth,
+            height: reportPageHeight
+        });
+
+        // keep track canvas position
+        var pdfctx = $(pdfCanvas)[0].getContext('2d');
+        var pdfctxX = 0;
+        var pdfctxY = 0;
+        var buffer = 100;
+
+        // for each chart.js chart
+        $("#pieChartContainer").each(function(index) {
+            // get the chart height/width
+            var canvasHeight = $(this).innerHeight();
+            var canvasWidth = $(this).innerWidth();
+
+            pdfctx.clearRect( 0 , 0 , canvasHeight, canvasWidth );
+            pdfctx.fillStyle="#FFFFFF";
+            pdfctx.fillRect(0 , 0 , canvasHeight, canvasWidth);
+
+            // draw the chart into the new canvas
+            pdfctx.drawImage($(this)[0], pdfctxX, pdfctxY, canvasWidth, canvasHeight);
+            pdfctxX += canvasWidth + buffer;
+
+            // our report page is in a grid pattern so replicate that in the new canvas
+            if (index % 2 === 1) {
+                pdfctxX = 0;
+                pdfctxY += canvasHeight + buffer;
+            }
+        });
+
+        // create new pdf and add our new canvas as an image
+        var pdf = new jsPDF('l', 'pt', [reportPageWidth, reportPageHeight]);
+        pdf.setFillColor(255, 255,255,0);
+        pdf.addImage($(pdfCanvas)[0], 'PNG', 0, 0);
+
+        pdf.addPage('a4','portrait');
+        pdf.setFillColor(255, 255,255,0);
+        pdf.autoTable({ html: '#vulTop10FiveYearGraphTable',includeHiddenHtml:true });
+        pdf.save('top10vulnerabilities5years.pdf');
+
+        ResizeMap();
+        //viewModel.searchTop10FiveYearVulDetail();
+    });
+    function downloadTop10FiveYearPDF() {
+        // get size of report page
+        var reportPageHeight = $('#pdfpieChartContainer').innerHeight();
+        var reportPageWidth = $('#pdfpieChartContainer').innerWidth();
+
+        // create a new canvas object that we will populate with all other canvas objects
+        var pdfCanvas = $('<canvas style="background-color: #ffffff;"/>').attr({
+            id: "canvaspdf",
+            width: reportPageWidth,
+            height: reportPageHeight
+        });
+
+        // keep track canvas position
+        var pdfctx = $(pdfCanvas)[0].getContext('2d');
+        var pdfctxX = 0;
+        var pdfctxY = 0;
+        var buffer = 100;
+
+        // for each chart.js chart
+        $("#pieChartContainer").each(function(index) {
+            // get the chart height/width
+            var canvasHeight = $(this).innerHeight()+60;
+            var canvasWidth = $(this).innerWidth();
+
+            pdfctx.clearRect( 0 , 0 , canvasHeight, canvasWidth );
+            pdfctx.fillStyle="#FFFFFF";
+            pdfctx.fillRect(0 , 0 , canvasHeight, canvasWidth);
+
+            // draw the chart into the new canvas
+            pdfctx.drawImage($(this)[0], pdfctxX, pdfctxY, canvasWidth, canvasHeight);
+            pdfctxX += canvasWidth + buffer;
+
+            // our report page is in a grid pattern so replicate that in the new canvas
+            if (index % 2 === 1) {
+                pdfctxX = 0;
+                pdfctxY += canvasHeight + buffer;
+            }
+        });
+
+        // create new pdf and add our new canvas as an image
+        var pdf = new jsPDF('l', 'pt', [reportPageWidth, reportPageHeight]);
+        pdf.setFillColor(255, 255,255,0);
+        pdf.addImage($(pdfCanvas)[0], 'PNG', 0, 0);
+
+        if(viewModel.CVEDetailByTop10FiveYear().length >0)
+        {
+            //add vulnerability detail table
+            pdf.addPage('a4','landscape');
+            pdf.setFillColor(255, 255,255,0);
+            pdf.autoTable({ html: '#vulTop10FiveYearTable',includeHiddenHtml:true });
+        }
+
+        // download the pdf
+        pdf.save('top10vulnerabilities5years.pdf');
+        ResizeMap();
+    };
+
+
+    $('#downloadproductChartContainerImg').click(function(event) {
+        var canvas = document.getElementById("productChartContainer");
+        var img    = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+
+        var download = document.getElementById("downloadproductChartContainerImg");
+        download.setAttribute("href", img);
+
+        ResizeMap();
+    });
+    $('#downloadproductChartContainer').click(function(event) {
+        // get size of report page
+        var reportPageHeight = $('#productChartContainer').innerHeight();
+        var reportPageWidth = $('#productChartContainer').innerWidth();
+
+        // create a new canvas object that we will populate with all other canvas objects
+        var pdfCanvas = $('<canvas style="background-color: #ffffff;"/>').attr({
+            id: "canvaspdf",
+            width: reportPageWidth,
+            height: reportPageHeight
+        });
+
+        // keep track canvas position
+        var pdfctx = $(pdfCanvas)[0].getContext('2d');
+        var pdfctxX = 0;
+        var pdfctxY = 0;
+        var buffer = 100;
+
+        // for each chart.js chart
+        $("#productChartContainer").each(function(index) {
+            // get the chart height/width
+            var canvasHeight = $(this).innerHeight();
+            var canvasWidth = $(this).innerWidth();
+
+            pdfctx.clearRect( 0 , 0 , canvasHeight, canvasWidth );
+            pdfctx.fillStyle="#FFFFFF";
+            pdfctx.fillRect(0 , 0 , canvasHeight, canvasWidth);
+
+            // draw the chart into the new canvas
+            pdfctx.drawImage($(this)[0], pdfctxX, pdfctxY, canvasWidth, canvasHeight);
+            pdfctxX += canvasWidth + buffer;
+
+            // our report page is in a grid pattern so replicate that in the new canvas
+            if (index % 2 === 1) {
+                pdfctxX = 0;
+                pdfctxY += canvasHeight + buffer;
+            }
+        });
+
+        // create new pdf and add our new canvas as an image
+        var pdf = new jsPDF('l', 'pt', [reportPageWidth, reportPageHeight]);
+        pdf.setFillColor(255, 255,255,0);
+        pdf.addImage($(pdfCanvas)[0], 'PNG', 0, 0);
+
+        pdf.addPage('a4','portrait');
+        pdf.setFillColor(255, 255,255,0);
+        pdf.autoTable({ html: '#vulCategoryGraphTable',includeHiddenHtml:true });
+        pdf.save('vulnerabilitybycategory.pdf');
+
+        ResizeMap();
+        //viewModel.searchVulByCategoryVulDetail();
+    });
+    function downloadVulByCategoryPDF(){
+        // get size of report page
+        var reportPageHeight = $('#pdfproductChartContainer').innerHeight();
+        var reportPageWidth = $('#pdfproductChartContainer').innerWidth();
+
+        // create a new canvas object that we will populate with all other canvas objects
+        var pdfCanvas = $('<canvas style="background-color: #ffffff;"/>').attr({
+            id: "canvaspdf",
+            width: reportPageWidth,
+            height: reportPageHeight
+        });
+
+        // keep track canvas position
+        var pdfctx = $(pdfCanvas)[0].getContext('2d');
+        var pdfctxX = 0;
+        var pdfctxY = 0;
+        var buffer = 100;
+
+        // for each chart.js chart
+        $("#productChartContainer").each(function(index) {
+            // get the chart height/width
+            var canvasHeight = $(this).innerHeight()+60;
+            var canvasWidth = $(this).innerWidth();
+
+            pdfctx.clearRect( 0 , 0 , canvasHeight, canvasWidth );
+            pdfctx.fillStyle="#FFFFFF";
+            pdfctx.fillRect(0 , 0 , canvasHeight, canvasWidth);
+
+            // draw the chart into the new canvas
+            pdfctx.drawImage($(this)[0], pdfctxX, pdfctxY, canvasWidth, canvasHeight);
+            pdfctxX += canvasWidth + buffer;
+
+            // our report page is in a grid pattern so replicate that in the new canvas
+            if (index % 2 === 1) {
+                pdfctxX = 0;
+                pdfctxY += canvasHeight + buffer;
+            }
+        });
+
+        // create new pdf and add our new canvas as an image
+        var pdf = new jsPDF('l', 'pt', [reportPageWidth, reportPageHeight]);
+        pdf.setFillColor(255, 255,255,0);
+        pdf.addImage($(pdfCanvas)[0], 'PNG', 0, 0);
+
+        if(viewModel.CVEDetailByCategory().length >0)
+        {
+            //add vulnerability detail table
+            pdf.addPage('a4','landscape');
+            pdf.setFillColor(255, 255,255,0);
+            pdf.autoTable({ html: '#vulCategoryTable',includeHiddenHtml:true });
+        }
+
+        // download the pdf
+        pdf.save('vulnerabilitybycategory.pdf');
+        ResizeMap();
+    };
+
+
+    $('#downloadVendorChartContainerImg').click(function(event) {
+        var canvas = document.getElementById("VendorChartContainer");
+        var img    = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+
+        var download = document.getElementById("downloadVendorChartContainerImg");
+        download.setAttribute("href", img);
+
+        ResizeMap();
+    });
+    $('#downloadVendorChartContainer').click(function(event) {
+        // get size of report page
+        var reportPageHeight = $('#VendorChartContainer').innerHeight();
+        var reportPageWidth = $('#VendorChartContainer').innerWidth();
+
+        // create a new canvas object that we will populate with all other canvas objects
+        var pdfCanvas = $('<canvas style="background-color: #ffffff;"/>').attr({
+            id: "canvaspdf",
+            width: reportPageWidth,
+            height: reportPageHeight
+        });
+
+        // keep track canvas position
+        var pdfctx = $(pdfCanvas)[0].getContext('2d');
+        var pdfctxX = 0;
+        var pdfctxY = 0;
+        var buffer = 100;
+
+        // for each chart.js chart
+        $("#VendorChartContainer").each(function(index) {
+            // get the chart height/width
+            var canvasHeight = $(this).innerHeight();
+            var canvasWidth = $(this).innerWidth();
+
+            pdfctx.clearRect( 0 , 0 , canvasHeight, canvasWidth );
+            pdfctx.fillStyle="#FFFFFF";
+            pdfctx.fillRect(0 , 0 , canvasHeight, canvasWidth);
+
+            // draw the chart into the new canvas
+            pdfctx.drawImage($(this)[0], pdfctxX, pdfctxY, canvasWidth, canvasHeight);
+            pdfctxX += canvasWidth + buffer;
+
+            // our report page is in a grid pattern so replicate that in the new canvas
+            if (index % 2 === 1) {
+                pdfctxX = 0;
+                pdfctxY += canvasHeight + buffer;
+            }
+        });
+
+        // create new pdf and add our new canvas as an image
+        var pdf = new jsPDF('l', 'pt', [reportPageWidth, reportPageHeight]);
+        pdf.setFillColor(255, 255,255,0);
+        pdf.addImage($(pdfCanvas)[0], 'PNG', 0, 0);
+
+        pdf.addPage('a4','portrait');
+        pdf.setFillColor(255, 255,255,0);
+        pdf.autoTable({ html: '#vulBrandGraphTable',includeHiddenHtml:true });
+        pdf.save('vulnerabilitybybrandgraph.pdf');
+
+        ResizeMap();
+    });
+    
+    $('#downloadMapContainerImg').click(function(event) {
+        downloadSvg(document.getElementsByTagName('svg')[0], 'vulnerability_map.png');
+
+        ResizeMap();
+    });
+    $('#downloadMapContainer').click(function(event) {
+        viewModel.search.search_state_cd = '';
+        viewModel.searchFunctionManualInputStateList(0,'','','','','','','','','','','','')
+    });
+    $('#downloadMapAllStates').click(function(event) {
+        viewModel.search.search_state_cd = '';
+        viewModel.searchFunctionManualInputStateList(0,'','','','','','','','','','','','')
+    });
+    $('#downloadMapSelectedStates').click(function(event) {
+        // retrieve all checked box
+        var searchIDs = $("input:checkbox:checked").map(function(){
+            return $(this).val();
+        }).get(); // <----
+        var stateCodes = searchIDs.join("','");
+        viewModel.search.search_state_cd = '';
+        viewModel.searchFunctionManualInputStateMultiple(0,'','','','','','','','','','','',stateCodes,viewModel.search.search_year)
+    });
+    function downloadVulByStatePDF(){
+        
+        // get size of report page
+        var reportPageHeight = $('#mapMyCERT').innerHeight();
+        var reportPageWidth = $('#mapMyCERT').innerWidth();
+
+        // create a new canvas object that we will populate with all other canvas objects
+        var pdfCanvas = $('<canvas style="background-color: #ffffff;"/>').attr({
+            id: "canvaspdf",
+            width: reportPageWidth,
+            height: reportPageHeight
+        });
+
+        // keep track canvas position
+        var pdfctx = $(pdfCanvas)[0].getContext('2d');
+        var pdfctxX = 0;
+        var pdfctxY = 0;
+        var buffer = 100;
+        
+        var svg = document.getElementsByTagName('svg')[0];
+        var svgSize = svg.getBoundingClientRect();
+        svg.setAttribute('width', svgSize.width+'px');
+        svg.setAttribute('height',  svgSize.height+'px');
+        svg.removeAttribute('xmlns:xlink');
+        svg.removeAttribute('xmlns');
+        //svg.removeAttribute('version');
+        if (typeof window.XMLSerializer != "undefined") {
+            var svgData = (new XMLSerializer()).serializeToString(svg);
+        } else if (typeof svg.xml != "undefined") {
+            var svgData = svg.xml;
+        }
+        
+        var bbox = svg.getBBox();
+        var pdf = new jsPDF('l', 'pt', [bbox.width, bbox.height]);
+        pdf.setFillColor(255, 255,255,0);
+
+        var canvas = document.createElement("canvas");
+        canvas.width = svgSize.width;
+        canvas.height = svgSize.height;
+        var ctx = canvas.getContext("2d");
+        var img = document.createElement("img");
+        img.crossOrigin = "Anonymous";
+        img.setAttribute("src", "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData))) );
+
+
+        canvgv2(canvas, svgData,{
+            renderCallback:
+               function()
+               {
+                   
+                   if (typeof navigator !== "undefined" && navigator.msSaveOrOpenBlob)
+                   {
+                       var _dataURL = canvas.toDataURL('image/png');
+                       var imgURI = _dataURL.replace("image/png", "image/octet-stream");
+                       var base64str = imgURI.replace(/^data:image\/[a-z._-]+;base64,/, "");
+                       pdf.addImage(base64str, 'PNG', 100, 50);
+                       pdf.addPage('a4','landscape');
+                       pdf.setFillColor(255, 255,255,0);
+
+                       pdf.autoTable({
+                           html: '#vulStateGraphTable',
+                           styles: { overflow: 'linebreak', cellWidth: 'wrap',
+                               fontSize: 8 },
+                           columnStyles: {
+                               0: {cellWidth: 30},
+                               1: {cellWidth: 'auto'},
+                               2: {cellWidth: 120},
+                               3: {cellWidth: 'auto'},
+                               4: {cellWidth: 80},
+                               5: {cellWidth: 90},
+                               6: {cellWidth: 65},
+                               7: {cellWidth: 40},
+                           },
+                           includeHiddenHtml:true
+                       });
+                       pdf.save('vulnerabilitybystate.pdf');
+                   } 
+                   else {
+                       var _dataURL = canvas.toDataURL('image/png');
+                       var imgURI = _dataURL.replace("image/png", "image/octet-stream");
+                       var base64str = imgURI.replace(/^data:image\/[a-z._-]+;base64,/, "");
+                       pdf.addImage(base64str, 'PNG', 100, 50);
+                       pdf.addPage('a4','landscape');
+                       pdf.setFillColor(255, 255,255,0);
+
+                       pdf.autoTable({
+                           html: '#vulStateGraphTable',
+                           styles: { overflow: 'linebreak', cellWidth: 'wrap',
+                               fontSize: 8 },
+                           columnStyles: {
+                               0: {cellWidth: 30},
+                               1: {cellWidth: 'auto'},
+                               2: {cellWidth: 120},
+                               3: {cellWidth: 'auto'},
+                               4: {cellWidth: 80},
+                               5: {cellWidth: 90},
+                               6: {cellWidth: 65},
+                               7: {cellWidth: 40},
+                           },
+                           includeHiddenHtml:true
+                       });
+                       pdf.save('vulnerabilitybystate.pdf');
+
+                       ResizeMap();
+                   }
+               }
+        });
+    }
+
+    $('#downloadByState').click(function(event) {
+        viewModel.searchFunctionManualInputStateList(0,'','','','','','','','','','','',viewModel.search.search_state_cd,viewModel.search.search_year)
+    });
+</script>
+
+<script type="text/javascript">
+
+    $('.modal').on('hidden.bs.modal', function (e) {
+        if($('.modal').hasClass('in')) {
+            $('body').addClass('modal-open');
+        }    
+    });
+
+    function stateClicked(d)
+    {
+        // call ajax by data abbreviation
+        // display listing in modal
+        viewModel.search.search_state_cd = d.url;
+        
+        viewModel.searchFunctionBasedonPaginate3(0,'','','','','','','','','','','',d.url,viewModel.search.search_year)
+        $("#pagenum").val(0);
+        viewModel.pageind(0);
+        setSearchStateCd(d.url);
+        setHeaderTitle(d.name);
+        //loadListing();
+        $('#MapListInfoModel').modal();
+
+    }
+
+
+    function MapModalBack() {
+        $('#MapListInfoModel').modal('hide');
+    }
+
+    function ResizeMap(){
+        var svg = $('#malaysia-map').find('svg')[0];
+
+        //var viewBox = svg.getAttribute('viewBox');
+
+        svg.removeAttribute('width');
+        svg.removeAttribute('height');
+
+        //svg.setAttribute('viewBox', viewBox);
+        svg.setAttribute('preserveAspectRatio', 'xMinYMin meet');
+
+        svg.setAttribute('width', '100%');
+        svg.setAttribute('height', '100%');
+        $(".jsmaps-text").remove();
+        $(".jsmaps-wrapper").removeAttr("style")
+        //$(".jsmaps-wrapper").setAttribute('width', '1000px');
+        //$(".jsmaps-wrapper").setAttribute('height', '400px');
+        $(".jsmaps-wrapper").css({"height":"400px", "margin-left":"250px"});
+
+    }
+
+    function FirstResize(){
+        var svg = $('#malaysia-map').find('svg')[0];
+
+        var w = svg.getAttribute('width').replace('px', '');
+        var h = svg.getAttribute('height').replace('px', '');
+
+        svg.removeAttribute('width');
+        svg.removeAttribute('height');
+
+        //svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+        svg.setAttribute('preserveAspectRatio', 'xMinYMin meet');
+
+        svg.setAttribute('width', '100%');
+        svg.setAttribute('height', '100%');
+        $(".jsmaps-text").remove();
+        $(".jsmaps-wrapper").removeAttr("style")
+        //$(".jsmaps-wrapper").setAttribute('width', '1000px');
+        //$(".jsmaps-wrapper").setAttribute('height', '400px');
+        $(".jsmaps-wrapper").css({"height":"400px", "margin-left":"250px"});
+
+    }
+
+    function drawVulTypeChart (index){
+        $('#pdfVulTypeChartContainer').empty();
+        $('#pdfVulTypeChartContainer').append('<canvas id="vulTypeChartContainer" class="white-background"><canvas>');
+
+        $('#vulTypeChartContainer').css('width', '100%');
+        //$('#vulTypeChartContainer').css('height', '300px');
+
+        var arrValue = [];
+        var count = 0;
+        arrValue.push(User.StatisticTop10ForCurrYear[index].undefCaseCount);
+        arrValue.push(User.StatisticTop10ForCurrYear[index].lowCaseCount);
+        arrValue.push(User.StatisticTop10ForCurrYear[index].medCaseCount);
+        arrValue.push(User.StatisticTop10ForCurrYear[index].highCaseCount);
+        var arrLabel = ['Undefined','Low','Medium','High'];
+        var vulTypeChartTitle = User.StatisticTop10ForCurrYear[index].VulnerabilityType + ' vulnerabilities by Complexity'
+
+
+        var ctx = document.getElementById("vulTypeChartContainer").getContext('2d');
+        //ctx.height = 400;
+        var myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: arrLabel,
+                datasets: [{
+                    //label: '# of Votes',
+                    data: arrValue,
+                    backgroundColor: '#fb8c00',
+                    borderColor: '#fb8c00',
+                    fill: false,
+                }]
+            },
+            options: {
+                legend: {
+                    display: false
+                },
+                responsive: true,
+                maintainAspectRatio: false,
+                title: {
+                    display: true,
+                    text: vulTypeChartTitle,
+                    fontSize: 20,
+                },
+                scales: {
+                    xAxes: [{
+                        stacked: false,
+                        beginAtZero: true,
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Complexity ',
+                            fontStyle: "bold"
+                        },
+                        ticks: {
+                            stepSize: 1,
+                            min: 0,
+                            autoSkip: false,
+                            callback: function(t) {
+                                var maxLabelLength = 20;
+                                if (t.length > maxLabelLength) return t.substr(0, maxLabelLength) + '...';
+                                else return t;
+
+
+                            },
+                            fontStyle: "bold"
+                        }
+                    }],
+                    yAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Number of Vulnerabilities',
+                            fontStyle: "bold"
+                        },
+                        ticks: {
+                            fontStyle: "bold"
+                        }
+                    }]
+
+                },
+                tooltips: {
+                    callbacks: {
+                        title: function(t, d) {
+                            return d.labels[t[0].index];
+                        }
+                    }
+                },
+                onClick: function(c,i) {
+                    showTop10CurrYearChart();
+                }
+            }
+        });
+        hideTop10CurrYearChart();
+        ResizeMap();
+    }
+
+    function hideTop10CurrYearChart(){
+        $('#divTop10Chart').hide();
+        $('#divVulTypeChart').show();
+        $('#downloadVulTypeChartContainer').show();
+        $('#downloadVulTypeChartContainerImg').show();
+        $('#downloadVendorChartContainer').hide();
+        $('#downloadVendorChartContainerImg').hide();
+
+    }
+
+    function showTop10CurrYearChart(){
+        $('#divVulTypeChart').hide();
+        $('#downloadVulTypeChartContainer').hide();
+        $('#downloadVulTypeChartContainerImg').hide();
+        $('#downloadVendorChartContainer').show();
+        $('#downloadVendorChartContainerImg').show();
+        $('#divTop10Chart').show();
+    }
+
+    $(document).ready(function () {
+        showTop10CurrYearChart();
+        $('#vulBrandTableContainer').hide();
+        $('#vulTop10CurrYearTableContainer').hide();
+        $('#vulTop10ToDateTableContainer').hide();
+        $('#vulTop10FiveYearTableContainer').hide();
+        $('#vulCategoryTableContainer').hide();
+        $('#vendorChartTableContainer').hide();
+        $('#chartTableContainer').hide();
+        $('#pieChartTableContainer').hide();
+        $('#productChartTableContainer').hide();
+        $('#LineChartTableContainer').hide();
+        $('#vulStatesTableContainer').hide();
+
+    });
+
+    $( window ).resize(function() {
+        ResizeMap();
+    });
+</script>
+
+<script type="text/javascript">
+    var dataToTable = function (brand, number) {
+        var html = '<table class="table table-condensed" style="width:40%; margin: 0 auto;" id="vulBrandGraphTable">';
+        html += '<thead style="background-color:moccasin"><tr>';
+
+        var columnCount = 0;
+        html += '<th style="background-color:rgba(220,220,220,0.2);">Vulnerability Brand</th>';
+        columnCount += 1;
+        html += '<th style="background-color:rgba(55,187,205,0.2);">Vulnerability Number</th>';
+        columnCount += 1;
+
+        html += '</tr></thead>';
+
+        jQuery.each(brand, function (idx, item) {
+            html += '<tr><td><a onclick="brandClicked('+idx+')" style="color:rgb(0,0,200)">' + item + '</a></td>';
+            html += '<td>' + number[idx] + '</td>';
+            html += '</tr>';
+        });
+
+        html += '</tr><tbody></table>';
+
+        return html;
+    };
+
+
+    var brandClickedName;
+    function brandClicked(idx)
+    {
+        brandClickedName = User.VulnerabilitybyVendor[idx].ProductVendor;
+        viewModel.searchVulByVendor(User.VulnerabilitybyVendor[idx].ProductVendor);
+
+    }
+    function yearClicked(year)
+    {
+        viewModel.search.search_year = year;
+        viewModel.searchFunctionManualInputStateYear(year);
+    }
+
+
+    var dataToTable2 = function (arrList) {
+        var arrLength = arrList.length;
+        var html = '<table class="table table-condensed" style="width:40%; margin: 0 auto;" id="vulBrandTable">';
+        html += '<thead style="background-color:moccasin"><tr>';
+
+        var columnCount = 0;
+        html += '<th>No.</th>';
+        columnCount += 1;
+        html += '<th>CVE ID</th>';
+        columnCount += 1;
+        html += '<th>Vulnerability Type</th>';
+        columnCount += 1;
+        html += '<th>Score</th>';
+        columnCount += 1;
+        html += '<th>Complexity</th>';
+        columnCount += 1;
+        html += '<th>Summary</th>';
+        columnCount += 1;
+
+        html += '</tr></thead><tbody>';
+
+        for (idx = 0; idx < arrLength; idx++)
+        {
+            html += '<tr><td>' + (idx+1) + '</td>';
+            html += '<td>' + arrList[idx].CVEId + '</td>';
+            html += '<td>' + arrList[idx].VulnerabilityType + '</td>';
+            html += '<td>' + arrList[idx].Score + '</td>';
+            html += '<td>' + arrList[idx].Complexity + '</td>';
+            html += '<td>' + arrList[idx].Summary + '</td>';
+            html += '</tr>';
+        }
+
+        html += '</tbody></table>';
+
+        return html;
+    };
+
+    var dataToTableTop10CurrYear = function (brand, number) {
+        var html = '<table class="table table-condensed" style="width:40%; margin: 0 auto;" id="vulTop10CurrYearGraphTable">';
+        html += '<thead style="background-color:moccasin"><tr>';
+
+        var columnCount = 0;
+        html += '<th style="background-color:rgba(220,220,220,0.2);">Vulnerability Type</th>';
+        columnCount += 1;
+        html += '<th style="background-color:rgba(55,187,205,0.2);">Vulnerability Number</th>';
+        columnCount += 1;
+
+        html += '</tr></thead>';
+
+        jQuery.each(brand, function (idx, item) {
+            html += '<tr><td><a onclick="brandClicked('+idx+')" style="color:rgb(0,0,200)">' + item + '</a></td>';
+            html += '<td>' + number[idx] + '</td>';
+            html += '</tr>';
+        });
+
+        html += '</tr><tbody></table>';
+
+        return html;
+    };
+    var dataToTableTop10CurrYear2 = function (arrList) {
+        var arrLength = arrList.length;
+        var html = '<table class="table table-condensed" style="width:40%; margin: 0 auto;" id="vulTop10CurrYearTable">';
+        html += '<thead style="background-color:moccasin"><tr>';
+
+        var columnCount = 0;
+        html += '<th>No.</th>';
+        columnCount += 1;
+        html += '<th>CVE ID</th>';
+        columnCount += 1;
+        html += '<th>Vulnerability Type</th>';
+        columnCount += 1;
+        html += '<th>Score</th>';
+        columnCount += 1;
+        html += '<th>Complexity</th>';
+        columnCount += 1;
+        html += '<th>Summary</th>';
+        columnCount += 1;
+
+        html += '</tr></thead><tbody>';
+
+        for (idx = 0; idx < arrLength; idx++)
+        {
+            html += '<tr><td>' + (idx+1) + '</td>';
+            html += '<td>' + arrList[idx].CVEId + '</td>';
+            html += '<td>' + arrList[idx].VulnerabilityType + '</td>';
+            html += '<td>' + arrList[idx].Score + '</td>';
+            html += '<td>' + arrList[idx].Complexity + '</td>';
+            html += '<td>' + arrList[idx].Summary + '</td>';
+            html += '</tr>';
+        }
+
+        html += '</tbody></table>';
+
+        return html;
+    };
+
+    var dataToTableTop10ToDate = function (brand, number) {
+        var html = '<table class="table table-condensed" style="width:40%; margin: 0 auto;" id="vulTop10ToDateGraphTable">';
+        html += '<thead style="background-color:moccasin"><tr>';
+
+        var columnCount = 0;
+        html += '<th style="background-color:rgba(220,220,220,0.2);">Vulnerability Type</th>';
+        columnCount += 1;
+        html += '<th style="background-color:rgba(55,187,205,0.2);">Vulnerability Number</th>';
+        columnCount += 1;
+
+        html += '</tr></thead>';
+
+        jQuery.each(brand, function (idx, item) {
+            html += '<tr><td><a onclick="brandClicked('+idx+')" style="color:rgb(0,0,200)">' + item + '</a></td>';
+            html += '<td>' + number[idx] + '</td>';
+            html += '</tr>';
+        });
+
+        html += '</tr><tbody></table>';
+
+        return html;
+    };
+    var dataToTableTop10ToDate2 = function (arrList) {
+        var arrLength = arrList.length;
+        var html = '<table class="table table-condensed" style="width:40%; margin: 0 auto;" id="vulTop10ToDateTable">';
+        html += '<thead style="background-color:moccasin"><tr>';
+
+        var columnCount = 0;
+        html += '<th>No.</th>';
+        columnCount += 1;
+        html += '<th>CVE ID</th>';
+        columnCount += 1;
+        html += '<th>Vulnerability Type</th>';
+        columnCount += 1;
+        html += '<th>Score</th>';
+        columnCount += 1;
+        html += '<th>Complexity</th>';
+        columnCount += 1;
+        html += '<th>Summary</th>';
+        columnCount += 1;
+
+        html += '</tr></thead><tbody>';
+
+        for (idx = 0; idx < arrLength; idx++)
+        {
+            html += '<tr><td>' + (idx+1) + '</td>';
+            html += '<td>' + arrList[idx].CVEId + '</td>';
+            html += '<td>' + arrList[idx].VulnerabilityType + '</td>';
+            html += '<td>' + arrList[idx].Score + '</td>';
+            html += '<td>' + arrList[idx].Complexity + '</td>';
+            html += '<td>' + arrList[idx].Summary + '</td>';
+            html += '</tr>';
+        }
+
+        html += '</tbody></table>';
+
+        return html;
+    };
+
+
+    var dataToTableTop10FiveYear = function (brand, number) {
+        var html = '<table class="table table-condensed" style="width:40%; margin: 0 auto;" id="vulTop10FiveYearGraphTable">';
+        html += '<thead style="background-color:moccasin"><tr>';
+
+        var columnCount = 0;
+        html += '<th style="background-color:rgba(220,220,220,0.2);">Vulnerability Type</th>';
+        columnCount += 1;
+        html += '<th style="background-color:rgba(55,187,205,0.2);">Vulnerability Number</th>';
+        columnCount += 1;
+
+        html += '</tr></thead>';
+
+        jQuery.each(brand, function (idx, item) {
+            html += '<tr><td><a onclick="brandClicked('+idx+')" style="color:rgb(0,0,200)">' + item + '</a></td>';
+            html += '<td>' + number[idx] + '</td>';
+            html += '</tr>';
+        });
+
+        html += '</tr><tbody></table>';
+
+        return html;
+    };
+    var dataToTableTop10FiveYear2 = function (arrList) {
+        var arrLength = arrList.length;
+        var html = '<table class="table table-condensed" style="width:40%; margin: 0 auto;" id="vulTop10FiveYearTable">';
+        html += '<thead style="background-color:moccasin"><tr>';
+
+        var columnCount = 0;
+        html += '<th>No.</th>';
+        columnCount += 1;
+        html += '<th>CVE ID</th>';
+        columnCount += 1;
+        html += '<th>Vulnerability Type</th>';
+        columnCount += 1;
+        html += '<th>Score</th>';
+        columnCount += 1;
+        html += '<th>Complexity</th>';
+        columnCount += 1;
+        html += '<th>Summary</th>';
+        columnCount += 1;
+
+        html += '</tr></thead><tbody>';
+
+        for (idx = 0; idx < arrLength; idx++)
+        {
+            html += '<tr><td>' + (idx+1) + '</td>';
+            html += '<td>' + arrList[idx].CVEId + '</td>';
+            html += '<td>' + arrList[idx].VulnerabilityType + '</td>';
+            html += '<td>' + arrList[idx].Score + '</td>';
+            html += '<td>' + arrList[idx].Complexity + '</td>';
+            html += '<td>' + arrList[idx].Summary + '</td>';
+            html += '</tr>';
+        }
+
+        html += '</tbody></table>';
+
+        return html;
+    };
+
+    var dataToTableCategory = function (brand, number) {
+        var html = '<table class="table table-condensed" style="width:40%; margin: 0 auto;" id="vulCategoryGraphTable">';
+        html += '<thead style="background-color:moccasin"><tr>';
+
+        var columnCount = 0;
+        html += '<th style="background-color:rgba(220,220,220,0.2);">Vulnerability Category</th>';
+        columnCount += 1;
+        html += '<th style="background-color:rgba(55,187,205,0.2);">Vulnerability Number</th>';
+        columnCount += 1;
+
+        html += '</tr></thead>';
+
+        jQuery.each(brand, function (idx, item) {
+            html += '<tr><td><a onclick="brandClicked('+idx+')" style="color:rgb(0,0,200)">' + item + '</a></td>';
+            html += '<td>' + number[idx] + '</td>';
+            html += '</tr>';
+        });
+
+        html += '</tr><tbody></table>';
+
+        return html;
+    };
+    var dataToTableCategory2 = function (arrList) {
+        var arrLength = arrList.length;
+        var html = '<table class="table table-condensed" style="width:40%; margin: 0 auto;" id="vulCategoryTable">';
+        html += '<thead style="background-color:moccasin"><tr>';
+
+        var columnCount = 0;
+        html += '<th>No.</th>';
+        columnCount += 1;
+        html += '<th>CVE ID</th>';
+        columnCount += 1;
+        html += '<th>Vulnerability Type</th>';
+        columnCount += 1;
+        html += '<th>Score</th>';
+        columnCount += 1;
+        html += '<th>Complexity</th>';
+        columnCount += 1;
+        html += '<th>Summary</th>';
+        columnCount += 1;
+
+        html += '</tr></thead><tbody>';
+
+        for (idx = 0; idx < arrLength; idx++)
+        {
+            html += '<tr><td>' + (idx+1) + '</td>';
+            html += '<td>' + arrList[idx].CVEId + '</td>';
+            html += '<td>' + arrList[idx].VulnerabilityType + '</td>';
+            html += '<td>' + arrList[idx].Score + '</td>';
+            html += '<td>' + arrList[idx].Complexity + '</td>';
+            html += '<td>' + arrList[idx].Summary + '</td>';
+            html += '</tr>';
+        }
+
+        html += '</tbody></table>';
+
+        return html;
+    };
+
+    var dataToTableState = function (arrList) {
+        var arrLength = arrList.length;
+        var html = '<table class="table table-condensed" style="width:40%; margin: 0 auto;" id="vulStateGraphTable">';
+        html += '<thead style="background-color:moccasin"><tr>';
+
+        var columnCount = 0;
+        html += '<th>No.</th>';
+        columnCount += 1;
+        html += '<th>MyVDB ID</th>';
+        columnCount += 1;
+        html += '<th>CVE ID</th>';
+        columnCount += 1;
+        html += '<th>Vulnerability Description</th>';
+        columnCount += 1;
+        html += '<th>Vulnerability Type</th>';
+        columnCount += 1;
+        html += '<th>State</th>';
+        columnCount += 1;
+        html += '<th>Severity</th>';
+        columnCount += 1;
+        html += '<th>CVSS Score</th>';
+        columnCount += 1;
+
+        html += '</tr></thead><tbody>';
+
+        for (idx = 0; idx < arrLength; idx++)
+        {
+            html += '<tr><td>' + (idx+1) + '</td>';
+            html += '<td>' + arrList[idx].MyVDBID + '</td>';
+            html += '<td>' + arrList[idx].CVEId + '</td>';
+            html += '<td>' + arrList[idx].VulNm + '</td>';
+            html += '<td>' + arrList[idx].x.VulNm + '</td>';
+            html += '<td>' + arrList[idx].StateNm + '</td>';
+            html += '<td>' + arrList[idx].ImpactLvl + '</td>';
+            html += '<td>' + arrList[idx].CVSSScore + '</td>';
+            html += '</tr>';
+        }
+
+        html += '</tbody></table>';
+
+        return html;
+    };
+
+    function downloadVulByBrandPDF() {
+        // get size of report page
+        var reportPageHeight = $('#pdfVendorChartContainer').innerHeight() + $('#vulBrandTableContainer').innerHeight();
+        var reportPageWidth = $('#pdfVendorChartContainer').innerWidth();
+
+        // create a new canvas object that we will populate with all other canvas objects
+        var pdfCanvas = $('<canvas />').attr({
+            id: "canvaspdf",
+            width: reportPageWidth,
+            height: reportPageHeight
+        });
+
+        // keep track canvas position
+        var pdfctx = $(pdfCanvas)[0].getContext('2d');
+        var pdfctxX = 0;
+        var pdfctxY = 0;
+        var buffer = 100;
+
+        // for each chart.js chart
+        $("#VendorChartContainer").each(function(index) {
+            // get the chart height/width
+            var canvasHeight = $(this).innerHeight();
+            var canvasWidth = $(this).innerWidth();
+
+            // draw the chart into the new canvas
+            pdfctx.drawImage($(this)[0], pdfctxX, pdfctxY, canvasWidth, canvasHeight);
+            pdfctxX += canvasWidth + buffer;
+
+            // our report page is in a grid pattern so replicate that in the new canvas
+            if (index % 2 === 1) {
+                pdfctxX = 0;
+                pdfctxY += canvasHeight + buffer;
+            }
+        });
+        const doc = new jsPDF('landscape', 'pt', 'a4');
+        doc.autoTable({ html: '#vulBrandTable' });
+        doc.save('vulnerabilitybybrand_'+brandClickedName+'.pdf');
+        ResizeMap();
+    }
+</script>
+<script type="text/javascript">
+    function copyStylesInline(destinationNode, sourceNode) {
+        var containerElements = ["svg","g"];
+        for (var cd = 0; cd < destinationNode.childNodes.length; cd++) {
+            var child = destinationNode.childNodes[cd];
+            if (containerElements.indexOf(child.tagName) != -1) {
+                copyStylesInline(child, sourceNode.childNodes[cd]);
+                continue;
+            }
+            var style = sourceNode.childNodes[cd].currentStyle || window.getComputedStyle(sourceNode.childNodes[cd]);
+            if (style == "undefined" || style == null) continue;
+            for (var st = 0; st < style.length; st++){
+                child.style.setProperty(style[st], style.getPropertyValue(style[st]));
+            }
+        }
+    }
+
+    function triggerDownload (imgURI, fileName) {
+        var evt = new MouseEvent("click", {
+            view: window,
+            bubbles: false,
+            cancelable: true
+        });
+        var a = document.createElement("a");
+        a.setAttribute("download", fileName);
+        a.setAttribute("href", imgURI);
+        a.setAttribute("target", '_blank');
+        a.dispatchEvent(evt);
+    }
+    
+    function downloadSvg(svg, fileName) {
+        var svgSize = svg.getBoundingClientRect();
+        svg.setAttribute('width', svgSize.width+'px');
+        svg.setAttribute('height',  svgSize.height+'px');
+        svg.removeAttribute('xmlns:xlink');
+        svg.removeAttribute('xmlns');
+
+        if (typeof window.XMLSerializer != "undefined") {
+            var svgData = (new XMLSerializer()).serializeToString(svg);
+        } else if (typeof svg.xml != "undefined") {
+            var svgData = svg.xml;
+        }
+
+        var canvas = document.createElement("canvas");
+        canvas.width = svgSize.width;
+        canvas.height = svgSize.height;
+        var ctx = canvas.getContext("2d");
+        var img = document.createElement("img");
+        img.crossOrigin = "Anonymous";
+        img.setAttribute("src", "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData))) );
+
+        canvgv2(canvas, svgData,{
+            renderCallback:
+               function()
+               {
+
+                   //IE11, edge
+                   if (window.navigator.msSaveBlob !== undefined) {
+                       var _msblob = canvas.msToBlob();
+                       window.navigator.msSaveBlob(_msblob, fileName);
+                       return;
+                   }
+                   var _dataURL = canvas.toDataURL('image/png');
+                   var imgsrc = _dataURL;
+                   var a = document.createElement("a");
+                   a.download = fileName;
+                   a.href = imgsrc;
+                   document.body.appendChild(a);
+                   a.click();
+               }
+        });
+    }
+
+    $('.dropdown-menu').click(function(e) {
+        e.stopPropagation();
+    });
+</script>

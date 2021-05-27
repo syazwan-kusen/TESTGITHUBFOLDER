@@ -1,0 +1,581 @@
+﻿@using Newtonsoft.Json;
+@using myvdbsSQL;
+@using MyVDBSDemo.Models;
+
+@{
+    ViewBag.Title = "Profile";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+
+}
+
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "__AjaxAntiForgeryForm" }))
+{
+    @Html.AntiForgeryToken()
+}
+
+@*<script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>*@
+<script src="~/Scripts/canvasjs-Chart.js"></script>
+<script type="text/javascript">
+
+
+</script>
+<script src="~/Scripts/Common/Common.js"></script>
+<div class="col-lg-12" style="margin-top:80px;">
+    <div class="panel panel-info">
+        <div class="panel-heading">
+            <h3 class="panel-title">Profile Information</h3>
+        </div>
+        <div class="panel-body">
+            <br />
+
+
+            <div class="col-lg-3">
+                <table class="table table-bordered" width="100%">
+                    <tr>
+                        <td class="text-centers">
+                            <span class="image-box">
+
+                                @{
+                                    //if (File.Exists(Server.MapPath(@Model.d.CrossPath)))
+                                    //if (File.Exists(@Model.d.CrossPath))
+                                    if (@Model.d.CompPath != null && @Model.d.CompPath != "")
+                                    {
+                                        <img id="previewImg" src="@Model.d.CompPath" style="width:200px;height:200px">
+                                    }
+
+                                    else
+                                    {
+                                        <img id="previewImg" src="~/images/user_grey.png" style="width:200px;height:200px">
+                                    }
+
+                                }
+
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="form-group row ">
+                                <label for="upload_pict_path" class="col-md-12 control-label">Profile Picture</label>
+
+                                <div class="col-md-12">
+                                    <input type="file" id="picfile" name="upload_pict_path" class="filestyle" data-buttonText="" data-size="sm" data-placeholder="">
+
+                                    <p style="margin:0">@MyVDBSDemo.Resources.LangText.Img_Msg1</p>
+                                    <p style="margin:0">@MyVDBSDemo.Resources.LangText.File_Msg @Model.Size.FileLimitation MB.</p>
+                                    <p style="margin:0">@MyVDBSDemo.Resources.LangText.Img_Msg2 @Model.Size.ImageLimitationFrom x @Model.Size.ImageLimitationTo Pixels.</p>
+                                    @*<span class="help-block">
+                                            <strong>{{ $errors->first('upload_pict_path') }}</strong>
+                                        </span>*@
+
+
+                                    @*<input type="file" id="picfile" name="picf" />*@
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <form id="myForm" class="form-group">
+                <div class="col-lg-9" style="margin-left:-10px;">
+                    <div class="col-lg-8" style="margin-top:15px;">
+                        <div class="form-group row">
+                            <label for="DataID" class="col-md-3 control-label">Login ID</label>
+
+                            <div class="col-md-5">
+                                <input id="DataID" type="text" class="form-control" name="DataID" data-bind="value:User.d.DataID" disabled>
+
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="user_full_nm" class="col-md-3 control-label required">Name</label>
+
+                            <div class="col-md-9">
+                                <input id="user_full_nm" type="text" class="form-control validate[required]" name="user_full_nm" data-bind="value:User.d.CompFullNm" required autocomplete="off">
+
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="position" class="col-md-3 control-label required">Designation</label>
+
+                            <div class="col-md-9">
+                                <input id="position" type="text" class="form-control validate[required]" name="position" data-bind="value:User.d.Task" required autocomplete="off">
+
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="contact_num" class="col-md-3 control-label required">Contact No.</label>
+
+                            <div class="col-md-9">
+                                <div class="col-md-5" style="padding:0px 15px 0px 0px">
+                                    <select id="country" class="validate[required] form-control" data-bind="options: country, optionsText: 'CountryName', optionsValue: 'CountryTelCd', valueAllowUnset: true, value : User.d.CountryTelCd, valueUpdate: 'afterkeydown'"></select>
+                                </div>
+                                <div class="col-md-7" style="padding:0px;">
+                                    <input id="contact_num" type="text" class="form-control validate[required]" name="contact_num" data-bind="value:User.d.CompNum" placeholder="" required autocomplete="off" onkeypress="return isNumber(event)">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="e_mail_addr" class="col-md-3 control-label required">Email</label>
+
+                            <div class="col-md-9">
+                                <input id="e_mail_addr" type="email" class="form-control validate[required]" name="e_mail_addr" data-bind="value:User.d.Reference" required autocomplete="off">
+
+                                @*<span class="help-block">
+                                        <strong>{{ $errors->first('e_mail_addr') }}</strong>
+                                    </span>*@
+                            </div>
+                        </div>
+
+                        <div class="form-group row ">
+                            <div class="col-md-12 col-md-offset-3">
+                                <button type="submit" class="btn btn-primary" data-bind="click: saveProfile"><span class="fa fa-save"></span> Save</button>
+                                <a class="btn btn-warning" href="/Manage/ChangePassword"><span class="fa fa-key"></span> Change Password</a>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="col-lg-4">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th style="background-color: #ffe4b5;">ROLES</th>
+                                </tr>
+                            </thead>
+                            <tbody data-bind="foreach: User.UserRoles">
+                                <tr>
+                                    <td style="padding-left:20px;">
+                                        <span data-bind="text: b.PartNm"></span>
+
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <br /><br />
+                    @*<div class="col-lg-12">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th colspan="2" style="background-color: #ffe4b5;">AGENCY INFO</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td  class="col-md-3" style="padding-left:20px;">
+                                            <b>Agency Name</b>
+                                        </td>
+                                        <td style="padding-left:20px;"><span data-bind="text:User.d.c.AgcyNm"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-md-3" style="padding-left:20px;">
+                                            <b>Telephone No</b>
+                                        </td>
+                                        <td style="padding-left:20px;"><span data-bind="text:User.d.c.TelNo"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-md-3" style="padding-left:20px;">
+                                            <b>Fax No</b>
+                                        </td>
+                                        <td style="padding-left:20px;"><span data-bind="text:User.d.c.FaxNo"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-md-3" style="padding-left:20px;">
+                                            <b>Address</b>
+                                        </td>
+                                        <td style="padding-left:20px;"><span data-bind="text:User.d.FullAddress"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="col-md-3" style="padding-left:20px;">
+                                            <b>Postcode</b>
+                                        </td>
+                                        <td style="padding-left:20px;"><span data-bind="text:User.d.c.postcode"></span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>*@
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<script>
+
+    var User = @Html.Raw(JsonConvert.SerializeObject(@Model, Formatting.None,
+                    new JsonSerializerSettings()
+    {
+                        ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+    }));
+
+
+    @functions{
+        public string TokenHeaderValue()
+        {
+            string cookieToken, formToken;
+            AntiForgery.GetTokens(null, out cookieToken, out formToken);
+            return formToken;
+        }
+    }
+
+    var formCsrf = $('#__AjaxAntiForgeryForm');
+    var tokenCsrf = $('input[name="__RequestVerificationToken"]', formCsrf).val();
+</script>
+
+<script type="text/javascript">
+    var viewModel;
+    count = 0;
+    successMsg = 0;
+    success = 0;
+
+    sessionStorage.setItem("myTab", "profile");
+
+    $('#myForm').submit(function () {
+        $('input[type=submit]', this).attr('disabled', 'disabled');
+    });
+
+
+    $(function(){
+        var btnRefresh =  function () {
+            location.reload();
+        }
+        viewModel = {
+            User: ko.mapping.fromJS(User),
+            total: ko.observable(""),
+            country: ko.observableArray([]),
+            dataUrl: ko.observable(""),
+
+            UploadPic : function ()
+            {
+                var Name = $("#txtName").val();
+                var formData = new FormData();
+                var totalFiles = document.getElementById("picfile").files.length;
+                var dataUrl = viewModel.dataUrl();
+                var file = document.getElementById("picfile").files[0];
+
+                formData.append("FileUpload", file);
+                formData.append("Name", Name);
+                formData.append("dataUrl", dataUrl);
+
+                $.ajax({
+                    type: "POST",
+                    url: '/Upload/SaveProfilePics',
+                    data: formData,
+                    dataType: 'json',
+                    contentType: false,
+                    processData: false,
+                    success: function (msg) {
+                        if (msg.OK) {
+                           // alert(msg.message);
+                            successMsg = msg.message;
+                            success = 1;
+                            viewModel.SaveInfo();
+                        }
+                        else
+                        {
+                         //   alert("aaa" + msg.message1);
+                            successMsg =  msg.message1;
+                            success = 2;
+                            viewModel.SaveInfo();
+                        }
+
+                    },
+                    error: function (error) {
+                     //   alert("errror");
+                        successMsg = "File size is too big.";
+                        success = 3;
+                        viewModel.SaveInfo();
+                    }
+                });
+
+            },
+
+            SaveInfo:function () {
+
+                $.ajax({
+                    type: 'POST',
+                    //dataType: "html",
+                    url: server + '/Manage/SaveUserProfInfo',
+                    contentType: "application/json; charset=utf-8",
+                    data: JSON.stringify({ user : ko.mapping.toJS(viewModel.User.d),__RequestVerificationToken: '@TokenHeaderValue()'}),
+                    headers: {
+                        '__RequestVerificationToken': tokenCsrf
+                    },
+                    success: function (msg) {
+                        if (msg.OK) {
+
+                            if ( success == 1) {
+
+                                setTimeout(function(){ ShowMessageSuccess(successMsg  + "Changes has successfully saved ",btnRefresh)},3000);
+                                $(window).click(function() {
+                                    location.reload();
+                                });
+
+                            }
+                            else if (success == 2){
+                                setTimeout(function(){ ShowMessageDanger(successMsg,btnRefresh)},1000);
+                                $(window).click(function() {
+                                    location.reload();
+                                });
+                            }
+
+                            else if (success == 3){
+                                setTimeout(function(){ ShowMessageWarning(successMsg,btnRefresh)},1000);
+                                $(window).click(function() {
+                                    location.reload();
+                                });
+                            }
+                            else if (success == 0){
+                                setTimeout(function(){ ShowMessageSuccess("Changes has successfully saved ",btnRefresh)},1000);
+                                $(window).click(function() {
+                                    location.reload();
+                                });
+                            };
+
+
+
+                        }
+                        else {
+                            ShowMessage("Unsuccesfully update.");
+                        }
+
+                    },
+                    error: function (xhr) {
+                    }
+                });
+            },
+
+            saveProfile: function () {
+
+                var value = $("#myForm").validationEngine('validate');
+
+
+                if (value == true)
+                {
+
+                    ShowDecisionMessage("Are you Sure To Save this Records ? ", function () {
+
+                        //var totalFiles = document.getElementById("picfile").files.length;
+                        var totalFiles = viewModel.total();
+
+                        if (totalFiles != 0) {
+                            //success = 1;
+                            viewModel.UploadPic();
+
+                            //delay script
+                        }
+                        else
+                        {
+                            viewModel.SaveInfo();
+                        }
+
+                    });
+
+                }
+                else{
+                    $("#myForm").validationEngine();
+                }
+            },
+
+        };
+
+        ko.applyBindings(viewModel);
+        loadCountryNew('@TokenHeaderValue()');
+
+
+
+        function loadbutton() {
+
+
+            $('#delete').click(function () {
+
+                var DelId = "";
+                var objchk = document.getElementsByName("chkAccNo")
+
+
+                for (var i = 0; i < objchk.length ; i++) {
+                    if (objchk[i].checked == true) {
+                        DelId = DelId + objchk[i].value + " , ";
+                    }
+                }
+
+                if (DelId == "") {
+                    ShowMessage("Sila pilih rekod untuk dihapus");
+                }
+                else {
+                    var count = 0; // utk elakkan decisionmessage masuk lebih dri 1 kali
+                    ShowDecisionMessage("Adakah pasti untuk hapus maklumat berikut", function () {
+
+                        if (count == 0) {
+                            //       alert(DelId);
+                            viewModel.Delete(DelId);
+
+                            count++;
+                        }
+
+
+                    });
+
+                }
+
+
+            })
+
+        }
+
+    }
+
+    )
+
+    $('#picfile').change( function(event) {
+        var tmppath = URL.createObjectURL(event.target.files[0]);
+        //$("img").fadeIn("fast").attr('src',URL.createObjectURL(event.target.files[0]));
+        $('#previewImg').attr('src',URL.createObjectURL(event.target.files[0]));
+
+        var input = this;
+        var url = $(this).val();
+        var file = input.files[0];
+        var size = file.size/1024/1024;
+
+        if (!isImage(url)) {
+            ShowMessageWarning('@MyVDBSDemo.Resources.LangText.Valid_Img_Msg');
+            $(this).val('');
+            $('#previewImg').attr('src','/images/no-image-box.png');
+        }else{
+            var reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function () {
+
+                img = new Image();
+                img.src = reader.result;
+
+                img.onload = function() {
+
+                    img_width = img.width;
+                    img_height = img.height;
+
+                    if(size > viewModel.User.Size.FileLimitation()){
+                        viewModel.total(0);
+                        ShowMessageWarning('@MyVDBSDemo.Resources.LangText.Unable_Proceed_Img_Msg');
+                        $(this).val('');
+                        $('#previewImg').attr('src','/images/no-image-box.png');
+                    }else{
+
+                        if(img_width>viewModel.User.Size.ImageLimitationFrom()||img_height>viewModel.User.Size.ImageLimitationTo()) {
+                            viewModel.total(0);
+                            ShowMessageWarning('Your image is too big, it must be less than '+viewModel.User.Size.ImageLimitationFrom()+' x '+viewModel.User.Size.ImageLimitationTo()+' pixels.');
+                            $('div[name=filedrag]').next().val('');
+                            $(this).val('');
+                            $('#previewImg').attr('src','/images/no-image-box.png');
+                        }else{
+                            viewModel.total(1);
+                            $('#previewImg').attr('src',URL.createObjectURL(event.target.files[0]));
+                        }
+                    }
+                }
+            }
+        }
+
+    });
+
+    function isImage(filename) {
+        var ext = getExtension(filename);
+        switch (ext.toLowerCase()) {
+            case 'jpg':
+            case 'gif':
+            case 'bmp':
+            case 'png':
+                //etc
+                return true;
+        }
+        return false;
+    }
+
+
+    function getExtension(filename) {
+        var parts = filename.split('.');
+        return parts[parts.length - 1];
+    }
+
+    function isNumber(evt){
+        var charCode = (evt.which) ? evt.which : event.keyCode
+        if (charCode > 31 && (charCode < 48 || charCode > 57))
+            return false;
+
+        return true;
+    }
+
+    $(document).ready(function() {
+        $('#contact_num').bind('copy paste cut',function(e) {
+            e.preventDefault(); //disable cut,copy,paste
+        });
+
+
+        //$( "#contact_num" ).keyup(function() {
+        //    var dInput = this.value;
+        //    if(dInput.slice(0,1) == 0){
+        //        ShowMessageWarning("Should not start with 0.");
+        //        $("#contact_num").val("+");
+        //    }
+        //});
+    });
+
+    function validateEmail(email) {
+        var re = /^(([^<>()[\]\\.,;:\s@@\"]+(\.[^<>()[\]\\.,;:\s@@\"]+)*)|(\".+\"))@@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        return re.test(email);
+    }
+
+    function validate() {
+        var $result = $("#result");
+        var email = $("#e_mail_addr").val();
+        $result.text("");
+
+        if (validateEmail(email)) {
+        } else {
+            ShowMessageWarning("Invalid Email.");
+            $("#e_mail_addr").val("");
+        }
+        return false;
+    }
+
+    $("#e_mail_addr").bind("change", validate);
+
+    function readFile() {
+
+        if (this.files && this.files[0]) {
+
+            var FR= new FileReader();
+
+            FR.addEventListener("load", function(e) {
+                viewModel.dataUrl(e.target.result);
+            });
+
+            FR.readAsDataURL( this.files[0] );
+        }
+
+    }
+
+    document.getElementById("picfile").addEventListener("change", readFile);
+
+
+</script>
+
+@if (TempData["Message"] != null)
+{
+    <script type="text/javascript">
+                    $(function () {
+                        ShowMessage('@TempData["Message"]');
+                        $('input[type="submit"]').attr('disabled' , false);
+                    });
+
+
+
+    </script>
+}
